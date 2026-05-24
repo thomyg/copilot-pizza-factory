@@ -1,0 +1,7 @@
+# Normalize line endings across platforms (checked in as LF).
+* text=auto
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

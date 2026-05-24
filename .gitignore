@@ -1,0 +1,34 @@
+# --- .NET build output ---
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+artifacts/
+*.user
+*.suo
+.vs/
+.vscode/
+*.userprefs
+
+# --- Rider / JetBrains ---
+.idea/
+
+# --- macOS / editor cruft ---
+.DS_Store
+Thumbs.db
+
+# --- Secrets / local config (never publish) ---
+*.secrets.json
+appsettings.*.Local.json
+*.env
+.env
+
+# --- Internal tooling & docs kept out of the public repo ---
+# Agent / Claude scaffolding
+CLAUDE.md
+AGENTS.md
+.claude/
+# Beads issue tracker (contains internal notes/IDs)
+.beads/
+# Ops scripts and internal setup runbook (org-specific)
+scripts/
+docs/

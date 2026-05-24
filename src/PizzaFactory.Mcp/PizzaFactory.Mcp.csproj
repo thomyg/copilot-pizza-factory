@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PizzaFactory.Domain\PizzaFactory.Domain.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Infrastructure\PizzaFactory.Infrastructure.csproj" />
+    <ProjectReference Include="..\PizzaFactory.ServiceDefaults\PizzaFactory.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

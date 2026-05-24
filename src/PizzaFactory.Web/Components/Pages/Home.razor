@@ -1,0 +1,203 @@
+@page "/"
+@rendermode InteractiveServer
+@using PizzaFactory.Domain.Recipes
+@using PizzaFactory.Factory
+@using PizzaFactory.FrontOfHouse
+@using PizzaFactory.Giuseppe
+@using PizzaFactory.Web
+@inject FactorySnapshotProvider Snapshots
+@inject GuestOrderService Intake
+@inject IServiceProvider Services
+@inject WindowEventLog Events
+@inject OrderingGate Gate
+@implements IDisposable
+
+<PageTitle>Window into the Factory</PageTitle>
+
+<h1>🍕 Window into the Factory</h1>
+
+<section class="order">
+    <h3>Order from Giuseppe</h3>
+    <button class="kill-switch" @onclick="ToggleOrdering">@(Gate.IsOpen ? "🟢 Ordering open — click to close" : "🔴 Ordering closed — click to open")</button>
+    @if (Gate.IsOpen)
+    {
+        <select @bind="_pizza">
+            @foreach (var pizza in RecipeCatalog.Menu)
+            {
+                <option value="@pizza">@pizza</option>
+            }
+        </select>
+        <input type="number" @bind="_amount" min="1" max="5" />
+        <input @bind="_name" placeholder="(optional) your name" />
+        <button @onclick="PlaceOrderAsync">Order</button>
+    }
+    else
+    {
+        <p>Ordering is closed right now — check back soon!</p>
+    }
+    @if (!string.IsNullOrEmpty(_orderMessage))
+    {
+        <p class="order-result">@_orderMessage</p>
+    }
+</section>
+
+<section class="giuseppe">
+    <h3>Chat with Giuseppe</h3>
+    @if (_giuseppe is null)
+    {
+        <p><em>Giuseppe is off the clock — set Giuseppe:Endpoint + Giuseppe:Deployment to chat.</em></p>
+    }
+    else
+    {
+        <div class="chat-log">
+            @foreach (var (role, text) in _chat)
+            {
+                <p><strong>@role:</strong> @text</p>
+            }
+        </div>
+        <input @bind="_chatInput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy" />
+        <button @onclick="AskGiuseppeAsync" disabled="@_giuseppeBusy">Send</button>
+    }
+</section>
+
+<section class="bouncer">
+    <h3>Trust &amp; Safety — the Bouncer</h3>
+    <p>🛡️ Blocked attempts: <strong>@Events.BlockedCount</strong></p>
+    @if (Events.Recent.Count > 0)
+    {
+        <ul class="ticker">
+            @foreach (var entry in Events.Recent)
+            {
+                <li>@entry</li>
+            }
+        </ul>
+    }
+</section>
+
+@if (_snapshot is null)
+{
+    <p>Warming up the ovens…</p>
+}
+else
+{
+    <div class="stations">
+        <span><strong>@_snapshot.Ordered</strong> ordered</span>
+        <span><strong>@_snapshot.Preparing</strong> preparing</span>
+        <span><strong>@_snapshot.Baking</strong> baking</span>
+        <span><strong>@_snapshot.Ready</strong> ready</span>
+        <span>· @_snapshot.OpenOrders open orders · @_snapshot.DoughReady dough ready</span>
+    </div>
+
+    <h3>Stock</h3>
+    <ul>
+        @foreach (var level in _snapshot.Stock)
+        {
+            <li class="@(level.Grams <= 300 ? "low" : null)">@level.Ingredient: @level.Grams g</li>
+        }
+    </ul>
+
+    <p><em>Updated @_snapshot.At.ToLocalTime():HH:mm:ss</em></p>
+}
+
+@code {
+    private FactorySnapshot? _snapshot;
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+
+    private string _pizza = RecipeCatalog.Menu[0];
+    private int _amount = 1;
+    private string? _name;
+    private string? _orderMessage;
+
+    private GiuseppeAgent? _giuseppe;
+    private readonly List<(string Role, string Text)> _chat = [];
+    private string? _chatInput;
+    private bool _giuseppeBusy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _giuseppe = Services.GetService(typeof(GiuseppeAgent)) as GiuseppeAgent;
+        _snapshot = await Snapshots.GetAsync();
+        _cts = new CancellationTokenSource();
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        _ = RefreshLoopAsync(_cts.Token);
+    }
+
+    private async Task AskGiuseppeAsync()
+    {
+        if (_giuseppe is null || string.IsNullOrWhiteSpace(_chatInput))
+        {
+            return;
+        }
+
+        var question = _chatInput!;
+        _chat.Add(("You", question));
+        _chatInput = null;
+        _giuseppeBusy = true;
+        try
+        {
+            var reply = await _giuseppe.AskAsync(question);
+            if (!reply.Allowed)
+            {
+                Events.RecordBlock("chat input");
+            }
+
+            _chat.Add(("Giuseppe", reply.Text));
+        }
+        finally
+        {
+            _giuseppeBusy = false;
+        }
+    }
+
+    private void ToggleOrdering()
+    {
+        if (Gate.IsOpen)
+        {
+            Gate.Close();
+        }
+        else
+        {
+            Gate.Open();
+        }
+    }
+
+    private async Task PlaceOrderAsync()
+    {
+        var result = await Intake.PlaceAsync(
+            new GuestOrderRequest(_pizza, _amount, string.IsNullOrWhiteSpace(_name) ? null : _name));
+
+        if (!result.Accepted)
+        {
+            Events.RecordBlock(result.Reason ?? "order blocked");
+        }
+
+        _orderMessage = result.Accepted
+            ? $"✅ Order placed as {result.DisplayName} — watch it cross the floor!"
+            : $"🛡️ {result.Reason}";
+        _name = null;
+    }
+
+    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(cancellationToken))
+            {
+                _snapshot = await Snapshots.GetAsync(cancellationToken);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed.
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _timer?.Dispose();
+        _cts?.Dispose();
+    }
+}

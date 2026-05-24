@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.3.5">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>e9908d7a-d0aa-4028-8b11-d6a35464eb34</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PizzaFactory.ApiService\PizzaFactory.ApiService.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Mcp\PizzaFactory.Mcp.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Supplier\PizzaFactory.Supplier.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Web\PizzaFactory.Web.csproj" />
+  </ItemGroup>
+
+</Project>
