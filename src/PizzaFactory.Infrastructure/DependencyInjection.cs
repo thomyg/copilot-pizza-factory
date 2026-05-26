@@ -39,7 +39,9 @@ public static class DependencyInjection
         }
 
         services.AddSingleton(options);
-        services.AddSingleton(CreateCosmosClient(options));
+        // Lazy: build the client on first use, not at registration — a Cosmos init failure must not
+        // take down the whole host at startup (it did on Functions Flex Consumption).
+        services.AddSingleton<CosmosClient>(_ => CreateCosmosClient(options));
         services.AddSingleton<IOrderRepository, CosmosOrderRepository>();
         services.AddSingleton<IStockRepository, CosmosStockRepository>();
         services.AddSingleton<IPizzaRepository, CosmosPizzaRepository>();
@@ -60,6 +62,9 @@ public static class DependencyInjection
         {
             ApplicationName = "PizzaFactory",
             Serializer = serializer,
+            // Gateway mode: HTTPS-only and lazily connected — robust on serverless / restricted-egress
+            // hosts (Functions Flex Consumption), where Direct-mode TCP setup can stall at startup.
+            ConnectionMode = ConnectionMode.Gateway,
         };
 
         return new CosmosClient(options.Endpoint, new DefaultAzureCredential(), clientOptions);

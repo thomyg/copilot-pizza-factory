@@ -12,6 +12,9 @@ artifacts/
 # --- Rider / JetBrains ---
 .idea/
 
+# --- azd (Azure Developer CLI) local env state — per-tenant values, never publish ---
+.azure/
+
 # --- macOS / editor cruft ---
 .DS_Store
 Thumbs.db

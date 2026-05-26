@@ -8,6 +8,13 @@
     <PackageReference Include="ModelContextProtocol.AspNetCore" />
   </ItemGroup>
 
+  <!-- Azure Functions custom-handler manifest (Flex Consumption hosting). Copied to output so the
+       Functions host can launch this server; ignored when run locally or under Aspire.
+       Use Update (not Include): the Web SDK already picks host.json up as an implicit Content item. -->
+  <ItemGroup>
+    <Content Update="host.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\PizzaFactory.Domain\PizzaFactory.Domain.csproj" />
     <ProjectReference Include="..\PizzaFactory.Infrastructure\PizzaFactory.Infrastructure.csproj" />
