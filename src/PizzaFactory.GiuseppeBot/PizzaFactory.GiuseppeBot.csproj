@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Microsoft 365 Agents SDK: hosting (/api/messages, CloudAdapter) + MSAL auth (managed identity). -->
+    <PackageReference Include="Microsoft.Agents.Hosting.AspNetCore" />
+    <PackageReference Include="Microsoft.Agents.Authentication.Msal" />
+
+    <!-- Token validation for the inbound Bot Framework connector / Entra tokens (AspNetExtensions.cs). -->
+    <PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
+    <PackageReference Include="Microsoft.IdentityModel.Validators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PizzaFactory.Domain\PizzaFactory.Domain.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Safety\PizzaFactory.Safety.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Giuseppe\PizzaFactory.Giuseppe.csproj" />
+  </ItemGroup>
+
+</Project>

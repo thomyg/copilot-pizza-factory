@@ -15,6 +15,12 @@ artifacts/
 # --- azd (Azure Developer CLI) local env state — per-tenant values, never publish ---
 .azure/
 
+# --- Local-only journey log (not for the public repo) ---
+PROGRESS.md
+
+# --- Built Teams app package (concrete tenant-specific IDs; the manifest in source is templated) ---
+src/PizzaFactory.GiuseppeBot/appManifest/*.zip
+
 # --- macOS / editor cruft ---
 .DS_Store
 Thumbs.db

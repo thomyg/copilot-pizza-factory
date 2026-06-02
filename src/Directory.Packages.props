@@ -42,6 +42,18 @@
     <PackageVersion Include="ModelContextProtocol" Version="1.3.0" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="1.3.0" />
 
+    <!-- Microsoft 365 Agents SDK — Bot Framework /api/messages host for Giuseppe in Teams.
+         1.5.184 is the latest STABLE release (the 1.6.x line is still beta). Targets net8.0,
+         forward-compatible with net10.0. -->
+    <PackageVersion Include="Microsoft.Agents.Hosting.AspNetCore" Version="1.5.184" />
+    <PackageVersion Include="Microsoft.Agents.Authentication.Msal" Version="1.5.184" />
+
+    <!-- IdentityModel — required by AspNetExtensions.cs (official quickstart token-validation helper)
+         for multi-issuer Bot Framework + Entra validation via OpenID metadata. 8.15.0 matches the
+         versions the Agents SDK already pulls in transitively. -->
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.15.0" />
+    <PackageVersion Include="Microsoft.IdentityModel.Validators" Version="8.15.0" />
+
     <!-- Testing -->
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.22/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.22",
+  "version": "1.0.0",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "Solvion",
+    "websiteUrl": "https://github.com/thomyg/copilot-pizza-factory",
+    "privacyUrl": "https://github.com/thomyg/copilot-pizza-factory",
+    "termsOfUseUrl": "https://github.com/thomyg/copilot-pizza-factory"
+  },
+  "icons": { "color": "color.png", "outline": "outline.png" },
+  "name": { "short": "Giuseppe", "full": "Giuseppe's Pizza Factory" },
+  "description": {
+    "short": "Chat with Giuseppe, the AI pizzaiolo of the Pizza Factory.",
+    "full": "Giuseppe is the warm, witty AI concierge of the Copilot Pizza Factory. Order pizzas, ask about the menu, and watch the self-running factory respond — with Responsible-AI guardrails built in."
+  },
+  "accentColor": "#C2410C",
+  "copilotAgents": {
+    "customEngineAgents": [ { "id": "${{BOT_APP_ID}}", "type": "bot" } ]
+  },
+  "bots": [
+    {
+      "botId": "${{BOT_APP_ID}}",
+      "scopes": [ "personal", "team", "groupChat" ],
+      "supportsFiles": false,
+      "isNotificationOnly": false,
+      "commandLists": [
+        {
+          "scopes": [ "personal" ],
+          "commands": [
+            { "title": "Menu", "description": "What pizzas can I order?" },
+            { "title": "Order 2 Hawaii", "description": "Place an order" },
+            { "title": "How's the line?", "description": "Ask about the factory" }
+          ]
+        }
+      ]
+    }
+  ],
+  "permissions": [ "identity", "messageTeamMembers" ],
+  "validDomains": [ "${{BOT_DOMAIN}}" ]
+}
