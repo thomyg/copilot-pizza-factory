@@ -1,0 +1,29 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.8/schema.json",
+  "version": "v1.8",
+  "name": "Giuseppe${{APP_NAME_SUFFIX}}",
+  "description": "Giuseppe, the AI pizzaiolo of the Copilot Pizza Factory: browse the menu, check live ingredient stock, and place real pizza orders on the factory floor - including catering for your meetings.",
+  "instructions": "$[file('instruction.txt')]",
+  "conversation_starters": [
+    {
+      "title": "Order for a meeting",
+      "text": "Order pizza for my team retro on Friday."
+    },
+    {
+      "title": "See the menu",
+      "text": "What pizzas can I order today?"
+    },
+    {
+      "title": "Check the pantry",
+      "text": "Do you have enough ingredients for three Hawaii pizzas?"
+    },
+    {
+      "title": "Track my order",
+      "text": "What's the status of my orders?"
+    },
+    {
+      "title": "Recipe peek",
+      "text": "How does Giuseppe make the Diavolo?"
+    }
+  ]
+}

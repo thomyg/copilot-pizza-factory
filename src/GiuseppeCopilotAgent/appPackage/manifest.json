@@ -1,0 +1,50 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.29/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.29",
+  "version": "1.0.0",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "Copilot Pizza Factory (thomyg)",
+    "websiteUrl": "https://github.com/thomyg/copilot-pizza-factory",
+    "privacyUrl": "https://github.com/thomyg/copilot-pizza-factory#privacy",
+    "termsOfUseUrl": "https://github.com/thomyg/copilot-pizza-factory#terms"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Giuseppe${{APP_NAME_SUFFIX}}",
+    "full": "Giuseppe - Copilot Pizza Factory"
+  },
+  "description": {
+    "short": "Your AI pizzaiolo: order real pizza from the live factory floor.",
+    "full": "Giuseppe is the AI concierge of the Copilot Pizza Factory, an AI-first .NET demo. As a declarative agent in Microsoft 365 Copilot he browses the menu, checks live ingredient stock, places real orders on the autonomous factory floor via the factory's MCP server, and caters your meetings - one pizza per two attendees, vegetarians always covered."
+  },
+  "accentColor": "#D83B01",
+  "permissions": [
+    "identity",
+    "messageTeamMembers"
+  ],
+  "validDomains": [],
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "declarativeAgent",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "agentConnectors": [
+    {
+      "id": "pizza-factory",
+      "displayName": "pizza-factory",
+      "description": "Giuseppe's Pizza Factory tools: list the pizza menu and recipes, check ingredient stock, place pizza orders, and track order status on the live factory floor.",
+      "toolSource": {
+        "remoteMcpServer": {
+          "mcpServerUrl": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp"
+        }
+      }
+    }
+  ]
+}
