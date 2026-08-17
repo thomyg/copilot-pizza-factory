@@ -1,0 +1,248 @@
+@page "/engine-room"
+@rendermode InteractiveServer
+@using PizzaFactory.Domain
+@using PizzaFactory.Domain.Entities
+@using PizzaFactory.Factory
+@using PizzaFactory.FrontOfHouse
+@using PizzaFactory.Web
+@inject FactorySnapshotProvider Snapshots
+@inject DemoDirector Director
+@inject FactoryOptions Options
+@inject WindowEventLog Events
+@inject OrderingGate Gate
+@implements IDisposable
+
+<PageTitle>The Engine Room</PageTitle>
+
+<div class="engine-room">
+    <header>
+        <div>
+            <h1>🔧 The Engine Room</h1>
+            <p class="tagline">The <a href="/">Window</a> is for guests. This room is for the people who know where the fuses are.</p>
+        </div>
+        <div class="flight-toggle" title="Pick the altitude for the talk track">
+            <button class="@(!_nerdMode ? "active" : null)" @onclick="() => _nerdMode = false">👔 Suits</button>
+            <button class="@(_nerdMode ? "active" : null)" @onclick="() => _nerdMode = true">🤓 Nerds</button>
+        </div>
+    </header>
+
+    @if (_snapshot is null)
+    {
+        <p>Warming up the ovens…</p>
+    }
+    else
+    {
+        <section class="panel">
+            <h2>🏭 The Line</h2>
+            <div class="stations">
+                <div class="station"><span class="count">@_snapshot.Ordered</span><span class="label">ordered</span></div>
+                <div class="arrow">→</div>
+                <div class="station"><span class="count">@_snapshot.Preparing</span><span class="label">preparing</span></div>
+                <div class="arrow">→</div>
+                <div class="station"><span class="count">@_snapshot.Baking</span><span class="label">baking</span></div>
+                <div class="arrow">→</div>
+                <div class="station ready"><span class="count">@_snapshot.Ready</span><span class="label">ready</span></div>
+            </div>
+            <div class="chips">
+                <span class="chip">🧾 @_snapshot.OpenOrders open orders</span>
+                <span class="chip">🥖 @_snapshot.DoughReady dough ready</span>
+                <span class="chip">⏱️ updated @_snapshot.At.ToLocalTime().ToString("HH:mm:ss")</span>
+            </div>
+            <p class="note">@Note(
+                "The factory runs itself. Every number on this line moves with zero humans involved — that's the perpetuum mobile your guests are watching next door.",
+                $"One BackgroundService (FactoryWorker) ticks DoughMaster → Pizzaiolo → Procurement → CrisisWatch every {Options.TickInterval.TotalSeconds:0}s. Prep caps at {Options.PrepCapacity}, the oven at {Options.OvenCapacity} — that's why Rush Hour visibly piles up at 'ordered'.")</p>
+        </section>
+
+        <section class="panel">
+            <h2>🧺 The Pantry</h2>
+            <table class="pantry">
+                <tbody>
+                @foreach (var level in _snapshot.Stock)
+                {
+                    var initial = Math.Max(1, _openingStock.GetValueOrDefault(level.Ingredient, 1));
+                    var pct = Math.Min(100, level.Grams * 100 / initial);
+                    var state = level.Grams <= Options.CrisisThresholdGrams ? "crisis"
+                        : level.Grams <= Options.RestockThresholdGrams ? "low" : "ok";
+                    <tr>
+                        <td class="ingredient">@level.Ingredient</td>
+                        <td class="gauge"><div class="bar @state" style="width:@(pct)%"></div></td>
+                        <td class="grams">@level.Grams g</td>
+                        <td class="actions">
+                            <button title="Sneak 100g out the back door" @onclick="() => AdjustAsync(level.Ingredient, -100)">−100</button>
+                            <button title="Nonna tops it up" @onclick="() => AdjustAsync(level.Ingredient, +100)">+100</button>
+                            <button class="danger" title="86 it — drain to zero and let the crisis machinery earn its keep" @onclick="() => SabotageAsync(level.Ingredient)">86 it</button>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            <p class="note">@Note(
+                "Green is fine, amber means the self-healing supply chain is about to earn its salary, red means a human (or an AI supplier) gets a phone call. You can cause any of these on purpose.",
+                $"Stock is an immutable snapshot (FrozenDictionary) — every change is a new Stock, no shared mutation. Procurement restocks at ≤{Options.RestockThresholdGrams}g; CrisisWatch escalates at ≤{Options.CrisisThresholdGrams}g, edge-triggered and de-duplicated so it fires once per crisis, not once per tick.")</p>
+        </section>
+
+        <section class="panel chaos">
+            <h2>🎛️ The Chaos Console</h2>
+            <div class="chaos-grid">
+                <div class="chaos-card">
+                    <h3>🍍 The Pineapple Incident</h3>
+                    <p>86 the pineapple. Hawaii fans feel it first; Procurement phones the external Supplier agent (A2A).</p>
+                    <button class="danger" @onclick="PineappleIncidentAsync">Make it happen</button>
+                </div>
+                <div class="chaos-card">
+                    <h3>🌊 Rush Hour</h3>
+                    <p>Unleash the lunch crowd — a wall of real orders hits the floor at once.</p>
+                    <input type="number" @bind="_rushCount" min="1" max="@DemoDirector.MaxRushOrders" />
+                    <button @onclick="RushHourAsync">Unleash</button>
+                </div>
+                <div class="chaos-card">
+                    <h3>🧯 Nonna's Emergency Delivery</h3>
+                    <p>Everything back to opening stock. The demo equivalent of turning it off and on again.</p>
+                    <button @onclick="RestockAsync">Restock everything</button>
+                </div>
+                <div class="chaos-card">
+                    <h3>🚪 The Front Door</h3>
+                    <p>The kill switch for public ordering — close it between runs, open it for the crowd.</p>
+                    <button @onclick="ToggleGate">@(Gate.IsOpen ? "🟢 Ordering open — close it" : "🔴 Ordering closed — open it")</button>
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(_chaosMessage))
+            {
+                <p class="chaos-result">@_chaosMessage</p>
+            }
+            <p class="note">@Note(
+                "A demo you can steer beats a demo you can only survive. Break the factory on cue, then let the audience watch it heal itself.",
+                "These buttons hit the SAME repositories the autonomous floor runs on (DemoDirector, unit-tested) — no mock data, no smoke. Sabotage is real sabotage; recovery is real recovery.")</p>
+        </section>
+
+        <section class="panel">
+            <h2>📡 The Wire</h2>
+            <p>🛡️ Bouncer blocks so far: <strong>@Events.BlockedCount</strong></p>
+            @if (Events.Recent.Count == 0)
+            {
+                <p class="quiet">All quiet. Suspiciously quiet. Try the pineapple button.</p>
+            }
+            else
+            {
+                <ul class="ticker">
+                    @foreach (var entry in Events.Recent)
+                    {
+                        <li>@entry</li>
+                    }
+                </ul>
+            }
+            <p class="note">@Note(
+                "When the factory needs a human, it says so — here, in Teams, wherever the humans are. Nothing fails silently.",
+                "IEscalationSink is composed: logging + this ticker + the A2A supplier gateway when configured. CrisisWatch raises once per crisis; the supplier sink turns escalations into cross-org agent-to-agent restock orders.")</p>
+        </section>
+
+        <section class="panel script">
+            <h2>🎬 Showtime Script</h2>
+            <ol>
+                <li>Open the <a href="/" target="_blank">Window</a> on the projector, keep this room on your laptop. Two views, one factory.</li>
+                <li>Let the line hum for a minute — point out nobody is clicking anything.</li>
+                <li>🍍 Trigger the Pineapple Incident. Watch The Wire light up and the Supplier agent restock via A2A.</li>
+                <li>🌊 Rush Hour (20). Watch 'ordered' pile up against the prep/oven caps, then drain.</li>
+                <li>😈 Ask Giuseppe for "100 pizzas lol" — his prank radar wants a real headcount, and the factory's ordering tool has a hard cap of its own. Two lines of defense, one raised eyebrow.</li>
+                <li>🏁 Finale: the Friday Retro — Giuseppe caters a real meeting from Teams or M365 Copilot.</li>
+            </ol>
+            <p class="note">@Note(
+                "Each beat shows value: autonomy, resilience, human-in-the-loop, and an AI that keeps its common sense.",
+                "Each beat maps to code you can open live: FactoryWorker, CrisisWatch + sinks, FactoryOptions caps, OrderTools.MaxAmountPerOrder + the persona prank rule, and the Microsoft.Extensions.AI tool loop.")</p>
+        </section>
+    }
+</div>
+
+@code {
+    private FactorySnapshot? _snapshot;
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+    private bool _nerdMode;
+    private int _rushCount = 20;
+    private string? _chaosMessage;
+
+    private static readonly Dictionary<string, int> _openingStock =
+        Enum.GetValues<Ingredient>().ToDictionary(i => i.ToString(), i => Stock.Initial().GramsOf(i));
+
+    private string Note(string suits, string nerds) => _nerdMode ? nerds : suits;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _snapshot = await Snapshots.GetAsync();
+        _cts = new CancellationTokenSource();
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        _ = RefreshLoopAsync(_cts.Token);
+    }
+
+    private async Task AdjustAsync(string ingredient, int delta)
+    {
+        var parsed = Enum.Parse<Ingredient>(ingredient);
+        await Director.AdjustAsync(parsed, delta);
+        Events.RecordDirector($"{(delta > 0 ? "topped up" : "skimmed")} {ingredient} by {Math.Abs(delta)}g");
+        await RefreshNowAsync();
+    }
+
+    private async Task SabotageAsync(string ingredient)
+    {
+        var parsed = Enum.Parse<Ingredient>(ingredient);
+        var removed = await Director.SabotageAsync(parsed);
+        Events.RecordDirector($"86'd the {ingredient} ({removed}g vanished mysteriously)");
+        _chaosMessage = removed > 0
+            ? $"🕵️ {ingredient} is GONE ({removed}g). Nobody saw anything. Watch The Wire."
+            : $"🤷 {ingredient} was already empty — the sabotage was ahead of you.";
+        await RefreshNowAsync();
+    }
+
+    private async Task PineappleIncidentAsync() => await SabotageAsync(nameof(Ingredient.Pineapple));
+
+    private async Task RushHourAsync()
+    {
+        var placed = await Director.RushHourAsync(_rushCount);
+        Events.RecordDirector($"unleashed a rush of {placed} orders");
+        _chaosMessage = $"🌊 {placed} orders just hit the floor. The ovens send their regards.";
+        await RefreshNowAsync();
+    }
+
+    private async Task RestockAsync()
+    {
+        await Director.RestockAsync();
+        Events.RecordDirector("Nonna's emergency delivery — pantry reset to opening stock");
+        _chaosMessage = "🧯 Pantry reset. Nonna asks that you be more careful this time.";
+        await RefreshNowAsync();
+    }
+
+    private void ToggleGate()
+    {
+        if (Gate.IsOpen) { Gate.Close(); } else { Gate.Open(); }
+        Events.RecordDirector(Gate.IsOpen ? "opened the front door" : "closed the front door");
+    }
+
+    private async Task RefreshNowAsync()
+    {
+        _snapshot = await Snapshots.GetAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(cancellationToken))
+            {
+                _snapshot = await Snapshots.GetAsync(cancellationToken);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed.
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _timer?.Dispose();
+        _cts?.Dispose();
+    }
+}

@@ -14,14 +14,26 @@ namespace PizzaFactory.Mcp.Tools;
 [McpServerToolType]
 public sealed class OrderTools(IOrderRepository orders)
 {
+    /// <summary>The most pizzas one order may carry — Giuseppe's prank ceiling.</summary>
+    public const int MaxAmountPerOrder = 24;
+
     [McpServerTool(Name = "create_order")]
-    [Description("Place a new order for a pizza from the menu. Returns the created order with its id and state.")]
+    [Description("Place a new order for a pizza from the menu. Returns the created order with its id and state. Orders above 24 of one pizza are refused — split large events into multiple orders with a real headcount.")]
     public async Task<OrderSummary> CreateOrderAsync(
         [Description("Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'.")] string pizza,
-        [Description("How many of this pizza to make (1 or more).")] int amount,
+        [Description("How many of this pizza to make (1 to 24).")] int amount,
         [Description("Optional display name to show on the factory floor.")] string? customerName = null,
         CancellationToken cancellationToken = default)
     {
+        if (amount > MaxAmountPerOrder)
+        {
+            throw new ArgumentException(
+                $"{amount} pizzas in one order? Giuseppe raises an eyebrow — that's not an order, that's " +
+                $"a prank (or a wedding, in which case congratulazioni). The oven takes at most " +
+                $"{MaxAmountPerOrder} per order; tell me the real headcount and we'll do the math.",
+                nameof(amount));
+        }
+
         var recipe = RecipeCatalog.FindPizza(pizza)
             ?? throw new ArgumentException(
                 $"'{pizza}' is not on the menu. Available: {string.Join(", ", RecipeCatalog.Menu)}.",

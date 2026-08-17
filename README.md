@@ -5,7 +5,7 @@
 ![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-46b3a8?style=flat-square)
 ![A2A](https://img.shields.io/badge/A2A-Agent_to_Agent-d8703f?style=flat-square)
 ![Key-less](https://img.shields.io/badge/auth-key--less_(managed_identity)-46b36a?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-~87_passing-46b36a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-107_passing-46b36a?style=flat-square)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e0a92e?style=flat-square)
 
 An **AI-first demo** of a pizza factory that runs itself — a "perpetuum mobile" where autonomous
@@ -34,6 +34,12 @@ dotnet run --project src/PizzaFactory.Web
 Open the **Window**: order a pizza, watch it cross the stations live, chat with Giuseppe (when a model
 is configured), and see the "Bouncer" block bad input. With no Azure configured it falls back
 gracefully — in-memory store, Giuseppe "off the clock", no external supplier.
+
+Then open **`/engine-room`** — the presenter's cockpit. A live watch-along of the whole line, a
+pantry you can sabotage, a **Chaos Console** (drain the pineapple, unleash a 100-order rush hour,
+reset everything), a ticker of escalations, and a **👔 Suits / 🤓 Nerds toggle** that switches every
+panel's talk-track annotation between the business story and the engineering story. Break the factory
+on cue; watch it heal itself.
 
 Run the tests:
 
@@ -65,6 +71,9 @@ system — not a slide.
 | **03** | **Ask Giuseppe** | A warm AI pizzaiolo takes orders and answers questions in plain language — the friendly face over a real operation. | Natural-language access to live operations and customer service. |
 | **04** | **The perpetuum mobile** | Leave it running. Dough rests, pizzas bake, stock replenishes — with nobody at the controls. | A business process that simply runs itself, around the clock. |
 | **05** | **The Bouncer** | Open a public input box at a conference and trolls will come. A Responsible-AI guard blocks abuse and prompt-injection before it ever reaches the screen. | Trustworthy, compliant AI — brand-safe by design. |
+| **06** | **Cater my meeting** | "Giuseppe, order pizza for Friday's retro" — he finds the meeting, counts heads, remembers the vegetarian, and places real orders. | AI that knows *your* world, not just its own menu. |
+| **07** | **The prank radar** | Someone asks for 100 pizzas "lol". Giuseppe raises an eyebrow and asks for a real headcount — and the factory's ordering tool has a hard cap of its own. | AI with common sense *and* guardrails underneath it. |
+| **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
 
 ### 🛬 Technical flight level — how it's built
 
@@ -79,6 +88,7 @@ graph TD
   classDef data fill:#97a8bc22,stroke:#97a8bc,stroke-width:1.5px;
 
   WIN["The Window — Blazor live dashboard"]:::biz
+  ENG["The Engine Room — presenter cockpit + chaos console"]:::biz
   subgraph FLOOR["Autonomous Floor — perpetuum mobile"]
     DM["Dough Master"]:::tech
     PZ["Pizzaiolo"]:::tech
@@ -92,10 +102,14 @@ graph TD
   DB[("Cosmos DB / in-memory")]:::data
   ASP["Aspire — orchestration + OpenTelemetry"]:::data
 
+  WIQ["Microsoft Work IQ — M365 context (MCP)"]:::warm
+
   WIN --> FLOOR
+  ENG -->|"sabotage / rush hour / restock"| FLOOR
   WIN -->|"guarded chat"| GIU
   WIN -->|"moderate input"| GUARD
   GIU -->|"tool calls"| MCP
+  GIU -->|"meetings + calendar"| WIQ
   GIU --> GUARD
   FLOOR --> DB
   MCP --> DB
@@ -117,6 +131,9 @@ graph TD
 | Trolls get blocked, a counter ticks | Azure AI Content Safety + Prompt Shields behind one `IContentGuard` seam |
 | "How's the line doing?" | `station_status` tool answered over the **Model Context Protocol** (Streamable HTTP) |
 | It's all in the cloud, yet no passwords anywhere | Managed identity / `DefaultAzureCredential` — zero keys in source |
+| "Order pizza for Friday's retro" just… works | A `Microsoft.Extensions.AI` function-calling loop over **two MCP servers at once** — our factory tools and Microsoft's **Work IQ** (live M365 calendar) — with a deterministic rehearsal fallback so the demo can't die on stage |
+| 100-pizza prank gets an eyebrow, not an invoice | Persona-level prank radar **plus** a hard `create_order` cap at the MCP boundary — defense in depth, with jokes |
+| The presenter breaks the factory and it heals | Engine Room chaos buttons drive `DemoDirector` against the **same repositories** the autonomous floor runs on — real sabotage, real recovery |
 
 **Engineering patterns worth showing:**
 
@@ -126,7 +143,9 @@ graph TD
 - **Guardrail as a seam** — one `IContentGuard`; swap the offline heuristic for cloud Content Safety + Prompt Shields by config. Fails closed.
 - **Autonomous loops on `TimeProvider`** — `StepAsync(now)` instead of wall-clock timers, so the factory's behaviour is deterministic in tests.
 - **Swappable persistence** — repository interfaces with in-memory *and* Cosmos implementations; flip one DI line, runs cloud-free for local dev.
-- **Tested & live-verified** — ~87 tests; Cosmos, Content Safety, and Giuseppe each have env-gated integration tests that prove the real services.
+- **One agent, two MCP servers** — Giuseppe's `Microsoft.Extensions.AI` tool loop mixes our factory MCP tools with Microsoft's Work IQ MCP tools in a single conversation turn; `McpClientTool` *is* an `AIFunction`, so there's zero glue code. Every tool source degrades gracefully on failure.
+- **Steerable demo, honest data** — the Engine Room's `DemoDirector` sabotages and floods through the same repositories the floor runs on. No mock switches: what the audience watches recover is the real system recovering.
+- **Tested & live-verified** — 107 tests; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
 
 ## What's inside
 
@@ -138,16 +157,20 @@ graph TD
 | `PizzaFactory.Mcp` | A **Model Context Protocol** server (Streamable HTTP) exposing 9 tools over the factory (orders, inventory, recipes, live telemetry). |
 | `PizzaFactory.Safety` | **Responsible-AI guardrail** — offline heuristic + Azure AI Content Safety & Prompt Shields, behind one interface. |
 | `PizzaFactory.FrontOfHouse` | Public guest intake — auto pseudonyms (zero-PII), moderation, an ordering **kill-switch**. |
-| `PizzaFactory.Giuseppe` | The **AI concierge** — a guarded chat agent on Azure OpenAI. |
+| `PizzaFactory.Giuseppe` | The **AI concierge** — a guarded, tool-calling agent (`Microsoft.Extensions.AI`) that consumes the factory MCP server *and* Microsoft's **Work IQ** MCP server, caters meetings, and doesn't fall for pizza pranks. |
+| `PizzaFactory.GiuseppeBot` | Giuseppe in **Microsoft Teams** — a Microsoft 365 Agents SDK host over the Bot Framework, key-less (managed identity). |
+| `GiuseppeCopilotAgent` | Giuseppe in **M365 Copilot** — a declarative agent + MCP connector, built with the Work IQ Developer Tools (`wiqd`). |
 | `PizzaFactory.Supplier` | An **external Agent-to-Agent (A2A)** supplier — publishes an agent card and fulfils restock requests. |
-| `PizzaFactory.Web` | The **"Window"** — a Blazor dashboard that hosts the running factory and shows it live (board, order form, Giuseppe chat, Trust & Safety feed). |
+| `PizzaFactory.Web` | The **"Window"** (public live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
 ## The tech, in one breath
 
 .NET 10 · .NET Aspire · Blazor (interactive Server) · Azure Cosmos DB · Model Context Protocol (MCP) ·
-Agent-to-Agent (A2A) · Azure AI Content Safety + Prompt Shields · Azure OpenAI · **key-less throughout**
-(managed identity / `az login`, no secrets in source) · ~87 tests.
+Agent-to-Agent (A2A) · `Microsoft.Extensions.AI` function calling · Microsoft **Work IQ** (M365 context
+over MCP) · Microsoft 365 Agents SDK (Teams) · M365 Copilot declarative agent (built with `wiqd`) ·
+Azure AI Content Safety + Prompt Shields · Azure OpenAI · **key-less throughout** (managed identity /
+`az login`, no secrets in source) · 107 tests.
 
 ## Optional: run on Azure (key-less)
 

@@ -29,6 +29,9 @@ builder.Services.AddFrontOfHouse();
 builder.Services.AddPizzaFactoryFloor();
 builder.Services.AddSingleton<FactorySnapshotProvider>();
 
+// The Engine Room's steering levers (sabotage, rush hour, restock) — same repos as the floor.
+builder.Services.AddSingleton<DemoDirector>();
+
 // Trust & Safety feed for the Window (Bouncer counter + escalation ticker).
 builder.Services.AddSingleton<WindowEventLog>();
 builder.Services.AddSingleton<WindowEscalationSink>();

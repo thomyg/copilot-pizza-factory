@@ -42,6 +42,15 @@ public sealed class WindowEventLog
         }
     }
 
+    /// <summary>Record a presenter action from the Engine Room, so steering shows up in the story.</summary>
+    public void RecordDirector(string message)
+    {
+        lock (_gate)
+        {
+            Add($"🎛️ presenter {message}");
+        }
+    }
+
     private void Add(string entry)
     {
         _recent.AddFirst($"{DateTimeOffset.Now:HH:mm:ss}  {entry}");

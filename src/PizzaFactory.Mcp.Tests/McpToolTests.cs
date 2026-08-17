@@ -32,6 +32,27 @@ public class McpToolTests
     }
 
     [Fact]
+    public async Task create_order_smells_the_hundred_pizza_prank()
+    {
+        var tools = NewOrderTools(out var repo);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => tools.CreateOrderAsync("Margherita", 100));
+
+        Assert.Contains("prank", ex.Message);
+        Assert.Empty(await repo.ListAsync());        // nothing hit the floor
+    }
+
+    [Fact]
+    public async Task create_order_accepts_a_legitimate_big_party_at_the_cap()
+    {
+        var tools = NewOrderTools(out _);
+
+        var created = await tools.CreateOrderAsync("Margherita", OrderTools.MaxAmountPerOrder);
+
+        Assert.Equal(OrderTools.MaxAmountPerOrder, created.Amount);
+    }
+
+    [Fact]
     public async Task create_order_rejects_items_not_on_the_menu()
     {
         var tools = NewOrderTools(out _);

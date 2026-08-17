@@ -1,0 +1,273 @@
+.engine-room {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1rem 1.25rem 3rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #2a2118;
+}
+
+.engine-room header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 3px solid #d83b01;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.engine-room h1 {
+    margin: 0;
+    font-size: 1.9rem;
+}
+
+.tagline {
+    margin: 0.25rem 0 0;
+    color: #6b5d4f;
+    font-style: italic;
+}
+
+.flight-toggle {
+    display: flex;
+    border: 2px solid #d83b01;
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.flight-toggle button {
+    border: none;
+    background: transparent;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.flight-toggle button.active {
+    background: #d83b01;
+    color: #fff;
+}
+
+.panel {
+    background: #fffdf8;
+    border: 1px solid #eadfcd;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(90, 62, 27, 0.08);
+}
+
+.panel h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.25rem;
+}
+
+.note {
+    margin: 0.9rem 0 0;
+    padding: 0.6rem 0.8rem;
+    background: #fdf3e3;
+    border-left: 4px solid #e8a33d;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.92rem;
+    color: #5d4a33;
+}
+
+/* The Line */
+.stations {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.station {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 5.2rem;
+    padding: 0.6rem 0.75rem;
+    background: #fff;
+    border: 1px solid #eadfcd;
+    border-radius: 10px;
+}
+
+.station.ready {
+    border-color: #2e9e44;
+    background: #f2fbf2;
+}
+
+.station .count {
+    font-size: 1.7rem;
+    font-weight: 700;
+}
+
+.station .label {
+    font-size: 0.8rem;
+    color: #6b5d4f;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.arrow {
+    color: #b8a68e;
+    font-size: 1.2rem;
+}
+
+.chips {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.chip {
+    background: #f4ece0;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+/* The Pantry */
+.pantry {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pantry td {
+    padding: 0.3rem 0.5rem;
+    vertical-align: middle;
+}
+
+.pantry .ingredient {
+    width: 8.5rem;
+    font-weight: 600;
+}
+
+.pantry .gauge {
+    background: #f1e9db;
+    border-radius: 6px;
+    height: 0.9rem;
+    overflow: hidden;
+    min-width: 8rem;
+}
+
+.pantry .bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+
+.pantry .bar.ok { background: #2e9e44; }
+.pantry .bar.low { background: #e8a33d; }
+.pantry .bar.crisis { background: #d92b2b; }
+
+.pantry .grams {
+    width: 5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.pantry .actions {
+    width: 13rem;
+    text-align: right;
+    white-space: nowrap;
+}
+
+.engine-room button {
+    border: 1px solid #cbb894;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.3rem 0.65rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background 0.15s ease;
+}
+
+.engine-room button:hover {
+    background: #fdf3e3;
+}
+
+.engine-room button.danger {
+    border-color: #d92b2b;
+    color: #d92b2b;
+}
+
+.engine-room button.danger:hover {
+    background: #d92b2b;
+    color: #fff;
+}
+
+/* Chaos console */
+.chaos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 0.9rem;
+}
+
+.chaos-card {
+    background: #fff;
+    border: 1px solid #eadfcd;
+    border-radius: 10px;
+    padding: 0.8rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chaos-card h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.chaos-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6b5d4f;
+    flex-grow: 1;
+}
+
+.chaos-card input {
+    width: 5rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid #cbb894;
+    border-radius: 6px;
+}
+
+.chaos-result {
+    margin: 0.9rem 0 0;
+    padding: 0.5rem 0.8rem;
+    background: #eef7ff;
+    border-left: 4px solid #3d7fe8;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+}
+
+/* The Wire */
+.ticker {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.85rem;
+}
+
+.ticker li {
+    padding: 0.25rem 0.4rem;
+    border-bottom: 1px dashed #eadfcd;
+}
+
+.quiet {
+    color: #8a7a66;
+    font-style: italic;
+}
+
+/* Showtime script */
+.script ol {
+    margin: 0;
+    padding-left: 1.4rem;
+}
+
+.script li {
+    margin-bottom: 0.45rem;
+    line-height: 1.45;
+}
