@@ -59,12 +59,9 @@ builder.Services.AddSingleton<IEscalationSink>(sp =>
 });
 
 // Giuseppe (the AI concierge) when an Azure OpenAI deployment is configured (key-less).
-var giuseppeEndpoint = builder.Configuration["Giuseppe:Endpoint"];
-var giuseppeDeployment = builder.Configuration["Giuseppe:Deployment"];
-if (!string.IsNullOrWhiteSpace(giuseppeEndpoint) && !string.IsNullOrWhiteSpace(giuseppeDeployment))
-{
-    builder.Services.AddGiuseppe(new Uri(giuseppeEndpoint), giuseppeDeployment);
-}
+// Config-driven: Giuseppe:FactoryMcpUrl adds ordering/stock tools, WorkIq:Mode selects
+// workplace context (Rehearsal default; Live = Work IQ MCP with rehearsal fallback).
+builder.Services.AddGiuseppe(builder.Configuration);
 
 var app = builder.Build();
 

@@ -47,12 +47,9 @@ else
 // Giuseppe (the AI concierge) when an Azure OpenAI deployment is configured (key-less). When it's not,
 // GiuseppeBotAgent's optional GiuseppeAgent stays null and the bot replies "off the clock" — so the
 // host still builds, starts, and returns 200 from /api/messages with no Azure dependency.
-var giuseppeEndpoint = builder.Configuration["Giuseppe:Endpoint"];
-var giuseppeDeployment = builder.Configuration["Giuseppe:Deployment"];
-if (!string.IsNullOrWhiteSpace(giuseppeEndpoint) && !string.IsNullOrWhiteSpace(giuseppeDeployment))
-{
-    builder.Services.AddGiuseppe(new Uri(giuseppeEndpoint), giuseppeDeployment);
-}
+// Config-driven: Giuseppe:FactoryMcpUrl adds ordering/stock tools (our MCP server), WorkIq:Mode
+// selects workplace context (Rehearsal default; Live = Work IQ MCP with rehearsal fallback).
+builder.Services.AddGiuseppe(builder.Configuration);
 
 var app = builder.Build();
 

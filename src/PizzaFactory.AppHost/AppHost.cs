@@ -31,12 +31,24 @@ if (!string.IsNullOrWhiteSpace(cosmosEndpoint))
 }
 
 // Giuseppe (AI concierge): pass the Azure OpenAI deployment through if configured (key-less).
+// He always gets the local factory MCP server as his ordering tools, so "order pizza for
+// Friday's retro" places real orders on the factory floor you're watching in the dashboard.
 var giuseppeEndpoint = builder.Configuration["Giuseppe:Endpoint"];
 var giuseppeDeployment = builder.Configuration["Giuseppe:Deployment"];
 if (!string.IsNullOrWhiteSpace(giuseppeEndpoint) && !string.IsNullOrWhiteSpace(giuseppeDeployment))
 {
-    web.WithEnvironment("Giuseppe__Endpoint", giuseppeEndpoint)
-       .WithEnvironment("Giuseppe__Deployment", giuseppeDeployment);
+    web.WithReference(mcp)
+       .WithEnvironment("Giuseppe__Endpoint", giuseppeEndpoint)
+       .WithEnvironment("Giuseppe__Deployment", giuseppeDeployment)
+       .WithEnvironment("Giuseppe__FactoryMcpUrl", ReferenceExpression.Create($"{mcp.GetEndpoint("http")}/mcp"));
+
+    // Workplace context: Rehearsal (default) unless overridden — set WorkIq:Mode=Live to light up
+    // the real Work IQ MCP integration (workiq CLI stdio, falls back to rehearsal on any failure).
+    var workIqMode = builder.Configuration["WorkIq:Mode"];
+    if (!string.IsNullOrWhiteSpace(workIqMode))
+    {
+        web.WithEnvironment("WorkIq__Mode", workIqMode);
+    }
 }
 
 builder.Build().Run();
