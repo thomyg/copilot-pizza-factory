@@ -190,11 +190,11 @@ graph TD
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
-## The look: FORNO NERO
+## The look: FORNO ROSSO
 
-The design language is a wood-fired oven at night: charred blacks with warm undertones,
-flour-dusted creams, molten tomato as the single loud accent, crust gold for highlights,
-basil in whispers. Type is **Fraunces** (the artisanal-food display serif, bundled locally,
+The design language is the glow of the wood fire: molten tomato **red is the hero** — embers,
+sauce, the heat of the oven — burning over warm charred surfaces, with flour-dusted creams,
+crust gold for highlights, and basil in whispers. Type is **Fraunces** (the artisanal-food display serif, bundled locally,
 OFL) over **Karla** for UI. The storefront wears the night; the back of house wears the
 flour bench — one brand, two rooms, one CSS token system (`wwwroot/app.css`). Details that
 matter: dot-leader menu lines like a Florentine print shop, an ember-pulse on cooking
