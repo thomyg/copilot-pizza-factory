@@ -2,8 +2,8 @@
     max-width: 1080px;
     margin: 0 auto;
     padding: 1rem 1.25rem 3rem;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    color: #2a2118;
+    font-family: var(--font-ui);
+    color: var(--flour-ink);
 }
 
 .window header {
@@ -11,7 +11,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    border-bottom: 3px solid #d83b01;
+    border-bottom: 3px solid var(--tomato);
     padding-bottom: 0.75rem;
     margin-bottom: 1.25rem;
 }
@@ -23,7 +23,7 @@
 
 .tagline {
     margin: 0.25rem 0 0;
-    color: #6b5d4f;
+    color: var(--flour-muted);
     font-style: italic;
 }
 
@@ -37,9 +37,9 @@
 .chat-toggle,
 .view-toggle {
     font-size: 0.85rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     background: transparent;
-    border: 1px solid #eadfcd;
+    border: 1px solid var(--line-flour);
     border-radius: 999px;
     padding: 0.35rem 0.8rem;
     cursor: pointer;
@@ -51,8 +51,8 @@
 .view-toggle:hover,
 .view-toggle.active {
     color: #fff;
-    background: #d83b01;
-    border-color: #d83b01;
+    background: var(--tomato);
+    border-color: var(--tomato);
 }
 
 /* War Room mode: left rail + reserved right lane for Giuseppe. The middle claims the space
@@ -72,16 +72,16 @@
     bottom: 0;
     width: 360px;
     max-width: 90vw;
-    background: #fdf3e3;
-    border-right: 3px solid #d83b01;
-    box-shadow: 4px 0 18px rgba(90, 62, 27, 0.14);
+    background: var(--flour-100);
+    border-right: 3px solid var(--tomato);
+    box-shadow: var(--shadow-lift);
     display: flex;
     flex-direction: column;
     z-index: 40;
     padding: 0.9rem 1rem;
     overflow-y: auto;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    color: #2a2118;
+    font-family: var(--font-ui);
+    color: var(--flour-ink);
 }
 
 .war-rail h3 {
@@ -89,7 +89,7 @@
     font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #b53201;
+    color: var(--tomato-deep);
 }
 
 .war-rail .rail-title {
@@ -100,10 +100,10 @@
 
 .war-rail .rail-sub {
     font-size: 0.78rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     font-style: italic;
     margin: 0 0 0.6rem;
-    border-bottom: 1px dashed #d8c5a5;
+    border-bottom: 1px dashed var(--flour-300);
     padding-bottom: 0.6rem;
 }
 
@@ -115,33 +115,33 @@
 .engine-room-link {
     flex-shrink: 0;
     font-size: 0.85rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     text-decoration: none;
-    border: 1px solid #eadfcd;
+    border: 1px solid var(--line-flour);
     border-radius: 999px;
     padding: 0.35rem 0.8rem;
     transition: all 0.15s ease;
 }
 
 .engine-room-link:hover {
-    color: #d83b01;
-    border-color: #d83b01;
+    color: var(--tomato);
+    border-color: var(--tomato);
 }
 
 .warming {
     text-align: center;
     font-size: 1.2rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     padding: 3rem 0;
 }
 
 .panel {
-    background: #fffdf8;
-    border: 1px solid #eadfcd;
-    border-radius: 12px;
+    background: var(--parchment);
+    border: 1px solid var(--line-flour);
+    border-radius: var(--radius);
     padding: 1rem 1.25rem;
     margin-bottom: 1.25rem;
-    box-shadow: 0 1px 3px rgba(90, 62, 27, 0.08);
+    box-shadow: var(--shadow-soft);
 }
 
 .panel h2 {
@@ -168,12 +168,12 @@
 .hint {
     margin: 0.6rem 0 0;
     font-size: 0.85rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     font-style: italic;
 }
 
 .closed {
-    color: #8a7a66;
+    color: var(--flour-muted);
 }
 
 /* The floor — big and readable from the back of the room */
@@ -192,13 +192,13 @@
     min-width: 7rem;
     padding: 0.9rem 1rem;
     background: #fff;
-    border: 1px solid #eadfcd;
-    border-radius: 12px;
+    border: 1px solid var(--line-flour);
+    border-radius: var(--radius);
 }
 
 .station.ready {
-    border-color: #2e9e44;
-    background: #f2fbf2;
+    border-color: var(--basil);
+    background: #eef6e8;
 }
 
 .station .count {
@@ -209,13 +209,13 @@
 
 .station .label {
     font-size: 0.85rem;
-    color: #6b5d4f;
+    color: var(--flour-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
 .arrow {
-    color: #b8a68e;
+    color: var(--flour-400);
     font-size: 1.5rem;
 }
 
@@ -228,7 +228,7 @@
 }
 
 .chip {
-    background: #f4ece0;
+    background: var(--flour-100);
     border-radius: 999px;
     padding: 0.25rem 0.7rem;
     font-size: 0.85rem;
@@ -256,13 +256,13 @@
 }
 
 .chip.stars {
-    background: #fdf3d0;
+    background: var(--gold-pale);
     font-weight: 600;
 }
 
 button.play {
     border: none;
-    background: #2e9e44;
+    background: var(--basil);
     color: #fff;
     border-radius: 999px;
     padding: 0.5rem 1.1rem;
@@ -272,10 +272,10 @@ button.play {
     transition: background 0.15s ease;
 }
 
-button.play:hover { background: #257f37; }
+button.play:hover { background: var(--basil-deep); }
 
 button.play.playing {
-    background: #b8860b;
+    background: var(--gold-deep);
 }
 
 .stack {
@@ -298,7 +298,7 @@ button.play.playing {
 .order-form select,
 .order-form input,
 .chat-input input {
-    border: 1px solid #cbb894;
+    border: 1px solid var(--flour-300);
     border-radius: 8px;
     padding: 0.45rem 0.6rem;
     font-size: 0.95rem;
@@ -316,7 +316,7 @@ button.play.playing {
 
 button.primary {
     border: none;
-    background: #d83b01;
+    background: var(--tomato);
     color: #fff;
     border-radius: 8px;
     padding: 0.5rem 1rem;
@@ -326,19 +326,19 @@ button.primary {
 }
 
 button.primary:hover {
-    background: #b53201;
+    background: var(--tomato-deep);
 }
 
 button.primary:disabled {
-    background: #cbb894;
+    background: var(--flour-300);
     cursor: default;
 }
 
 .order-result {
     margin: 0.7rem 0 0;
     padding: 0.5rem 0.8rem;
-    background: #eef7ff;
-    border-left: 4px solid #3d7fe8;
+    background: #eaf1f9;
+    border-left: 4px solid var(--info);
     border-radius: 0 8px 8px 0;
     font-size: 0.95rem;
 }
@@ -361,7 +361,7 @@ button.primary:disabled {
 }
 
 .pantry .gauge {
-    background: #f1e9db;
+    background: var(--flour-200);
     border-radius: 6px;
     height: 0.8rem;
     overflow: hidden;
@@ -374,9 +374,9 @@ button.primary:disabled {
     transition: width 0.4s ease;
 }
 
-.pantry .bar.ok { background: #2e9e44; }
-.pantry .bar.low { background: #e8a33d; }
-.pantry .bar.crisis { background: #d92b2b; }
+.pantry .bar.ok { background: var(--basil); }
+.pantry .bar.low { background: var(--gold); }
+.pantry .bar.crisis { background: var(--danger); }
 
 .pantry .grams {
     width: 4.5rem;
@@ -401,5 +401,5 @@ button.primary:disabled {
 
 .ticker li {
     padding: 0.22rem 0.4rem;
-    border-bottom: 1px dashed #eadfcd;
+    border-bottom: 1px dashed var(--line-flour);
 }

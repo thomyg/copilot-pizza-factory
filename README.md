@@ -190,6 +190,16 @@ graph TD
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
+## The look: FORNO NERO
+
+The design language is a wood-fired oven at night: charred blacks with warm undertones,
+flour-dusted creams, molten tomato as the single loud accent, crust gold for highlights,
+basil in whispers. Type is **Fraunces** (the artisanal-food display serif, bundled locally,
+OFL) over **Karla** for UI. The storefront wears the night; the back of house wears the
+flour bench — one brand, two rooms, one CSS token system (`wwwroot/app.css`). Details that
+matter: dot-leader menu lines like a Florentine print shop, an ember-pulse on cooking
+orders, grain texture over the char, and a staggered hero reveal.
+
 ## The tech, in one breath
 
 .NET 10 · .NET Aspire · Blazor (interactive Server) · a live restaurant floor simulation · Azure Cosmos DB · Model Context Protocol (MCP) ·

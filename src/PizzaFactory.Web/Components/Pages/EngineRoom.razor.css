@@ -2,8 +2,8 @@
     max-width: 980px;
     margin: 0 auto;
     padding: 1rem 1.25rem 3rem;
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    color: #2a2118;
+    font-family: var(--font-ui);
+    color: var(--flour-ink);
 }
 
 .engine-room header {
@@ -11,7 +11,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    border-bottom: 3px solid #d83b01;
+    border-bottom: 3px solid var(--tomato);
     padding-bottom: 0.75rem;
     margin-bottom: 1.25rem;
 }
@@ -23,13 +23,13 @@
 
 .tagline {
     margin: 0.25rem 0 0;
-    color: #6b5d4f;
+    color: var(--flour-muted);
     font-style: italic;
 }
 
 .flight-toggle {
     display: flex;
-    border: 2px solid #d83b01;
+    border: 2px solid var(--tomato);
     border-radius: 999px;
     overflow: hidden;
     flex-shrink: 0;
@@ -44,17 +44,17 @@
 }
 
 .flight-toggle button.active {
-    background: #d83b01;
+    background: var(--tomato);
     color: #fff;
 }
 
 .panel {
-    background: #fffdf8;
-    border: 1px solid #eadfcd;
-    border-radius: 12px;
+    background: var(--parchment);
+    border: 1px solid var(--line-flour);
+    border-radius: var(--radius);
     padding: 1rem 1.25rem;
     margin-bottom: 1.25rem;
-    box-shadow: 0 1px 3px rgba(90, 62, 27, 0.08);
+    box-shadow: var(--shadow-soft);
 }
 
 .panel h2 {
@@ -65,8 +65,8 @@
 .note {
     margin: 0.9rem 0 0;
     padding: 0.6rem 0.8rem;
-    background: #fdf3e3;
-    border-left: 4px solid #e8a33d;
+    background: var(--flour-100);
+    border-left: 4px solid var(--gold);
     border-radius: 0 8px 8px 0;
     font-size: 0.92rem;
     color: #5d4a33;
@@ -87,13 +87,13 @@
     min-width: 5.2rem;
     padding: 0.6rem 0.75rem;
     background: #fff;
-    border: 1px solid #eadfcd;
+    border: 1px solid var(--line-flour);
     border-radius: 10px;
 }
 
 .station.ready {
-    border-color: #2e9e44;
-    background: #f2fbf2;
+    border-color: var(--basil);
+    background: #eef6e8;
 }
 
 .station .count {
@@ -103,13 +103,13 @@
 
 .station .label {
     font-size: 0.8rem;
-    color: #6b5d4f;
+    color: var(--flour-muted);
     text-transform: uppercase;
     letter-spacing: 0.04em;
 }
 
 .arrow {
-    color: #b8a68e;
+    color: var(--flour-400);
     font-size: 1.2rem;
 }
 
@@ -121,7 +121,7 @@
 }
 
 .chip {
-    background: #f4ece0;
+    background: var(--flour-100);
     border-radius: 999px;
     padding: 0.25rem 0.7rem;
     font-size: 0.85rem;
@@ -144,7 +144,7 @@
 }
 
 .pantry .gauge {
-    background: #f1e9db;
+    background: var(--flour-200);
     border-radius: 6px;
     height: 0.9rem;
     overflow: hidden;
@@ -157,9 +157,9 @@
     transition: width 0.4s ease;
 }
 
-.pantry .bar.ok { background: #2e9e44; }
-.pantry .bar.low { background: #e8a33d; }
-.pantry .bar.crisis { background: #d92b2b; }
+.pantry .bar.ok { background: var(--basil); }
+.pantry .bar.low { background: var(--gold); }
+.pantry .bar.crisis { background: var(--danger); }
 
 .pantry .grams {
     width: 5rem;
@@ -174,7 +174,7 @@
 }
 
 .engine-room button {
-    border: 1px solid #cbb894;
+    border: 1px solid var(--flour-300);
     background: #fff;
     border-radius: 8px;
     padding: 0.3rem 0.65rem;
@@ -184,16 +184,16 @@
 }
 
 .engine-room button:hover {
-    background: #fdf3e3;
+    background: var(--flour-100);
 }
 
 .engine-room button.danger {
-    border-color: #d92b2b;
-    color: #d92b2b;
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 .engine-room button.danger:hover {
-    background: #d92b2b;
+    background: var(--danger);
     color: #fff;
 }
 
@@ -206,7 +206,7 @@
 
 .chaos-card {
     background: #fff;
-    border: 1px solid #eadfcd;
+    border: 1px solid var(--line-flour);
     border-radius: 10px;
     padding: 0.8rem 0.9rem;
     display: flex;
@@ -222,22 +222,22 @@
 .chaos-card p {
     margin: 0;
     font-size: 0.85rem;
-    color: #6b5d4f;
+    color: var(--flour-muted);
     flex-grow: 1;
 }
 
 .chaos-card input {
     width: 5rem;
     padding: 0.25rem 0.4rem;
-    border: 1px solid #cbb894;
+    border: 1px solid var(--flour-300);
     border-radius: 6px;
 }
 
 .chaos-result {
     margin: 0.9rem 0 0;
     padding: 0.5rem 0.8rem;
-    background: #eef7ff;
-    border-left: 4px solid #3d7fe8;
+    background: #eaf1f9;
+    border-left: 4px solid var(--info);
     border-radius: 0 8px 8px 0;
     font-size: 0.95rem;
 }
@@ -253,11 +253,11 @@
 
 .ticker li {
     padding: 0.25rem 0.4rem;
-    border-bottom: 1px dashed #eadfcd;
+    border-bottom: 1px dashed var(--line-flour);
 }
 
 .quiet {
-    color: #8a7a66;
+    color: var(--flour-muted);
     font-style: italic;
 }
 

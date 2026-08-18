@@ -26,28 +26,31 @@
     </nav>
 
     <header class="hero">
-        <h1>Pizza from the factory<br />that never sleeps.</h1>
-        <p>Wood-fired classics, an oven with opinions, and a pizzaiolo who never stops humming.</p>
-        <div class="hero-actions">
+        <p class="eyebrow r1">Trattoria Giuseppe · forno a legna · est. sempre</p>
+        <h1 class="r2">Pizza from the factory<br /><em>that never sleeps.</em></h1>
+        <p class="sub r3">Wood-fired classics, an oven with opinions, and a pizzaiolo who never stops humming.</p>
+        <div class="hero-actions r4">
             <a class="cta" href="#order">Order now</a>
             <button class="cta ghost" @onclick="() => _chatOpen = true">💬 Chat with Giuseppe</button>
         </div>
     </header>
 
     <section id="menu" class="menu">
-        <h2>The Menu</h2>
+        <p class="eyebrow">il menù</p>
+        <h2>Six pizzas. No compromises.</h2>
         <div class="menu-grid">
             @foreach (var name in RecipeCatalog.Menu)
             {
                 var recipe = RecipeCatalog.GetPizza(name);
                 <article class="menu-card">
-                    <div class="menu-head">
+                    <div class="menu-line">
                         <h3>@name</h3>
+                        <span class="dots" aria-hidden="true"></span>
                         <span class="price">€@PriceList.Of(name).ToString("0.00")</span>
                     </div>
                     <p class="toppings">@string.Join(" · ", recipe.Toppings.Select(t => t.Ingredient.ToString()))</p>
                     @* Sim seconds read as menu minutes — the factory clock runs hot for the demo. *@
-                    <p class="oven">🔥 @((recipe.PreparingTime + recipe.BakingTime).TotalSeconds.ToString("0")) min in our oven</p>
+                    <p class="oven">@((recipe.PreparingTime + recipe.BakingTime).TotalSeconds.ToString("0")) min in the fire</p>
                 </article>
             }
         </div>

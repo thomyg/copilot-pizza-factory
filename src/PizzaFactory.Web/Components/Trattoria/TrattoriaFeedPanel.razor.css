@@ -9,20 +9,20 @@
 
 .trattoria-feed li {
     padding: 0.3rem 0.2rem;
-    border-bottom: 1px dashed #eadfcd;
+    border-bottom: 1px dashed var(--line-flour);
     line-height: 1.35;
 }
 
 .trattoria-feed .at {
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
     font-size: 0.72rem;
-    color: #b8a68e;
+    color: var(--flour-400);
     margin-right: 0.3rem;
 }
 
 .hint {
     margin: 0;
     font-size: 0.85rem;
-    color: #8a7a66;
+    color: var(--flour-muted);
     font-style: italic;
 }
