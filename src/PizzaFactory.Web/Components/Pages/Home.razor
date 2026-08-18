@@ -10,95 +10,145 @@
 @inject IServiceProvider Services
 @inject WindowEventLog Events
 @inject OrderingGate Gate
+@inject FactoryOptions Options
 @implements IDisposable
 
 <PageTitle>Window into the Factory</PageTitle>
 
-<h1>🍕 Window into the Factory</h1>
-<p class="engine-room-link"><a href="/engine-room">🔧 The Engine Room</a> — presenter view: watch-along, talk track, and the chaos console.</p>
-
-<section class="order">
-    <h3>Order from Giuseppe</h3>
-    <button class="kill-switch" @onclick="ToggleOrdering">@(Gate.IsOpen ? "🟢 Ordering open — click to close" : "🔴 Ordering closed — click to open")</button>
-    @if (Gate.IsOpen)
-    {
-        <select @bind="_pizza">
-            @foreach (var pizza in RecipeCatalog.Menu)
-            {
-                <option value="@pizza">@pizza</option>
-            }
-        </select>
-        <input type="number" @bind="_amount" min="1" max="5" />
-        <input @bind="_name" placeholder="(optional) your name" />
-        <button @onclick="PlaceOrderAsync">Order</button>
-    }
-    else
-    {
-        <p>Ordering is closed right now — check back soon!</p>
-    }
-    @if (!string.IsNullOrEmpty(_orderMessage))
-    {
-        <p class="order-result">@_orderMessage</p>
-    }
-</section>
-
-<section class="giuseppe">
-    <h3>Chat with Giuseppe</h3>
-    @if (_giuseppe is null)
-    {
-        <p><em>Giuseppe is off the clock — set Giuseppe:Endpoint + Giuseppe:Deployment to chat.</em></p>
-    }
-    else
-    {
-        <div class="chat-log">
-            @foreach (var (role, text) in _chat)
-            {
-                <p><strong>@role:</strong> @text</p>
-            }
+<div class="window">
+    <header>
+        <div>
+            <h1>🍕 Window into the Factory</h1>
+            <p class="tagline">A pizza factory that runs itself. Nobody is clicking anything — watch.</p>
         </div>
-        <input @bind="_chatInput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy" />
-        <button @onclick="AskGiuseppeAsync" disabled="@_giuseppeBusy">Send</button>
-    }
-</section>
+        <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
+    </header>
 
-<section class="bouncer">
-    <h3>Trust &amp; Safety — the Bouncer</h3>
-    <p>🛡️ Blocked attempts: <strong>@Events.BlockedCount</strong></p>
-    @if (Events.Recent.Count > 0)
+    @if (_snapshot is null)
     {
-        <ul class="ticker">
-            @foreach (var entry in Events.Recent)
-            {
-                <li>@entry</li>
-            }
-        </ul>
+        <p class="warming">Warming up the ovens…</p>
     }
-</section>
+    else
+    {
+        <section class="panel floor">
+            <div class="stations">
+                <div class="station"><span class="count">@_snapshot.Ordered</span><span class="label">ordered</span></div>
+                <div class="arrow">→</div>
+                <div class="station"><span class="count">@_snapshot.Preparing</span><span class="label">preparing</span></div>
+                <div class="arrow">→</div>
+                <div class="station"><span class="count">@_snapshot.Baking</span><span class="label">baking</span></div>
+                <div class="arrow">→</div>
+                <div class="station ready"><span class="count">@_snapshot.Ready</span><span class="label">ready</span></div>
+            </div>
+            <div class="chips">
+                <span class="chip">🧾 @_snapshot.OpenOrders open orders</span>
+                <span class="chip">🥖 @_snapshot.DoughReady dough ready</span>
+                <span class="chip">⏱️ @_snapshot.At.ToLocalTime().ToString("HH:mm:ss")</span>
+            </div>
+        </section>
 
-@if (_snapshot is null)
-{
-    <p>Warming up the ovens…</p>
-}
-else
-{
-    <div class="stations">
-        <span><strong>@_snapshot.Ordered</strong> ordered</span>
-        <span><strong>@_snapshot.Preparing</strong> preparing</span>
-        <span><strong>@_snapshot.Baking</strong> baking</span>
-        <span><strong>@_snapshot.Ready</strong> ready</span>
-        <span>· @_snapshot.OpenOrders open orders · @_snapshot.DoughReady dough ready</span>
-    </div>
+        <div class="columns">
+            <section class="panel order">
+                <h2>🛎️ Order from Giuseppe</h2>
+                @if (Gate.IsOpen)
+                {
+                    <div class="order-form">
+                        <select @bind="_pizza" aria-label="Pizza">
+                            @foreach (var pizza in RecipeCatalog.Menu)
+                            {
+                                <option value="@pizza">@pizza</option>
+                            }
+                        </select>
+                        <input class="amount" type="number" @bind="_amount" min="1" max="5" aria-label="Amount" />
+                        <input class="name" @bind="_name" placeholder="(optional) your name" />
+                        <button class="primary" @onclick="PlaceOrderAsync">Order 🍕</button>
+                    </div>
+                    <p class="hint">Your order joins the line above — watch it cross the floor.</p>
+                }
+                else
+                {
+                    <p class="closed">🔴 Ordering is closed right now — check back soon!</p>
+                }
+                @if (!string.IsNullOrEmpty(_orderMessage))
+                {
+                    <p class="order-result">@_orderMessage</p>
+                }
+            </section>
 
-    <h3>Stock</h3>
-    <ul>
-        @foreach (var level in _snapshot.Stock)
-        {
-            <li class="@(level.Grams <= 300 ? "low" : null)">@level.Ingredient: @level.Grams g</li>
-        }
-    </ul>
+            <section class="panel giuseppe">
+                <h2>👨‍🍳 Chat with Giuseppe</h2>
+                @if (_giuseppe is null)
+                {
+                    <p class="closed"><em>Giuseppe is off the clock — set Giuseppe:Endpoint + Giuseppe:Deployment to chat.</em></p>
+                }
+                else
+                {
+                    <div class="chat-log">
+                        @if (_chat.Count == 0)
+                        {
+                            <p class="hint">Ask him anything — the menu, a recipe, or "order pizza for Friday's retro".</p>
+                        }
+                        @foreach (var (role, text) in _chat)
+                        {
+                            <div class="bubble @(role == "You" ? "you" : "chef")">
+                                <span class="who">@(role == "You" ? "🙋 You" : "👨‍🍳 Giuseppe")</span>
+                                <span>@text</span>
+                            </div>
+                        }
+                        @if (_giuseppeBusy)
+                        {
+                            <div class="bubble chef"><span class="who">👨‍🍳 Giuseppe</span><span class="typing">is tossing the dough…</span></div>
+                        }
+                    </div>
+                    <div class="chat-input">
+                        <input @bind="_chatInput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy"
+                               @onkeydown="@(e => { if (e.Key == "Enter") { _ = AskGiuseppeAsync(); } })" />
+                        <button class="primary" @onclick="AskGiuseppeAsync" disabled="@_giuseppeBusy">Send</button>
+                    </div>
+                }
+            </section>
+        </div>
 
-    <p><em>Updated @_snapshot.At.ToLocalTime():HH:mm:ss</em></p>
-}
+        <div class="columns">
+            <section class="panel stock">
+                <h2>🧺 Stock</h2>
+                <table class="pantry">
+                    <tbody>
+                    @foreach (var level in _snapshot.Stock)
+                    {
+                        var initial = Math.Max(1, _openingStock.GetValueOrDefault(level.Ingredient, 1));
+                        var pct = Math.Min(100, level.Grams * 100 / initial);
+                        <tr>
+                            <td class="ingredient">@level.Ingredient</td>
+                            <td class="gauge"><div class="bar @(level.Grams <= Options.CrisisThresholdGrams ? "crisis" : level.Grams <= Options.RestockThresholdGrams ? "low" : "ok")" style="width:@(pct)%"></div></td>
+                            <td class="grams">@level.Grams g</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+                <p class="hint">Amber means the self-healing supply chain is about to earn its salary.</p>
+            </section>
+
+            <section class="panel bouncer">
+                <h2>🛡️ Trust &amp; Safety — the Bouncer</h2>
+                <p class="blocked">Blocked attempts: <strong>@Events.BlockedCount</strong></p>
+                @if (Events.Recent.Count == 0)
+                {
+                    <p class="hint">All quiet on the door. The Bouncer is watching.</p>
+                }
+                else
+                {
+                    <ul class="ticker">
+                        @foreach (var entry in Events.Recent)
+                        {
+                            <li>@entry</li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    }
+</div>
 
 @code {
     private FactorySnapshot? _snapshot;
@@ -114,6 +164,10 @@ else
     private readonly List<(string Role, string Text)> _chat = [];
     private string? _chatInput;
     private bool _giuseppeBusy;
+
+    private static readonly Dictionary<string, int> _openingStock =
+        Enum.GetValues<PizzaFactory.Domain.Ingredient>()
+            .ToDictionary(i => i.ToString(), i => PizzaFactory.Domain.Entities.Stock.Initial().GramsOf(i));
 
     protected override async Task OnInitializedAsync()
     {
@@ -137,6 +191,7 @@ else
         _giuseppeBusy = true;
         try
         {
+            await InvokeAsync(StateHasChanged);
             var reply = await _giuseppe.AskAsync(question);
             if (!reply.Allowed)
             {
@@ -148,18 +203,6 @@ else
         finally
         {
             _giuseppeBusy = false;
-        }
-    }
-
-    private void ToggleOrdering()
-    {
-        if (Gate.IsOpen)
-        {
-            Gate.Close();
-        }
-        else
-        {
-            Gate.Open();
         }
     }
 

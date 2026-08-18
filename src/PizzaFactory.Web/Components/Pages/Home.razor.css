@@ -1,0 +1,324 @@
+.window {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 1rem 1.25rem 3rem;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #2a2118;
+}
+
+.window header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 3px solid #d83b01;
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.window h1 {
+    margin: 0;
+    font-size: 2.1rem;
+}
+
+.tagline {
+    margin: 0.25rem 0 0;
+    color: #6b5d4f;
+    font-style: italic;
+}
+
+.engine-room-link {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    color: #8a7a66;
+    text-decoration: none;
+    border: 1px solid #eadfcd;
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    transition: all 0.15s ease;
+}
+
+.engine-room-link:hover {
+    color: #d83b01;
+    border-color: #d83b01;
+}
+
+.warming {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #8a7a66;
+    padding: 3rem 0;
+}
+
+.panel {
+    background: #fffdf8;
+    border: 1px solid #eadfcd;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 3px rgba(90, 62, 27, 0.08);
+}
+
+.panel h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.2rem;
+}
+
+.columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 760px) {
+    .columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+.columns .panel {
+    margin-bottom: 1.25rem;
+}
+
+.hint {
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+    color: #8a7a66;
+    font-style: italic;
+}
+
+.closed {
+    color: #8a7a66;
+}
+
+/* The floor — big and readable from the back of the room */
+.floor .stations {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+}
+
+.station {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 7rem;
+    padding: 0.9rem 1rem;
+    background: #fff;
+    border: 1px solid #eadfcd;
+    border-radius: 12px;
+}
+
+.station.ready {
+    border-color: #2e9e44;
+    background: #f2fbf2;
+}
+
+.station .count {
+    font-size: 2.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.station .label {
+    font-size: 0.85rem;
+    color: #6b5d4f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.arrow {
+    color: #b8a68e;
+    font-size: 1.5rem;
+}
+
+.chips {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    flex-wrap: wrap;
+}
+
+.chip {
+    background: #f4ece0;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+/* Order form */
+.order-form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.order-form select,
+.order-form input,
+.chat-input input {
+    border: 1px solid #cbb894;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.95rem;
+    background: #fff;
+}
+
+.order-form .amount {
+    width: 4rem;
+}
+
+.order-form .name {
+    flex-grow: 1;
+    min-width: 9rem;
+}
+
+button.primary {
+    border: none;
+    background: #d83b01;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+button.primary:hover {
+    background: #b53201;
+}
+
+button.primary:disabled {
+    background: #cbb894;
+    cursor: default;
+}
+
+.order-result {
+    margin: 0.7rem 0 0;
+    padding: 0.5rem 0.8rem;
+    background: #eef7ff;
+    border-left: 4px solid #3d7fe8;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.95rem;
+}
+
+/* Giuseppe chat */
+.chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 320px;
+    overflow-y: auto;
+    margin-bottom: 0.7rem;
+}
+
+.bubble {
+    max-width: 88%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.bubble .who {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #8a7a66;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.bubble.you {
+    align-self: flex-end;
+    background: #fdf3e3;
+    border: 1px solid #eadfcd;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble.chef {
+    align-self: flex-start;
+    background: #fff;
+    border: 1px solid #eadfcd;
+    border-bottom-left-radius: 4px;
+}
+
+.typing {
+    font-style: italic;
+    color: #8a7a66;
+}
+
+.chat-input {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-input input {
+    flex-grow: 1;
+}
+
+/* Stock gauges */
+.pantry {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.pantry td {
+    padding: 0.28rem 0.5rem;
+    vertical-align: middle;
+}
+
+.pantry .ingredient {
+    width: 8rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+}
+
+.pantry .gauge {
+    background: #f1e9db;
+    border-radius: 6px;
+    height: 0.8rem;
+    overflow: hidden;
+    min-width: 6rem;
+}
+
+.pantry .bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s ease;
+}
+
+.pantry .bar.ok { background: #2e9e44; }
+.pantry .bar.low { background: #e8a33d; }
+.pantry .bar.crisis { background: #d92b2b; }
+
+.pantry .grams {
+    width: 4.5rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.92rem;
+}
+
+/* Bouncer */
+.blocked {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.ticker {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.82rem;
+}
+
+.ticker li {
+    padding: 0.22rem 0.4rem;
+    border-bottom: 1px dashed #eadfcd;
+}
