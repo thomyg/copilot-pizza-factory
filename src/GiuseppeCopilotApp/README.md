@@ -44,8 +44,8 @@ bot: the room already does the authorization.
 
 ## One package, four surfaces
 
-The same `.sppkg` now carries five components sharing one set of React components and
-one rehearsal data service — the "build once, reach every surface" model, actually built:
+The same `.sppkg` now carries six components sharing one set of React components —
+the "build once, reach every surface" model, actually built:
 
 | Component | Surface | What it shows |
 | --- | --- | --- |
@@ -54,9 +54,23 @@ one rehearsal data service — the "build once, reach every surface" model, actu
 | `MenuBoardWebPart` | SharePoint page | The canteen play: menu with live pantry badges ("running low", "86'd") |
 | `PreOrdersWebPart` | SharePoint page | Reserve ahead — booking form + the reservation book |
 | `TonightAdaptiveCardExtension` | **Viva Connections** dashboard (Teams mobile) | "Tonight at the trattoria" card + quick view — the factory in your pocket |
+| `GiuseppeChatWebPart` | SharePoint page | **The pro-code route**: chat with the REAL GiuseppeAgent over the factory's guarded API — not rehearsal data |
 
 After deploying, the web parts appear in the page toolbox under the **Trattoria** group;
 the ACE appears in the Viva Connections dashboard toolbox.
+
+### The pro-code chat, in one breath
+
+`GiuseppeChatWebPart` POSTs to `PizzaFactory.Web`'s `/api/giuseppe/chat` — the same
+`Microsoft.Extensions.AI` tool-calling agent that runs the house, wearing the staff belt
+(front desk + manager + factory MCP). The endpoint is guarded by the content-safety
+Bouncer, rate-limited (20/min per IP), and CORS-restricted to
+`SharePointChat:AllowedOrigins`. Locally, point the web part's property-pane URL at the
+running factory (standalone: `https://localhost:7069/api/giuseppe/chat`; under Aspire the
+port is dynamic — read it off the dashboard). Deployed, the API sits behind Microsoft
+Entra like every surface of this demo; swap `fetch` for `AadHttpClient` and nothing else
+changes. Demo line: the other five components show *rehearsal* data — this one talks to
+the *live* floor.
 
 ## Build & test
 

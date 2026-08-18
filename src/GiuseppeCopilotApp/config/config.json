@@ -26,6 +26,14 @@
         }
       ]
     },
+    "giuseppe-chat-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/giuseppeChat/GiuseppeChatWebPart.js",
+          "manifest": "./src/webparts/giuseppeChat/GiuseppeChatWebPart.manifest.json"
+        }
+      ]
+    },
     "pre-orders-web-part": {
       "components": [
         {

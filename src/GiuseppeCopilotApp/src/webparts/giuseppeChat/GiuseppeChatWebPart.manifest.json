@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "62f73ad3-4b06-4f40-98e2-999d0bd53677",
+  "alias": "GiuseppeChatWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Ask Giuseppe (live)" },
+      "description": {
+        "default": "Chat with the REAL Giuseppe — the tool-calling agent on the live factory floor, via the guarded chat API. Not a mock."
+      },
+      "officeFabricIconFontName": "ChatBot",
+      "properties": {
+        "apiUrl": "https://localhost:7069/api/giuseppe/chat",
+        "darkMode": false
+      }
+    }
+  ]
+}

@@ -89,6 +89,9 @@ builder.Services.AddSingleton<IEscalationSink>(sp =>
 // workplace context (Rehearsal default; Live = Work IQ MCP with rehearsal fallback).
 builder.Services.AddGiuseppe(builder.Configuration);
 
+// The pro-code route: Giuseppe as a JSON API for the SPFx chat web part (guarded, rate-limited, CORS).
+builder.AddGiuseppeChatApi();
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -101,6 +104,8 @@ app.MapDefaultEndpoints();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 app.UseAntiforgery();
+
+app.MapGiuseppeChatApi();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
