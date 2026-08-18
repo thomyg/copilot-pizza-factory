@@ -40,4 +40,5 @@ AGENTS.md
 .beads/
 # Ops scripts and internal setup runbook (org-specific)
 scripts/
-docs/
+docs/*
+!docs/images/

@@ -62,6 +62,38 @@ dotnet test src/PizzaFactory.E2eTests     # just the browser journeys
 
 ---
 
+## 📸 The tour
+
+**Trattoria Command inside Microsoft 365 Copilot** — ask *"how is tonight looking at the trattoria?"*
+and Copilot answers with an **app**: the fullscreen war room, rendered live in the chat by an SPFx
+Copilot component (preview). Giuseppe's note in the header? The model wrote it on the fly.
+
+![Trattoria Command rendered inside Microsoft 365 Copilot](docs/images/copilot-trattoria-command.png)
+
+**The Window** — the live business dashboard: the kitchen line, a 17-table dining room living its
+own life, tonight's ticker, and online orders arriving over four channels.
+
+![The Window — live business dashboard](docs/images/the-window.png)
+
+**The War Room** — one toggle reserves the stage: every event streaming on the left, the floor
+untouched in the middle, and Giuseppe reporting for duty on the right (he is summoned automatically —
+a war room without the pizzaiolo is just a room).
+
+![War Room view with the live rail and Giuseppe docked](docs/images/war-room.png)
+
+**The Engine Room** — the presenter's cockpit: a watch-along of the whole line, a pantry you can
+sabotage, and the 👔 Suits / 🤓 Nerds toggle that switches every annotation between the business
+story and the engineering story.
+
+![The Engine Room — chaos console](docs/images/engine-room.png)
+
+**The Storefront** — Trattoria Giuseppe's "public" website: the FORNO ROSSO menu (90 seconds in
+the fire, as the disciplinare demands), online ordering, reservations, and the concierge chat.
+
+![Trattoria Giuseppe storefront](docs/images/storefront.png)
+
+---
+
 ## 🛫 Two flight levels
 
 The same running system tells two stories. Pick the altitude for the room in front of you — the
