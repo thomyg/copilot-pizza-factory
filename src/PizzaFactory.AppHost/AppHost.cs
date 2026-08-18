@@ -42,6 +42,16 @@ if (!string.IsNullOrWhiteSpace(giuseppeEndpoint) && !string.IsNullOrWhiteSpace(g
        .WithEnvironment("Giuseppe__Deployment", giuseppeDeployment)
        .WithEnvironment("Giuseppe__FactoryMcpUrl", ReferenceExpression.Create($"{mcp.GetEndpoint("http")}/mcp"));
 
+    // Local dev credential wiring: the Azure OpenAI resource may live in a different tenant than
+    // az login's default. Set Azure:TenantId (user-secrets) so DefaultAzureCredential asks the CLI
+    // for the RIGHT tenant — otherwise every Giuseppe chat dies with a 400 tenant mismatch.
+    var azureTenantId = builder.Configuration["Azure:TenantId"];
+    if (!string.IsNullOrWhiteSpace(azureTenantId))
+    {
+        web.WithEnvironment("AZURE_TENANT_ID", azureTenantId)
+           .WithEnvironment("AZURE_TOKEN_CREDENTIALS", "AzureCliCredential");
+    }
+
     // Workplace context: Rehearsal (default) unless overridden — set WorkIq:Mode=Live to light up
     // the real Work IQ MCP integration (workiq CLI stdio, falls back to rehearsal on any failure).
     var workIqMode = builder.Configuration["WorkIq:Mode"];

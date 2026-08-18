@@ -5,7 +5,7 @@
 ![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-46b3a8?style=flat-square)
 ![A2A](https://img.shields.io/badge/A2A-Agent_to_Agent-d8703f?style=flat-square)
 ![Key-less](https://img.shields.io/badge/auth-key--less_(managed_identity)-46b36a?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-107_passing-46b36a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-118_passing_incl._E2E-46b36a?style=flat-square)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e0a92e?style=flat-square)
 
 An **AI-first demo** of a pizza factory that runs itself — a "perpetuum mobile" where autonomous
@@ -41,10 +41,12 @@ reset everything), a ticker of escalations, and a **👔 Suits / 🤓 Nerds togg
 panel's talk-track annotation between the business story and the engineering story. Break the factory
 on cue; watch it heal itself.
 
-Run the tests:
+Run the tests — including the **E2E suite**, which boots the real app and clicks through both
+pages in a headless browser (ordering, chat degradation, every chaos button):
 
 ```bash
-dotnet test src/PizzaFactory.sln
+dotnet test src/PizzaFactory.sln          # unit + integration + E2E (first E2E run downloads Chromium)
+dotnet test src/PizzaFactory.E2eTests     # just the browser journeys
 ```
 
 ---
@@ -145,7 +147,7 @@ graph TD
 - **Swappable persistence** — repository interfaces with in-memory *and* Cosmos implementations; flip one DI line, runs cloud-free for local dev.
 - **One agent, two MCP servers** — Giuseppe's `Microsoft.Extensions.AI` tool loop mixes our factory MCP tools with Microsoft's Work IQ MCP tools in a single conversation turn; `McpClientTool` *is* an `AIFunction`, so there's zero glue code. Every tool source degrades gracefully on failure.
 - **Steerable demo, honest data** — the Engine Room's `DemoDirector` sabotages and floods through the same repositories the floor runs on. No mock switches: what the audience watches recover is the real system recovering.
-- **Tested & live-verified** — 107 tests; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
+- **Tested & live-verified** — 118 tests incl. 11 Playwright E2E browser journeys; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
 
 ## What's inside
 
@@ -162,6 +164,7 @@ graph TD
 | `GiuseppeCopilotAgent` | Giuseppe in **M365 Copilot** — a declarative agent + MCP connector, built with the Work IQ Developer Tools (`wiqd`). |
 | `PizzaFactory.Supplier` | An **external Agent-to-Agent (A2A)** supplier — publishes an agent card and fulfils restock requests. |
 | `PizzaFactory.Web` | The **"Window"** (public live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |
+| `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
 ## The tech, in one breath
@@ -170,7 +173,7 @@ graph TD
 Agent-to-Agent (A2A) · `Microsoft.Extensions.AI` function calling · Microsoft **Work IQ** (M365 context
 over MCP) · Microsoft 365 Agents SDK (Teams) · M365 Copilot declarative agent (built with `wiqd`) ·
 Azure AI Content Safety + Prompt Shields · Azure OpenAI · **key-less throughout** (managed identity /
-`az login`, no secrets in source) · 107 tests.
+`az login`, no secrets in source) · 118 tests incl. Playwright E2E.
 
 ## Optional: run on Azure (key-less)
 

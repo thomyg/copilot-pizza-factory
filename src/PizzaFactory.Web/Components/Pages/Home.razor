@@ -11,6 +11,7 @@
 @inject WindowEventLog Events
 @inject OrderingGate Gate
 @inject FactoryOptions Options
+@inject ILogger<Home> Logger
 @implements IDisposable
 
 <PageTitle>Window into the Factory</PageTitle>
@@ -101,7 +102,10 @@
                         }
                     </div>
                     <div class="chat-input">
-                        <input @bind="_chatInput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy"
+                        @* @bind:event="oninput" keeps the bound value current per keystroke — with the
+                           default (onchange) binding, Enter fires the keydown handler BEFORE the bind
+                           updates and the message silently vanishes. *@
+                        <input @bind="_chatInput" @bind:event="oninput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy"
                                @onkeydown="@(e => { if (e.Key == "Enter") { _ = AskGiuseppeAsync(); } })" />
                         <button class="primary" @onclick="AskGiuseppeAsync" disabled="@_giuseppeBusy">Send</button>
                     </div>
@@ -200,9 +204,18 @@
 
             _chat.Add(("Giuseppe", reply.Text));
         }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // The show must go on: a model/auth/network failure becomes an in-character apology,
+            // never a dead Blazor circuit. The real exception goes to the server logs.
+            Logger.LogError(ex, "Giuseppe chat failed");
+            _chat.Add(("Giuseppe", "Mamma mia — I just dropped a whole tray in the kitchen! 🍕💥 " +
+                "Give me a moment to clean up and ask me again."));
+        }
         finally
         {
             _giuseppeBusy = false;
+            await InvokeAsync(StateHasChanged);
         }
     }
 
