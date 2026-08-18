@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.5/schema.json",
+  "version": "v1.5",
+  "name": "Giuseppe — Trattoria Command",
+  "description": "Giuseppe with his manager hat on: tonight's service at a glance, business reports with honest numbers, the crystal ball for what will bite us soon, and the reservation book — all rendered as a living cockpit inside Copilot instead of a wall of text.",
+  "instructions": "$[file('instruction.txt')]",
+  "conversation_starters": [
+    {
+      "title": "Tonight at the trattoria",
+      "text": "How is tonight looking at the trattoria?"
+    },
+    {
+      "title": "Business report",
+      "text": "Give me today's business report."
+    },
+    {
+      "title": "The crystal ball",
+      "text": "What will most likely be a problem soon?"
+    },
+    {
+      "title": "Reservation book",
+      "text": "Show me the pre-orders and reservations coming up."
+    }
+  ],
+  "actions": [
+    {
+      "id": "trattoriaCommandAction",
+      "file": "ai-plugin.json"
+    }
+  ]
+}

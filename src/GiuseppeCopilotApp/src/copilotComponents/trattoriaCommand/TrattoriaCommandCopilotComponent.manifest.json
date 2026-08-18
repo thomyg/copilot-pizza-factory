@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-component-manifest.schema.json",
+  "id": "368e52a6-9af2-4a0f-85fa-f457b8e39836",
+  "alias": "TrattoriaCommandCopilotComponent",
+  "componentType": "CopilotComponent",
+  "copilotType": "Ux",
+  "version": "*",
+  "manifestVersion": 2,
+
+  "capabilities": {
+    "availableDisplayModes": ["inline", "fullscreen"]
+  },
+
+  "tools": [
+    {
+      "name": "TrattoriaCommandTool",
+      "description": {
+        "default": "Renders Giuseppe's back-of-house manager cockpit for the Copilot Pizza Factory trattoria on the Copilot canvas. Shows tonight's live service (tables, kitchen line, stock, guest satisfaction), today's business report (orders, revenue, channel mix, pace projection, 7-day history), the crystal-ball forecast (what will most likely be a problem soon), or the reservation book (upcoming pre-orders and parties) — starting as a compact inline card and expanding to a fullscreen war room. Invoke for any question about the trattoria's status, numbers, risks, or bookings."
+      },
+      "propertiesSchema": {
+        "id": "$../../../lib/copilotComponents/trattoriaCommand/TrattoriaCommandCopilotComponentProperties.js:default;"
+      }
+    }
+  ]
+}

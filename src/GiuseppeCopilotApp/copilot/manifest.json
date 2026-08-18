@@ -1,0 +1,35 @@
+{
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.24",
+  "version": "1.0.0",
+  "id": "8f6b2a1d-4c53-4b8e-b1a9-3f2e7d0c9a51",
+  "developer": {
+    "name": "Copilot Pizza Factory",
+    "websiteUrl": "https://github.com/thomyg/copilot-pizza-factory",
+    "privacyUrl": "https://github.com/thomyg/copilot-pizza-factory",
+    "termsOfUseUrl": "https://github.com/thomyg/copilot-pizza-factory"
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "name": {
+    "short": "Giuseppe",
+    "full": "Giuseppe — Trattoria Command for Microsoft 365 Copilot"
+  },
+  "description": {
+    "short": "Your pizzaiolo's back-of-house cockpit — tonight, reports, forecasts, reservations.",
+    "full": "Giuseppe is the pizzaiolo of the Copilot Pizza Factory — and inside Microsoft 365 Copilot he wears his manager hat. Ask about tonight's service, today's business report, what will most likely be a problem soon, or the reservation book, and instead of a wall of text Copilot renders a living cockpit: a compact inline card for a glance, expanding to a fullscreen war room with table pressure, revenue pace, the crystal ball and the pre-order book. FORNO ROSSO branded, dark-mode aware, and entirely rendered by a SharePoint Copilot component (SPFx 1.24 PREVIEW)."
+  },
+  "accentColor": "#C93A21",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "giuseppeTrattoriaCommand",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "permissions": ["identity"],
+  "validDomains": []
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/@microsoft/spfx-heft-plugins/lib-commonjs/plugins/copilotAgentPlugin/copilot-agent.schema.json",
+  "agents": [
+    {
+      "name": {
+        "default": "Giuseppe — Trattoria Command"
+      },
+      "description": {
+        "default": "Giuseppe's back-of-house manager cockpit: tonight's service, business reports, forecast risks and the reservation book, rendered as a living UI inside Copilot."
+      },
+      "components": [
+        "368e52a6-9af2-4a0f-85fa-f457b8e39836"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "giuseppe-copilot-app",
+    "id": "c3f38a4f-1910-4d81-a6ca-fa7c8b1ff2d0",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "Copilot Pizza Factory",
+      "websiteUrl": "https://github.com/thomyg/copilot-pizza-factory",
+      "privacyUrl": "https://github.com/thomyg/copilot-pizza-factory",
+      "termsOfUseUrl": "https://github.com/thomyg/copilot-pizza-factory",
+      "mpnId": "Undefined-1.24.0-beta.2"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "Trattoria Command — Giuseppe's back-of-house manager cockpit inside Microsoft 365 Copilot."
+      },
+      "longDescription": {
+        "default": "Giuseppe, the pizzaiolo of the Copilot Pizza Factory, wearing his manager hat inside Microsoft 365 Copilot. Ask about tonight's service, the business report, what will bite us soon, or the reservation book — and instead of a wall of text, Copilot renders a living cockpit: inline card for a glance, fullscreen for the war room. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "giuseppe-copilot-app Feature",
+        "description": "Activates the Trattoria Command Copilot component and the Giuseppe declarative agent.",
+        "id": "c3032824-2de2-4dd2-81bb-564ed0cc5ba0",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/giuseppe-copilot-app.sppkg"
+  }
+}
