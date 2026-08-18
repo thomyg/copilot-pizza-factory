@@ -44,6 +44,7 @@
         <div class="header-links">
             <button class="view-toggle @(_warRoom ? "active" : null)" title="Toggle the war-room live rail" @onclick="ToggleWarRoom">@(_warRoom ? "🌿 Overview" : "🎛️ War Room")</button>
             <button class="chat-toggle @(_chatOpen ? "active" : null)" title="Chat with Giuseppe" @onclick="() => _chatOpen = !_chatOpen">👨‍🍳 Giuseppe</button>
+            <a class="engine-room-link" href="/storefront" title="The public restaurant site (simulated — Entra-locked when deployed)">🌐 Storefront</a>
             <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
         </div>
     </header>

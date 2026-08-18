@@ -34,6 +34,22 @@ builder.Services.AddTrattoria();
 
 // The front desk hands Giuseppe the reservations book + dining room status as chat tools.
 builder.Services.AddSingleton<PizzaFactory.Giuseppe.Tools.IGiuseppeToolSource, FrontDeskToolSource>();
+
+// The storefront concierge: SAME agent machinery, customer hat — composed with the customer
+// tool belt ONLY (menu, order, reserve, status). It cannot leak the business report or touch
+// the factory because those tools are not in its hands. Personas are voice; tool belts are
+// authorization.
+builder.Services.AddSingleton<StorefrontToolSource>();
+builder.Services.AddSingleton(sp =>
+{
+    var chat = sp.GetService<Microsoft.Extensions.AI.IChatClient>();
+    return new StorefrontConcierge(chat is null ? null : new GiuseppeAgent(
+        chat,
+        sp.GetRequiredService<IContentGuard>(),
+        [sp.GetRequiredService<StorefrontToolSource>()],
+        logger: sp.GetService<ILogger<GiuseppeAgent>>(),
+        personaOverride: StorefrontConcierge.Persona(sp.GetRequiredService<TimeProvider>())));
+});
 builder.Services.AddSingleton<FactorySnapshotProvider>();
 
 // The Engine Room's steering levers (sabotage, rush hour, restock) — same repos as the floor.

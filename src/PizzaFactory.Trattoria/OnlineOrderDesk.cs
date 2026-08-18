@@ -75,6 +75,55 @@ public sealed class OnlineOrderDesk(
         }
     }
 
+    /// <summary>Cap for a single storefront order — bigger feasts should call the house.</summary>
+    public const int MaxStorefrontAmount = 8;
+
+    /// <summary>
+    /// A REAL customer order from the storefront (form or concierge). Validated at the boundary;
+    /// lands as a channel-Online order on the factory and as a ticket on the internal board.
+    /// Returns the ticket, or a human-readable error.
+    /// </summary>
+    public async Task<(OnlineTicket? Ticket, string? Error)> PlaceAsync(
+        string pizza,
+        int amount,
+        FulfilmentMode mode,
+        string customer,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        var recipe = RecipeCatalog.FindPizza(pizza);
+        if (recipe is null)
+        {
+            return (null, $"'{pizza}' is not on the menu — but everything that IS on it is excellent.");
+        }
+
+        if (amount is < 1 or > MaxStorefrontAmount)
+        {
+            return (null, $"Online orders take 1 to {MaxStorefrontAmount} pizzas — for bigger feasts, talk to Giuseppe about a reservation.");
+        }
+
+        if (string.IsNullOrWhiteSpace(customer))
+        {
+            return (null, "A name for the order, per favore — the courier can't deliver to 'mystery guest'.");
+        }
+
+        var order = await orders.AddAsync(
+            Order.Create(recipe.Name, amount, OrderChannel.Online, $"{customer.Trim()} ({mode})"), cancellationToken);
+
+        var ticket = new OnlineTicket(order.Id, OrderChannel.Online, mode, customer.Trim(), recipe.Name, amount, now, TicketState.Cooking);
+        lock (_tickets)
+        {
+            _tickets.Insert(0, ticket);
+            while (_tickets.Count > 20)
+            {
+                _tickets.RemoveAt(_tickets.Count - 1);
+            }
+        }
+
+        feed.Post(now, $"🌐 Storefront {ModeWord(mode)} order: {amount}× {recipe.Name} for {customer.Trim()}.");
+        return (ticket, null);
+    }
+
     /// <summary>Places one online order — also the entry point for the Engine Room to force one.</summary>
     public async Task<OnlineTicket> PlaceRandomOrderAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {

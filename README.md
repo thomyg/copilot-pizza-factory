@@ -40,6 +40,12 @@ schedule. You can still order a pizza yourself, chat with Giuseppe (when a model
 and watch the "Bouncer" block bad input. With no Azure configured it falls back gracefully —
 in-memory store, Giuseppe "off the clock", no external supplier.
 
+Then visit **`/storefront`** — the restaurant's "public" website, Trattoria Giuseppe: browse the
+menu with real prices, order takeaway/delivery, reserve pizzas ahead, and chat with the storefront
+concierge. Everything a customer does there lands on the house's real boards and books. (The page
+plays "public": deployed, it sits behind Microsoft Entra like every other surface of this demo —
+only our tenant can open it.)
+
 Then open **`/engine-room`** — the presenter's cockpit. A live watch-along of the whole line, a
 pantry you can sabotage, a **Chaos Console** (drain the pineapple, unleash a 100-order rush hour,
 reset everything), a ticker of escalations, and a **👔 Suits / 🤓 Nerds toggle** that switches every
@@ -81,7 +87,8 @@ system — not a slide.
 | **06** | **Cater my meeting** | "Giuseppe, order pizza for Friday's retro" — he finds the meeting, counts heads, remembers the vegetarian, and places real orders. | AI that knows *your* world, not just its own menu. |
 | **07** | **The prank radar** | Someone asks for 100 pizzas "lol". Giuseppe raises an eyebrow and asks for a real headcount — and the factory's ordering tool has a hard cap of its own. | AI with common sense *and* guardrails underneath it. |
 | **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
-| **09** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
+| **09** | **The storefront** | Customers browse the menu, order delivery, and reserve on the "public" website — by form or by chatting with Giuseppe — and every action appears live on the house's boards. Ask the storefront chat for the business report: charming refusal. | One brand, two hats: the public agent physically cannot reach the back office. |
+| **10** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
 
 ### 🛬 Technical flight level — how it's built
 
@@ -149,6 +156,7 @@ graph TD
 | "Giuseppe, book 10 Diavolo for Saturday 18:00" | The trattoria's front desk hands the agent its reservations book as tools (`list_pre_orders`, `book_pre_order`, `dining_room_status`) — the booking lands in the same `PreOrderBook` the UI shows |
 | "Status report — how are we doing tonight?" | The `Bookkeeper` aggregates the REAL order stream (revenue via a price list, channels, top seller, guests, stars) plus an honest pace projection and a seeded 7-day ledger for "versus a typical Tuesday" — Giuseppe narrates it like a proud owner |
 | "What will go wrong soon?" | `forecast_risks` cross-references stock against committed demand (open orders + reservations firing within 3h), the dough buffer, and seating pressure — severity-ranked risks with the arithmetic behind each, and Giuseppe adds a mitigation per risk |
+| The storefront chat can't leak the ledger | **One brain, two hats**: the same `GiuseppeAgent` machinery runs twice — the house instance with the full tool belt, the storefront instance with customer tools only (`browse_menu`, `place_online_order`, `book_reservation`, `check_order_status`). Personas are voice; **tool belts are authorization** — prompt injection can't call a tool that isn't there |
 
 **Engineering patterns worth showing:**
 
@@ -158,6 +166,7 @@ graph TD
 - **Guardrail as a seam** — one `IContentGuard`; swap the offline heuristic for cloud Content Safety + Prompt Shields by config. Fails closed.
 - **Autonomous loops on `TimeProvider`** — `StepAsync(now)` instead of wall-clock timers, so the factory's behaviour is deterministic in tests.
 - **Swappable persistence** — repository interfaces with in-memory *and* Cosmos implementations; flip one DI line, runs cloud-free for local dev.
+- **One brain, two hats** — per-surface agent instances share the machinery but get least-privilege tool belts; authorization lives in the tool layer, never in the prompt. Auth (Entra at the front door) decides who reaches which surface; composition decides what each surface can ever do.
 - **One agent, two MCP servers** — Giuseppe's `Microsoft.Extensions.AI` tool loop mixes our factory MCP tools with Microsoft's Work IQ MCP tools in a single conversation turn; `McpClientTool` *is* an `AIFunction`, so there's zero glue code. Every tool source degrades gracefully on failure.
 - **Steerable demo, honest data** — the Engine Room's `DemoDirector` sabotages and floods through the same repositories the floor runs on. No mock switches: what the audience watches recover is the real system recovering.
 - **Tested & live-verified** — 132 tests incl. 15 Playwright E2E browser journeys; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.

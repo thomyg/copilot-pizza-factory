@@ -81,7 +81,7 @@ public class WindowJourneyTests(WebAppFixture app)
     {
         var page = await app.NewLivePageAsync("/");
 
-        await page.Locator("a.engine-room-link").ClickAsync();
+        await page.Locator("a.engine-room-link", new PageLocatorOptions { HasTextString = "Engine" }).ClickAsync();
         await Assertions.Expect(page.Locator("h1")).ToContainTextAsync("The Engine Room", new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
 
         await page.Locator(".tagline a").ClickAsync();

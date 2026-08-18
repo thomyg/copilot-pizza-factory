@@ -1,0 +1,192 @@
+@page "/storefront"
+@rendermode InteractiveServer
+@using PizzaFactory.Domain.Recipes
+@using PizzaFactory.Trattoria
+@using PizzaFactory.Web.Components.Trattoria
+@inject OnlineOrderDesk Desk
+@inject PreOrderBook Book
+@inject StorefrontConcierge Concierge
+@inject TimeProvider Clock
+@implements IDisposable
+
+<PageTitle>Trattoria Giuseppe</PageTitle>
+
+<GiuseppeChatPanel Giuseppe="Concierge.Agent" Open="_chatOpen" OpenChanged="open => _chatOpen = open" />
+
+<div class="storefront">
+    <nav class="topbar">
+        <span class="brand">🍕 Trattoria Giuseppe</span>
+        <span class="lock-chip" title="This 'public' site is simulated: deployed, it sits behind Microsoft Entra (App Service Easy Auth) — only our tenant can open it.">🔒 private demo — Entra-locked when deployed</span>
+        <div class="topbar-links">
+            <a href="#menu">Menu</a>
+            <a href="#order">Order</a>
+            <a href="#reserve">Reserve</a>
+            <a class="staff" href="/" title="Back of house">staff door</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>Pizza from the factory<br />that never sleeps.</h1>
+        <p>Wood-fired classics, an oven with opinions, and a pizzaiolo who never stops humming.</p>
+        <div class="hero-actions">
+            <a class="cta" href="#order">Order now</a>
+            <button class="cta ghost" @onclick="() => _chatOpen = true">💬 Chat with Giuseppe</button>
+        </div>
+    </header>
+
+    <section id="menu" class="menu">
+        <h2>The Menu</h2>
+        <div class="menu-grid">
+            @foreach (var name in RecipeCatalog.Menu)
+            {
+                var recipe = RecipeCatalog.GetPizza(name);
+                <article class="menu-card">
+                    <div class="menu-head">
+                        <h3>@name</h3>
+                        <span class="price">€@PriceList.Of(name).ToString("0.00")</span>
+                    </div>
+                    <p class="toppings">@string.Join(" · ", recipe.Toppings.Select(t => t.Ingredient.ToString()))</p>
+                    @* Sim seconds read as menu minutes — the factory clock runs hot for the demo. *@
+                    <p class="oven">🔥 @((recipe.PreparingTime + recipe.BakingTime).TotalSeconds.ToString("0")) min in our oven</p>
+                </article>
+            }
+        </div>
+    </section>
+
+    <div class="forms">
+        <section id="order" class="panel">
+            <h2>🛵 Order online</h2>
+            <div class="order-form">
+                <select @bind="_orderPizza" aria-label="Pizza">
+                    @foreach (var pizza in RecipeCatalog.Menu)
+                    {
+                        <option value="@pizza">@pizza — €@PriceList.Of(pizza).ToString("0.00")</option>
+                    }
+                </select>
+                <input class="amount" type="number" @bind="_orderAmount" min="1" max="@OnlineOrderDesk.MaxStorefrontAmount" aria-label="Amount" />
+                <div class="mode">
+                    <label><input type="radio" name="mode" checked="@(_mode == FulfilmentMode.Takeaway)" @onchange="() => _mode = FulfilmentMode.Takeaway" /> 🛍️ takeaway</label>
+                    <label><input type="radio" name="mode" checked="@(_mode == FulfilmentMode.Delivery)" @onchange="() => _mode = FulfilmentMode.Delivery" /> 🛵 delivery</label>
+                </div>
+                <input class="name" @bind="_orderName" placeholder="your name" />
+                <button class="cta" @onclick="PlaceOrderAsync">Send it to the oven</button>
+            </div>
+            @if (!string.IsNullOrEmpty(_orderMessage))
+            {
+                <p class="result @(_orderError ? "error" : null)">@_orderMessage</p>
+            }
+            @if (MyTicket is { } ticket)
+            {
+                <p class="status">
+                    Your order: <strong>@ticket.Amount× @ticket.Pizza</strong> —
+                    @(ticket.State == TicketState.Done
+                        ? ticket.Mode == FulfilmentMode.Delivery ? "✅ out for delivery!" : "✅ ready for pickup!"
+                        : "🔥 in the kitchen right now")
+                </p>
+            }
+        </section>
+
+        <section id="reserve" class="panel">
+            <h2>📅 Reserve ahead</h2>
+            <p class="blurb">Party, retro, bingo night — book your pizzas and we fire the ovens right on time.</p>
+            <div class="reserve-form">
+                <select @bind="_reservePizza" aria-label="Pizza">
+                    @foreach (var pizza in RecipeCatalog.Menu)
+                    {
+                        <option value="@pizza">@pizza</option>
+                    }
+                </select>
+                <input class="amount" type="number" @bind="_reserveAmount" min="1" max="@PreOrderBook.MaxAmount" aria-label="Amount" />
+                <input class="when" type="datetime-local" @bind="_reserveWhen" aria-label="When" />
+                <input class="name" @bind="_reserveName" placeholder="who is it for?" />
+                <button class="cta" @onclick="Reserve">Book it</button>
+            </div>
+            @if (!string.IsNullOrEmpty(_reserveMessage))
+            {
+                <p class="result @(_reserveError ? "error" : null)">@_reserveMessage</p>
+            }
+        </section>
+    </div>
+
+    <footer>
+        <p>Trattoria Giuseppe · the tables never stop turning · a <strong>Copilot Pizza Factory</strong> demo — this page plays the public website; the real thing ships behind Microsoft Entra.</p>
+    </footer>
+</div>
+
+@code {
+    private bool _chatOpen;
+
+    private string _orderPizza = RecipeCatalog.Menu[0];
+    private int _orderAmount = 1;
+    private FulfilmentMode _mode = FulfilmentMode.Takeaway;
+    private string? _orderName;
+    private string? _orderMessage;
+    private bool _orderError;
+    private string? _myOrderId;
+
+    private string _reservePizza = RecipeCatalog.Menu[0];
+    private int _reserveAmount = 10;
+    private DateTime _reserveWhen = PreOrdersPanel.NextSaturdayAtSix(DateTime.Now);
+    private string? _reserveName;
+    private string? _reserveMessage;
+    private bool _reserveError;
+
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+
+    private OnlineTicket? MyTicket =>
+        _myOrderId is null ? null : Desk.Tickets.FirstOrDefault(t => t.OrderId == _myOrderId);
+
+    protected override void OnInitialized()
+    {
+        _cts = new CancellationTokenSource();
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(2));
+        _ = RefreshLoopAsync(_cts.Token);
+    }
+
+    private async Task PlaceOrderAsync()
+    {
+        var (ticket, error) = await Desk.PlaceAsync(_orderPizza, _orderAmount, _mode, _orderName ?? "", Clock.GetUtcNow());
+        _orderError = error is not null;
+        _orderMessage = error ?? $"Grazie, {ticket!.Customer}! {ticket.Amount}× {ticket.Pizza} is heading for the oven.";
+        if (error is null)
+        {
+            _myOrderId = ticket!.OrderId;
+            _orderName = null;
+        }
+    }
+
+    private void Reserve()
+    {
+        var when = new DateTimeOffset(_reserveWhen, TimeZoneInfo.Local.GetUtcOffset(_reserveWhen));
+        var error = Book.TryAdd(_reservePizza, _reserveAmount, when, _reserveName ?? "", Clock.GetUtcNow());
+        _reserveError = error is not null;
+        _reserveMessage = error ?? $"Booked! {_reserveAmount}× {_reservePizza} on {when.ToLocalTime():ddd d MMM HH:mm} — we'll be ready.";
+        if (error is null)
+        {
+            _reserveName = null;
+        }
+    }
+
+    private async Task RefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(cancellationToken))
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Component disposed.
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _timer?.Dispose();
+        _cts?.Dispose();
+    }
+}
