@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "1f802cbd-3b17-4dc0-b927-be5df74ced4a",
+  "alias": "PreOrdersWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Trattoria Reserve Ahead" },
+      "description": {
+        "default": "Book pizzas for the team event right from the intranet — the reservation book, on a page."
+      },
+      "officeFabricIconFontName": "Calendar",
+      "properties": {
+        "darkMode": false
+      }
+    }
+  ]
+}

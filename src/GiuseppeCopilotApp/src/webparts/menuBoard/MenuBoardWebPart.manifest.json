@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "8a251916-fbed-40dc-9011-62bb312982e8",
+  "alias": "MenuBoardWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Trattoria Menu" },
+      "description": {
+        "default": "The house menu with live availability badges from the pantry — when the pineapple runs out, the intranet page says so."
+      },
+      "officeFabricIconFontName": "EatDrink",
+      "properties": {
+        "darkMode": false
+      }
+    }
+  ]
+}

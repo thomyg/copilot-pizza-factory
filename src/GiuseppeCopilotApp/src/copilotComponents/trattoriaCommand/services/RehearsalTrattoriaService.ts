@@ -294,16 +294,31 @@ export function deriveRisks(tonight: ITonightSnapshot, preOrders: IPreOrderEntry
   return risks.sort((a, b) => order[a.severity] - order[b.severity]);
 }
 
+const RECIPES: Record<string, string[]> = {
+  Margherita: ['Dough', 'Tomato sauce', 'Mozzarella'],
+  Diavolo: ['Dough', 'Tomato sauce', 'Mozzarella', 'Salami'],
+  Hawaii: ['Dough', 'Tomato sauce', 'Mozzarella', 'Ham', 'Pineapple'],
+  Prosciutto: ['Dough', 'Tomato sauce', 'Mozzarella', 'Ham'],
+  Funghi: ['Dough', 'Tomato sauce', 'Mozzarella', 'Mushroom'],
+  'Al Tonno': ['Dough', 'Tomato sauce', 'Mozzarella', 'Tuna']
+};
+
 function usesIngredient(pizza: string, ingredient: string): boolean {
-  const recipes: Record<string, string[]> = {
-    Margherita: ['Dough', 'Tomato sauce', 'Mozzarella'],
-    Diavolo: ['Dough', 'Tomato sauce', 'Mozzarella', 'Salami'],
-    Hawaii: ['Dough', 'Tomato sauce', 'Mozzarella', 'Ham', 'Pineapple'],
-    Prosciutto: ['Dough', 'Tomato sauce', 'Mozzarella', 'Ham'],
-    Funghi: ['Dough', 'Tomato sauce', 'Mozzarella', 'Mushroom'],
-    'Al Tonno': ['Dough', 'Tomato sauce', 'Mozzarella', 'Tuna']
-  };
-  return (recipes[pizza] ?? []).indexOf(ingredient) >= 0;
+  return (RECIPES[pizza] ?? []).indexOf(ingredient) >= 0;
+}
+
+/** Menu availability derived from the pantry: 'out' when a required topping is in crisis, 'low' when it runs low. */
+export function pizzaAvailability(stock: IStockLevel[]): Record<string, 'ok' | 'low' | 'out'> {
+  const result: Record<string, 'ok' | 'low' | 'out'> = {};
+  for (const pizza of Object.keys(RECIPES)) {
+    const needed: IStockLevel[] = stock.filter((s) => usesIngredient(pizza, s.ingredient));
+    result[pizza] = needed.some((s) => s.state === 'crisis')
+      ? 'out'
+      : needed.some((s) => s.state === 'low')
+        ? 'low'
+        : 'ok';
+  }
+  return result;
 }
 
 /* ------------------------------------------------------------------ utils */

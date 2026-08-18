@@ -15,7 +15,11 @@
   "dependencies": {
     "@fluentui/react-components": "9.54.0",
     "@fluentui/react-icons": "2.0.270",
+    "@microsoft/sp-adaptive-card-extension-base": "^1.24.0-beta.2",
     "@microsoft/sp-copilot-component": "1.24.0-beta.2",
+    "@microsoft/sp-core-library": "^1.24.0-beta.2",
+    "@microsoft/sp-property-pane": "^1.24.0-beta.2",
+    "@microsoft/sp-webpart-base": "^1.24.0-beta.2",
     "react": "17.0.1",
     "react-dom": "17.0.1",
     "tslib": "2.3.1",

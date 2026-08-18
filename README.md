@@ -186,7 +186,7 @@ graph TD
 | `PizzaFactory.Giuseppe` | The **AI concierge** — a guarded, tool-calling agent (`Microsoft.Extensions.AI`) that consumes the factory MCP server *and* Microsoft's **Work IQ** MCP server, caters meetings, and doesn't fall for pizza pranks. |
 | `PizzaFactory.GiuseppeBot` | Giuseppe in **Microsoft Teams** — a Microsoft 365 Agents SDK host over the Bot Framework, key-less (managed identity). |
 | `GiuseppeCopilotAgent` | **Giuseppe Catering (Lab)** — a wiqd-scaffolded declarative agent + MCP connector experiment for M365 Copilot (Friday-retro catering). |
-| `GiuseppeCopilotApp` | **Trattoria Command** — a SharePoint Copilot App (SPFx 1.24 **preview**): the declarative agent to demo in Copilot, whose tool renders a real inline/fullscreen React cockpit on rehearsal data that mirrors the live sim. |
+| `GiuseppeCopilotApp` | **Trattoria Command** — a SharePoint Copilot App (SPFx 1.24 **preview**): one `.sppkg`, four surfaces — the Copilot agent cockpit, the same cockpit + menu + reserve-ahead as SharePoint web parts, and a Viva Connections card. One UX, everywhere. |
 | `PizzaFactory.Supplier` | An **external Agent-to-Agent (A2A)** supplier — publishes an agent card and fulfils restock requests. |
 | `PizzaFactory.Web` | The **"Window"** (public live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |

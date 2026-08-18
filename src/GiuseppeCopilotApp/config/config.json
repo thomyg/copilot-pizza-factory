@@ -9,6 +9,38 @@
           "manifest": "./src/copilotComponents/trattoriaCommand/TrattoriaCommandCopilotComponent.manifest.json"
         }
       ]
+    },
+    "trattoria-command-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/trattoriaCommand/TrattoriaCommandWebPart.js",
+          "manifest": "./src/webparts/trattoriaCommand/TrattoriaCommandWebPart.manifest.json"
+        }
+      ]
+    },
+    "menu-board-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/menuBoard/MenuBoardWebPart.js",
+          "manifest": "./src/webparts/menuBoard/MenuBoardWebPart.manifest.json"
+        }
+      ]
+    },
+    "pre-orders-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/preOrders/PreOrdersWebPart.js",
+          "manifest": "./src/webparts/preOrders/PreOrdersWebPart.manifest.json"
+        }
+      ]
+    },
+    "tonight-adaptive-card-extension": {
+      "components": [
+        {
+          "entrypoint": "./lib/adaptiveCardExtensions/tonight/TonightAdaptiveCardExtension.js",
+          "manifest": "./src/adaptiveCardExtensions/tonight/TonightAdaptiveCardExtension.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},

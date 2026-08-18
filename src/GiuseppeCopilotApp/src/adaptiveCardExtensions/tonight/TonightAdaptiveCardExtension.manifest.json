@@ -1,0 +1,23 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-component-manifest.schema.json",
+  "id": "d060556b-ab5e-48b6-82c9-c131c4d41041",
+  "alias": "TonightAdaptiveCardExtension",
+  "componentType": "AdaptiveCardExtension",
+  "version": "*",
+  "manifestVersion": 2,
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Tonight at the trattoria" },
+      "description": {
+        "default": "The trattoria's live service status on the Viva Connections dashboard — the factory in your pocket."
+      },
+      "iconProperty": "SpecialEvent",
+      "properties": {
+        "title": "Tonight at the trattoria"
+      }
+    }
+  ]
+}

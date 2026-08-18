@@ -42,6 +42,22 @@ bot: the room already does the authorization.
   crystal-ball rules from `Bookkeeper.ForecastAsync` — deterministic per day+hour, so
   demos are alive but stable. Swap seam: `ITrattoriaDataService`.
 
+## One package, four surfaces
+
+The same `.sppkg` now carries five components sharing one set of React components and
+one rehearsal data service — the "build once, reach every surface" model, actually built:
+
+| Component | Surface | What it shows |
+| --- | --- | --- |
+| `TrattoriaCommandCopilotComponent` | **M365 Copilot** chat (inline + fullscreen) | The cockpit, summoned by the agent |
+| `TrattoriaCommandWebPart` | **SharePoint page** / Teams tab | The identical cockpit — property pane steers view, note and dark mode |
+| `MenuBoardWebPart` | SharePoint page | The canteen play: menu with live pantry badges ("running low", "86'd") |
+| `PreOrdersWebPart` | SharePoint page | Reserve ahead — booking form + the reservation book |
+| `TonightAdaptiveCardExtension` | **Viva Connections** dashboard (Teams mobile) | "Tonight at the trattoria" card + quick view — the factory in your pocket |
+
+After deploying, the web parts appear in the page toolbox under the **Trattoria** group;
+the ACE appears in the Viva Connections dashboard toolbox.
+
 ## Build & test
 
 ```bash
