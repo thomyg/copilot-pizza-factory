@@ -11,10 +11,9 @@ const propertiesSchema = z.object({
     ),
   giuseppeSays: z
     .string()
-    .max(140)
     .optional()
     .describe(
-      "A short personal remark from Giuseppe (max 140 characters, warm and in character, e.g. 'The oven hums, the derby crowd looms — andiamo!') " +
+      "A short personal remark from Giuseppe (one short sentence, warm and in character, e.g. 'The oven hums, the derby crowd looms — andiamo!') " +
         'shown as his handwritten note on the cockpit.'
     )
 });

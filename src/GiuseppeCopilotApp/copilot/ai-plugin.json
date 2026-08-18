@@ -3,7 +3,7 @@
   "schema_version": "v2.4",
   "namespace": "trattoriaCommand",
   "name_for_human": "Trattoria Command",
-  "description_for_human": "Giuseppe's back-of-house cockpit — tonight's service, reports, forecasts and reservations at a glance.",
+  "description_for_human": "Giuseppe's back-of-house cockpit — tonight, reports, forecasts and reservations.",
   "description_for_model": "Renders Giuseppe's back-of-house manager cockpit on the Copilot canvas. Invoke whenever the user asks about the trattoria's current service ('how is tonight looking', tables, kitchen, stock), today's business numbers (report, revenue, orders, statistics, history), upcoming problems (forecast, risks, 'what will bite us', crystal ball), or the reservation book (pre-orders, bookings, upcoming parties). Choose the view parameter that matches the question and pass a short remark as giuseppeSays.",
   "contact_email": "publisher@contoso.com"
 }

@@ -57,6 +57,20 @@ tools automatically).
 
 ## Deploy (tenant admin, ~5 minutes)
 
+> **Validate first, deploy second.** The SPFx build does no validation on the merged
+> agent package (known preview issue) — an invalid manifest makes the agent sync fail
+> *silently*: the catalog shows "added to Teams" but the agent never appears anywhere.
+>
+> ```bash
+> npx @microsoft/m365agentstoolkit-cli validate --package-file teams/trattoria-command.zip
+> ```
+>
+> One expected error you can ignore: `url in RemoteMCPServerRuntimeSpec is not a valid
+> absolute URL` — that is the `{{TENANT_MCP_URL}}` placeholder the SharePoint sync stamps
+> at publish time. (It also means the zip **cannot** be sideloaded or uploaded via
+> Integrated apps directly — only the app-catalog sync resolves it.) Everything else the
+> validator flags is real and will break the sync.
+
 1. **App catalog**: upload `sharepoint/solution/giuseppe-copilot-app.sppkg` to the
    tenant SharePoint app catalog and check **Enable this app and add it to all sites**.
 2. When prompted, select **Add to Teams** — this also syncs the declarative agent to
