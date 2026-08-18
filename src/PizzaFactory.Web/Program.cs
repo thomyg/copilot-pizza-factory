@@ -31,6 +31,9 @@ builder.Services.AddPizzaFactoryFloor();
 
 // The dining room: 17 tables, online orders, pre-orders. Starts closed — the Play button opens it.
 builder.Services.AddTrattoria();
+
+// The front desk hands Giuseppe the reservations book + dining room status as chat tools.
+builder.Services.AddSingleton<PizzaFactory.Giuseppe.Tools.IGiuseppeToolSource, FrontDeskToolSource>();
 builder.Services.AddSingleton<FactorySnapshotProvider>();
 
 // The Engine Room's steering levers (sabotage, rush hour, restock) — same repos as the floor.

@@ -146,6 +146,7 @@ graph TD
 | The presenter breaks the factory and it heals | Engine Room chaos buttons drive `DemoDirector` against the **same repositories** the autonomous floor runs on — real sabotage, real recovery |
 | Tables fill, guests dine, reviews roll in | `MaitreD`/`OnlineOrderDesk`/`PreOrderBook` step on a `TimeProvider` and place **real orders**; the new `Expeditor` station completes tickets when every pizza is out of the oven |
 | A slow kitchen earns one-star reviews | Feedback stars derive from actual food wait time — sabotage the pantry and watch satisfaction drop, causally |
+| "Giuseppe, book 10 Diavolo for Saturday 18:00" | The trattoria's front desk hands the agent its reservations book as tools (`list_pre_orders`, `book_pre_order`, `dining_room_status`) — the booking lands in the same `PreOrderBook` the UI shows |
 
 **Engineering patterns worth showing:**
 

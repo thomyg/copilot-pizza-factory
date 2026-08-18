@@ -56,11 +56,11 @@
     transition: margin 0.25s ease;
 }
 
-/* Wide screens: the chat drawer pushes the dashboard right, VS Code style. */
+/* Wide screens: the right-docked chat drawer pushes the dashboard left, VS Code style. */
 @media (min-width: 1200px) {
     .window.chat-open {
-        margin-left: calc(380px + 2rem);
-        margin-right: 2rem;
+        margin-right: calc(380px + 2rem);
+        margin-left: 2rem;
         max-width: none;
     }
 }

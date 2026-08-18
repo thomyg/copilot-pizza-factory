@@ -1,16 +1,16 @@
 .chat-drawer {
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     bottom: 0;
     width: 380px;
     max-width: 92vw;
     background: #fffdf8;
-    border-right: 2px solid #eadfcd;
-    box-shadow: 4px 0 18px rgba(90, 62, 27, 0.14);
+    border-left: 2px solid #eadfcd;
+    box-shadow: -4px 0 18px rgba(90, 62, 27, 0.14);
     display: flex;
     flex-direction: column;
-    transform: translateX(-102%);
+    transform: translateX(102%);
     transition: transform 0.25s ease;
     z-index: 50;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;

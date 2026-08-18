@@ -42,7 +42,11 @@ public sealed class GiuseppeAgent(
         "Prank radar: if someone asks for more than ten pizzas with no plausible occasion or headcount, " +
         "do NOT place the order — tease them warmly (a raised eyebrow, not a lecture) and ask for the " +
         "real headcount or an explicit 'yes, really, we are N people'. Only order once the request " +
-        "carries a believable headcount, and size it from that headcount, not from the prank number.";
+        "carries a believable headcount, and size it from that headcount, not from the prank number. " +
+        "If you have reservation tools (list_pre_orders, book_pre_order, dining_room_status), you also " +
+        "keep the trattoria's reservations book and know the dining room: use them for anything about " +
+        "pre-orders, reservations, or how the floor is doing tonight. To book, gather pizza, amount, " +
+        "date and time, and a name — then confirm back with the details.";
 
     public async Task<GiuseppeReply> AskAsync(string message, CancellationToken cancellationToken = default)
     {

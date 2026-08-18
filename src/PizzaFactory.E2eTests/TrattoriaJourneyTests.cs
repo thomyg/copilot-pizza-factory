@@ -23,7 +23,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     }
 
     [Fact]
-    public async Task play_opens_the_floor_and_the_evening_begins()
+    public async Task play_opens_the_floor_and_a_bus_tour_fills_tables()
     {
         var page = await app.NewLivePageAsync("/");
         try
@@ -33,9 +33,15 @@ public class TrattoriaJourneyTests(WebAppFixture app)
             await Assertions.Expect(page.Locator("button.play")).ToContainTextAsync("Close service", Patient);
             await Assertions.Expect(page.Locator(".trattoria-feed")).ToContainTextAsync("Service is OPEN", Patient);
 
-            // Arrivals are stochastic (~22%/s) — within 45s someone is statistically certain to sit down.
+            // Random walk-ins are stochastic — the Engine Room's bus tour is not. Park the bus:
+            // its parties are seated on the very next tick, deterministically.
+            var engineRoom = await app.NewLivePageAsync("/engine-room");
+            await engineRoom.Locator(".chaos-card button", new PageLocatorOptions { HasTextString = "Park the bus" }).ClickAsync();
+            await Assertions.Expect(engineRoom.Locator(".chaos-result")).ToContainTextAsync("bus", Patient);
+            await engineRoom.CloseAsync();
+
             await Assertions.Expect(page.Locator(".table.seated, .table.waiting, .table.eating, .table.paying").First)
-                .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 45_000 });
+                .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 20_000 });
         }
         finally
         {
