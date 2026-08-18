@@ -46,6 +46,10 @@ concierge. Everything a customer does there lands on the house's real boards and
 plays "public": deployed, it sits behind Microsoft Entra like every other surface of this demo —
 only our tenant can open it.)
 
+Then dim the lights and open **`/cinema`** — Cinema mode, the perpetuum mobile made visible: a
+projector-friendly stage where every moving dot is real work happening. Best enjoyed with the
+Engine Room open on a second screen, causing trouble.
+
 Then open **`/engine-room`** — the presenter's cockpit. A live watch-along of the whole line, a
 pantry you can sabotage, a **Chaos Console** (drain the pineapple, unleash a 100-order rush hour,
 reset everything), a ticker of escalations, and a **👔 Suits / 🤓 Nerds toggle** that switches every
@@ -69,6 +73,14 @@ and Copilot answers with an **app**: the fullscreen war room, rendered live in t
 Copilot component (preview). Giuseppe's note in the header? The model wrote it on the fly.
 
 ![Trattoria Command rendered inside Microsoft 365 Copilot](docs/images/copilot-trattoria-command.png)
+
+**Cinema mode** (`/cinema`) — the perpetuum mobile, *visible*. A wall-projectable stage where every
+moving dot is real work: pizzas travel the line into a glowing oven, guests drift to their tables,
+and when stock runs low you literally watch the A2A supplier's delivery arc across the room into
+the refilling silo. Zero words needed — the one screen you slam in front of someone so they
+instantly get what's running. *(Danke für den Wunsch, Kollege. 🎬)*
+
+![Cinema mode — restock arcs mid-flight from the A2A supplier](docs/images/cinema.jpg)
 
 **The Window** — the live business dashboard: the kitchen line, a 17-table dining room living its
 own life, tonight's ticker, and online orders arriving over four channels.
@@ -121,6 +133,7 @@ system — not a slide.
 | **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
 | **09** | **The storefront** | Customers browse the menu, order delivery, and reserve on the "public" website — by form or by chatting with Giuseppe — and every action appears live on the house's boards. Ask the storefront chat for the business report: charming refusal. | One brand, two hats: the public agent physically cannot reach the back office. |
 | **10** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
+| **12** | **Cinema mode** | A dark, wall-projectable stage where the running factory is pure motion: pizzas flow station to station, the oven glows with load, guests arrive, silos drain — and a supply drop arcs in from the external supplier agent the moment stock runs low. | Autonomy you can *see*. No slide, no narration — the process explains itself. |
 | **11** | **Trattoria Command in Copilot** | Ask Microsoft 365 Copilot "how is tonight looking at the trattoria?" — and instead of a wall of text, a living cockpit renders inside the chat: tables, kitchen line, revenue pace, the crystal ball. One click expands it to a fullscreen war room. *(SPFx Copilot Apps, preview)* | Nobody expects Copilot to answer with an app. The manager's whole world, without leaving the chat. |
 
 ### 🛬 Technical flight level — how it's built

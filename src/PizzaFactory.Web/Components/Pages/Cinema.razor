@@ -1,0 +1,267 @@
+@page "/cinema"
+@rendermode InteractiveServer
+@using PizzaFactory.Domain.Entities
+@using PizzaFactory.Factory
+@using PizzaFactory.Trattoria
+@inject FactorySnapshotProvider Snapshots
+@inject MaitreD MaitreD
+@inject FactoryOptions Options
+@implements IDisposable
+
+<PageTitle>Cinema — the perpetuum mobile, live</PageTitle>
+
+<div class="cinema">
+    <div class="scaler">
+        <div class="stage @(_shockwave ? "quake" : null)">
+
+            <div class="topbar">
+                <span class="wordmark">🍕 COPILOT PIZZA FACTORY <em>— the perpetuum mobile, live</em></span>
+                <span class="top-right">
+                    <span class="chip @(_dining?.IsOpen == true ? "open" : "closed")">@(_dining?.IsOpen == true ? "● SERVICE OPEN" : "○ FLOOR CLOSED")</span>
+                    <span class="clock">@_now.ToLocalTime().ToString("HH:mm:ss")</span>
+                    <a class="exit" href="/" title="Back to the Window">✕</a>
+                </span>
+            </div>
+
+            @* The conveyor rails — always in motion, like the factory. *@
+            <svg class="rails" viewBox="0 0 1600 900">
+                <path class="rail" d="@PathDoughPrep" />
+                <path class="rail" d="@PathPrepOven" />
+                <path class="rail" d="@PathOvenPass" />
+                <path class="rail" d="@PathPassTables" />
+                <path class="rail faint" d="@PathGuests" />
+
+            </svg>
+
+            @* Stations *@
+            <div class="node supplier @(_supplierFlash ? "flash" : null)" style="left:110px; top:100px;">
+                <span class="count">◇</span>
+                <span class="label">supplier · A2A</span>
+            </div>
+
+            <div class="node" style="left:130px; top:360px;">
+                <span class="count">@(_factory?.DoughReady ?? 0)</span>
+                <span class="label">dough resting</span>
+                <span class="dough-ring">
+                    @for (var i = 0; i < Math.Min(8, _factory?.DoughReady ?? 0); i++)
+                    {
+                        <span class="ball" style="animation-delay:@(i * 350)ms; transform: rotate(@(i * 45)deg) translateY(-74px)"></span>
+                    }
+                </span>
+            </div>
+
+            <div class="node" style="left:430px; top:360px;">
+                <span class="count">@(_factory?.Preparing ?? 0)</span>
+                <span class="label">preparing</span>
+            </div>
+
+            <div class="node oven heat-@HeatTier" style="left:730px; top:360px;">
+                <span class="count">@(_factory?.Baking ?? 0)</span>
+                <span class="label">in the fire</span>
+                @for (var i = 0; i < 6; i++)
+                {
+                    <span class="ember" style="left:@(28 + i * 14)px; animation-delay:@(i * 380)ms"></span>
+                }
+            </div>
+
+            <div class="node" style="left:1030px; top:360px;">
+                <span class="count">@(_factory?.Ready ?? 0)</span>
+                <span class="label">at the pass</span>
+            </div>
+
+            <div class="node tables" style="left:1320px; top:340px;">
+                <span class="count">@SeatedTables<small>/17</small></span>
+                <span class="label">tables</span>
+                <span class="grid">
+                    @for (var i = 0; i < 17; i++)
+                    {
+                        <span class="cell @(i < SeatedTables ? "warm" : null)"></span>
+                    }
+                </span>
+            </div>
+
+            @* The pantry: every ingredient, draining honestly. *@
+            <div class="pantry-label">pantry</div>
+            @if (_factory is not null)
+            {
+                @for (var i = 0; i < _factory.Stock.Count && i < SiloCount; i++)
+                {
+                    var level = _factory.Stock[i];
+                    var opening = Math.Max(1, Stock.InitialByName.GetValueOrDefault(level.Ingredient, 1));
+                    var pct = Math.Min(100, level.Grams * 100 / opening);
+                    var state = level.Grams <= Options.CrisisThresholdGrams ? "crisis"
+                        : level.Grams <= Options.RestockThresholdGrams ? "low" : "ok";
+                    <div class="silo @state @(_rippleSilo == i ? "ripple" : null)" style="left:@(SiloX(i) - 30)px; top:640px;">
+                        <span class="tube"><span class="fill" style="height:@(pct)%"></span></span>
+                        <span class="silo-name">@Abbrev(level.Ingredient)</span>
+                        <span class="silo-grams">@level.Grams g</span>
+                    </div>
+                }
+            }
+
+            @* Particles: every dot is a real event or real work-in-progress. *@
+            @foreach (var dot in _dots)
+            {
+                <span class="dot @dot.Cls" style="offset-path: path('@dot.Path'); animation-duration:@(dot.DurationMs)ms" @key="dot.Id"></span>
+            }
+
+            @if (_shockwave)
+            {
+                <span class="shockwave"></span>
+            }
+
+            <div class="legend">
+                <span><i class="dot-sample d-pizza"></i> pizza</span>
+                <span><i class="dot-sample d-guest"></i> guest</span>
+                <span><i class="dot-sample d-supply"></i> restock (A2A)</span>
+                <span class="hint">nobody is clicking anything</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // The stage is a fixed 1600×900 canvas scaled to the viewport — px coordinates are stable.
+    private const string PathDoughPrep = "M 210 440 C 300 440 340 440 430 440";
+    private const string PathPrepOven = "M 510 440 C 600 440 640 440 730 440";
+    private const string PathOvenPass = "M 810 440 C 900 440 940 440 1030 440";
+    private const string PathPassTables = "M 1110 440 C 1200 440 1240 440 1320 440";
+    private const string PathGuests = "M 1560 160 C 1540 240 1480 330 1420 400";
+
+    private const int SiloCount = 11;
+
+    private static int SiloX(int i) => 300 + i * (1060 / (SiloCount - 1));
+
+    private static string SupplierPath(int silo) =>
+        $"M 150 180 C 500 40 {SiloX(silo)} 380 {SiloX(silo)} 640";
+
+    private sealed record Dot(long Id, string Path, string Cls, int DurationMs, DateTime SpawnedUtc);
+
+    private readonly List<Dot> _dots = [];
+    private long _nextDotId;
+    private int _tick;
+
+    private FactorySnapshot? _factory;
+    private FactorySnapshot? _previous;
+    private TrattoriaSnapshot? _dining;
+    private int _previousSeated;
+    private bool _supplierFlash;
+    private int _rippleSilo = -1;
+    private bool _shockwave;
+    private DateTimeOffset _now = DateTimeOffset.UtcNow;
+    private PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+
+    private int SeatedTables => _dining?.Tables.Count(t => t.Party is not null) ?? 0;
+
+    private int HeatTier => (_factory?.Baking ?? 0) switch { 0 => 0, <= 2 => 1, <= 5 => 2, _ => 3 };
+
+    private static string Abbrev(string ingredient) =>
+        ingredient switch { "TomatoSauce" => "Tomato", "Mozzarella" => "Mozz", "Pineapple" => "Pineapl", "Mushroom" => "Fungi", _ => ingredient };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cts = new CancellationTokenSource();
+        _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
+        await TickAsync(_cts.Token);
+        _ = RunAsync(_cts.Token);
+    }
+
+    private async Task RunAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (await _timer!.WaitForNextTickAsync(cancellationToken))
+            {
+                await TickAsync(cancellationToken);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // page navigated away
+        }
+    }
+
+    private async Task TickAsync(CancellationToken cancellationToken)
+    {
+        _tick++;
+        _now = DateTimeOffset.UtcNow;
+        _previous = _factory;
+        _factory = await Snapshots.GetAsync(cancellationToken);
+        var dining = MaitreD.Snapshot();
+
+        PruneDots();
+        _supplierFlash = false;
+        _shockwave = false;
+        _rippleSilo = -1;
+
+        if (_previous is not null)
+        {
+            // Transitions: a station count rising means work arrived — send dots down its rail.
+            SpawnBurst(PathDoughPrep, "d-pizza", _factory.Preparing - _previous.Preparing);
+            SpawnBurst(PathPrepOven, "d-pizza", _factory.Baking - _previous.Baking);
+            SpawnBurst(PathOvenPass, "d-pizza", _factory.Ready - _previous.Ready);
+            SpawnBurst(PathPassTables, "d-pizza", _previous.Ready - _factory.Ready);
+
+            // The self-healing supply chain, visible: any silo that gained ≥100g just got a delivery.
+            for (var i = 0; i < _factory.Stock.Count && i < SiloCount; i++)
+            {
+                var delta = _factory.Stock[i].Grams - _previous.Stock[i].Grams;
+                if (delta >= 100)
+                {
+                    Spawn(SupplierPath(i), "d-supply", 1700);
+                    _supplierFlash = true;
+                    _rippleSilo = i;
+                }
+
+                // A silo crossing into crisis shakes the room — that's what escalation feels like.
+                if (_previous.Stock[i].Grams > Options.CrisisThresholdGrams &&
+                    _factory.Stock[i].Grams <= Options.CrisisThresholdGrams)
+                {
+                    _shockwave = true;
+                }
+            }
+        }
+
+        // Guests: arrivals walk in, departures drift out.
+        var seated = dining.Tables.Count(t => t.Party is not null);
+        SpawnBurst(PathGuests, "d-guest", seated - _previousSeated);
+        SpawnBurst(PathGuests, "d-guest d-leave", _previousSeated - seated);
+        _previousSeated = seated;
+        _dining = dining;
+
+        // Ambience: work in progress keeps the line visibly flowing between transitions.
+        if (_tick % 3 == 0 && _factory.Preparing > 0) Spawn(PathDoughPrep, "d-pizza dim", 2400);
+        if (_tick % 3 == 1 && _factory.Baking > 0) Spawn(PathPrepOven, "d-pizza dim", 2400);
+        if (_tick % 3 == 2 && _factory.Ordered > 0) Spawn(PathOvenPass, "d-pizza dim", 2400);
+    }
+
+    private void SpawnBurst(string path, string cls, int count)
+    {
+        for (var i = 0; i < Math.Clamp(count, 0, 4); i++)
+        {
+            Spawn(path, cls, 2000 + i * 260);
+        }
+    }
+
+    private void Spawn(string path, string cls, int durationMs) =>
+        _dots.Add(new Dot(_nextDotId++, path, cls, durationMs, DateTime.UtcNow));
+
+    private void PruneDots()
+    {
+        var cutoff = DateTime.UtcNow.AddSeconds(-4);
+        _dots.RemoveAll(d => d.SpawnedUtc < cutoff);
+        if (_dots.Count > 80)
+        {
+            _dots.RemoveRange(0, _dots.Count - 80);
+        }
+    }
+
+    public void Dispose()
+    {
+        _cts?.Cancel();
+        _timer?.Dispose();
+        _cts?.Dispose();
+    }
+}
