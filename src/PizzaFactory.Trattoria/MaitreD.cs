@@ -17,7 +17,8 @@ public sealed record TrattoriaSnapshot(
     int PartiesServed,
     int Walkouts,
     double? AverageStars,
-    IReadOnlyList<PartyFeedback> RecentFeedback);
+    IReadOnlyList<PartyFeedback> RecentFeedback,
+    int GuestsServed = 0);
 
 /// <summary>
 /// The maître d': opens and closes service, seats arriving parties, takes their orders (REAL
@@ -39,6 +40,7 @@ public sealed class MaitreD(
     private readonly List<PartyFeedback> _recentFeedback = [];
     private bool _isOpen;
     private int _served;
+    private int _guestsServed;
     private int _walkouts;
     private int _pendingArrivals;
 
@@ -72,7 +74,7 @@ public sealed class MaitreD(
                 .ToList();
 
             double? avg = _recentFeedback.Count > 0 ? _recentFeedback.Average(f => f.Stars) : null;
-            return new TrattoriaSnapshot(_isOpen, tables, _served, _walkouts, avg, [.. _recentFeedback]);
+            return new TrattoriaSnapshot(_isOpen, tables, _served, _walkouts, avg, [.. _recentFeedback], _guestsServed);
         }
     }
 
@@ -227,6 +229,7 @@ public sealed class MaitreD(
 
         _seated.Remove(party.TableId);
         _served++;
+        _guestsServed += party.Size;
         feed.Post(now, $"{new string('⭐', feedback.Stars)} Table {party.TableId} ({party.Name}): “{feedback.Comment}”");
         _logger.LogDebug("Party {Name} departed table {Table} with {Stars} stars", party.Name, party.TableId, feedback.Stars);
     }

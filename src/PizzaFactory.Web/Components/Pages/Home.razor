@@ -23,13 +23,26 @@
 
 <GiuseppeChatPanel Giuseppe="_giuseppe" Open="_chatOpen" OpenChanged="open => _chatOpen = open" />
 
-<div class="window @(_chatOpen ? "chat-open" : null)">
+@if (_warRoom)
+{
+    <aside class="war-rail" aria-label="War room live feed">
+        <p class="rail-title">🎛️ War Room</p>
+        <p class="rail-sub">every event, as it happens — the floor stays on the big screen</p>
+        <h3>📡 Tonight, live</h3>
+        <TrattoriaFeedPanel Entries="DiningFeed.Recent" />
+        <h3>🛵 Online orders</h3>
+        <OnlineOrdersPanel Tickets="Desk.Tickets" />
+    </aside>
+}
+
+<div class="window @(_warRoom ? "war-room" : null)">
     <header>
         <div>
             <h1>🍕 Window into the Factory</h1>
             <p class="tagline">A pizza factory that runs itself. Nobody is clicking anything — watch.</p>
         </div>
         <div class="header-links">
+            <button class="view-toggle @(_warRoom ? "active" : null)" title="Toggle the war-room live rail" @onclick="() => _warRoom = !_warRoom">@(_warRoom ? "🌿 Overview" : "🎛️ War Room")</button>
             <button class="chat-toggle @(_chatOpen ? "active" : null)" title="Chat with Giuseppe" @onclick="() => _chatOpen = !_chatOpen">👨‍🍳 Giuseppe</button>
             <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
         </div>
@@ -74,22 +87,32 @@
             <FloorMap Snapshot="_trattoria" />
         </section>
 
-        <div class="columns">
+        @if (_warRoom)
+        {
             <section class="panel">
-                <h2>📡 Tonight, live</h2>
-                <TrattoriaFeedPanel Entries="DiningFeed.Recent" />
+                <h2>📅 Pre-orders &amp; reservations</h2>
+                <PreOrdersPanel />
             </section>
-            <div class="stack">
+        }
+        else
+        {
+            <div class="columns">
                 <section class="panel">
-                    <h2>🛵 Online orders — web · chat · Copilot · phone</h2>
-                    <OnlineOrdersPanel Tickets="Desk.Tickets" />
+                    <h2>📡 Tonight, live</h2>
+                    <TrattoriaFeedPanel Entries="DiningFeed.Recent" />
                 </section>
-                <section class="panel">
-                    <h2>📅 Pre-orders &amp; reservations</h2>
-                    <PreOrdersPanel />
-                </section>
+                <div class="stack">
+                    <section class="panel">
+                        <h2>🛵 Online orders — web · chat · Copilot · phone</h2>
+                        <OnlineOrdersPanel Tickets="Desk.Tickets" />
+                    </section>
+                    <section class="panel">
+                        <h2>📅 Pre-orders &amp; reservations</h2>
+                        <PreOrdersPanel />
+                    </section>
+                </div>
             </div>
-        </div>
+        }
 
         <div class="columns">
             <div class="stack">
@@ -163,7 +186,7 @@
 
 @code {
     private FactorySnapshot? _snapshot;
-    private TrattoriaSnapshot _trattoria = new(false, [], 0, 0, null, []);
+    private TrattoriaSnapshot _trattoria = new(false, [], 0, 0, null, [], 0);
     private PeriodicTimer? _timer;
     private CancellationTokenSource? _cts;
 
@@ -174,6 +197,7 @@
 
     private GiuseppeAgent? _giuseppe;
     private bool _chatOpen;
+    private bool _warRoom;
 
     private static readonly Dictionary<string, int> _openingStock =
         Enum.GetValues<PizzaFactory.Domain.Ingredient>()

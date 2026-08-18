@@ -23,7 +23,9 @@ public class FrontDeskToolSourceTests
         var options = new TrattoriaOptions { RandomSeed = 5 };
         var book = new PreOrderBook(orders, feed);
         var maitreD = new MaitreD(orders, pizzas, options, feed);
-        return (new FrontDeskToolSource(book, maitreD, new FixedTimeProvider(T0)), book, orders);
+        var clock = new FixedTimeProvider(T0);
+        var bookkeeper = new Bookkeeper(orders, maitreD, clock);
+        return (new FrontDeskToolSource(book, maitreD, bookkeeper, clock), book, orders);
     }
 
     [Fact]
@@ -34,7 +36,7 @@ public class FrontDeskToolSourceTests
         var tools = await desk.GetToolsAsync();
 
         Assert.Equal(
-            new[] { "book_pre_order", "dining_room_status", "list_pre_orders" },
+            new[] { "book_pre_order", "business_report", "dining_room_status", "list_pre_orders", "sales_history" },
             tools.Select(t => t.Name).OrderBy(n => n).ToArray());
     }
 

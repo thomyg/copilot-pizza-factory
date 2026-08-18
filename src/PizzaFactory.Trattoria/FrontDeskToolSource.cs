@@ -14,6 +14,7 @@ namespace PizzaFactory.Trattoria;
 public sealed class FrontDeskToolSource(
     PreOrderBook book,
     MaitreD maitreD,
+    Bookkeeper bookkeeper,
     TimeProvider clock) : IGiuseppeToolSource
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
@@ -30,6 +31,13 @@ public sealed class FrontDeskToolSource(
             AIFunctionFactory.Create(DiningRoomStatus, "dining_room_status",
                 "How the dining room is doing right now: service open/closed, tables free and occupied, " +
                 "parties served, walkouts, and the average review stars."),
+            AIFunctionFactory.Create(BusinessReportAsync, "business_report",
+                "Tonight's business numbers, all from real data: orders and pizzas today, revenue (EUR, " +
+                "delivered and in flight), orders by channel, sales by pizza with the top seller, guests, " +
+                "walkouts, satisfaction, and a pace-based projection for the next hour."),
+            AIFunctionFactory.Create(SalesHistory, "sales_history",
+                "The ledger for the last seven days (orders, guests, revenue EUR, stars per day) — for " +
+                "'versus a typical Tuesday' comparisons and simple trends."),
         ];
 
         return Task.FromResult(tools);
@@ -62,6 +70,12 @@ public sealed class FrontDeskToolSource(
         return error ?? $"Booked: {amount}× {pizza} for {forName} at {parsed.ToLocalTime():dddd d MMMM HH:mm}. " +
             "It will fire into the oven right on time.";
     }
+
+    private async Task<string> BusinessReportAsync(CancellationToken cancellationToken = default) =>
+        JsonSerializer.Serialize(await bookkeeper.ReportAsync(cancellationToken), SerializerOptions);
+
+    private string SalesHistory() =>
+        JsonSerializer.Serialize(bookkeeper.History(), SerializerOptions);
 
     private string DiningRoomStatus()
     {

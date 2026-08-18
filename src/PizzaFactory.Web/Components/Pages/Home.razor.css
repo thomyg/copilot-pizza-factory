@@ -34,7 +34,8 @@
     flex-shrink: 0;
 }
 
-.chat-toggle {
+.chat-toggle,
+.view-toggle {
     font-size: 0.85rem;
     color: #8a7a66;
     background: transparent;
@@ -46,23 +47,68 @@
 }
 
 .chat-toggle:hover,
-.chat-toggle.active {
+.chat-toggle.active,
+.view-toggle:hover,
+.view-toggle.active {
     color: #fff;
     background: #d83b01;
     border-color: #d83b01;
 }
 
-.window {
-    transition: margin 0.25s ease;
-}
-
-/* Wide screens: the right-docked chat drawer pushes the dashboard left, VS Code style. */
-@media (min-width: 1200px) {
-    .window.chat-open {
-        margin-right: calc(380px + 2rem);
-        margin-left: 2rem;
+/* War Room mode: a fixed left rail streams the live feed; the dashboard shifts once, then stays put. */
+@media (min-width: 1100px) {
+    .window.war-room {
+        margin-left: calc(360px + 2rem);
+        margin-right: 2rem;
         max-width: none;
     }
+}
+
+.war-rail {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 360px;
+    max-width: 90vw;
+    background: #fdf3e3;
+    border-right: 3px solid #d83b01;
+    box-shadow: 4px 0 18px rgba(90, 62, 27, 0.14);
+    display: flex;
+    flex-direction: column;
+    z-index: 40;
+    padding: 0.9rem 1rem;
+    overflow-y: auto;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    color: #2a2118;
+}
+
+.war-rail h3 {
+    margin: 0.4rem 0 0.5rem;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b53201;
+}
+
+.war-rail .rail-title {
+    font-weight: 800;
+    font-size: 1.05rem;
+    margin: 0 0 0.25rem;
+}
+
+.war-rail .rail-sub {
+    font-size: 0.78rem;
+    color: #8a7a66;
+    font-style: italic;
+    margin: 0 0 0.6rem;
+    border-bottom: 1px dashed #d8c5a5;
+    padding-bottom: 0.6rem;
+}
+
+.war-rail ::deep .trattoria-feed {
+    max-height: none;
+    flex-grow: 1;
 }
 
 .engine-room-link {

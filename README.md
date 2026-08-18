@@ -147,6 +147,7 @@ graph TD
 | Tables fill, guests dine, reviews roll in | `MaitreD`/`OnlineOrderDesk`/`PreOrderBook` step on a `TimeProvider` and place **real orders**; the new `Expeditor` station completes tickets when every pizza is out of the oven |
 | A slow kitchen earns one-star reviews | Feedback stars derive from actual food wait time — sabotage the pantry and watch satisfaction drop, causally |
 | "Giuseppe, book 10 Diavolo for Saturday 18:00" | The trattoria's front desk hands the agent its reservations book as tools (`list_pre_orders`, `book_pre_order`, `dining_room_status`) — the booking lands in the same `PreOrderBook` the UI shows |
+| "Status report — how are we doing tonight?" | The `Bookkeeper` aggregates the REAL order stream (revenue via a price list, channels, top seller, guests, stars) plus an honest pace projection and a seeded 7-day ledger for "versus a typical Tuesday" — Giuseppe narrates it like a proud owner |
 
 **Engineering patterns worth showing:**
 
