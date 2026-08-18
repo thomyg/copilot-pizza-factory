@@ -50,7 +50,7 @@
                     </div>
                     <p class="toppings">@string.Join(" · ", recipe.Toppings.Select(t => t.Ingredient.ToString()))</p>
                     @* Sim seconds read as menu minutes — the factory clock runs hot for the demo. *@
-                    <p class="oven">@((recipe.PreparingTime + recipe.BakingTime).TotalSeconds.ToString("0")) min in the fire</p>
+                    <p class="oven">90 sec in the fire</p>
                 </article>
             }
         </div>

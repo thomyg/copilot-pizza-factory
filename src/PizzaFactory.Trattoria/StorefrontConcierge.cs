@@ -51,7 +51,7 @@ public sealed class StorefrontToolSource(
                     Pizza = name,
                     PriceEur = PriceList.Of(name),
                     Toppings = recipe.Toppings.Select(t => t.Ingredient.ToString()).ToArray(),
-                    OvenMinutes = (recipe.PreparingTime + recipe.BakingTime).TotalSeconds,   // sim seconds = menu minutes
+                    BakeSeconds = 90,   // vera pizza napoletana: ~90 seconds at 450°C in the wood fire
                 };
             }),
             SerializerOptions);
