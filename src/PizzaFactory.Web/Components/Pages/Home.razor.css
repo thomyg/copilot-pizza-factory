@@ -149,6 +149,59 @@
     font-size: 0.85rem;
 }
 
+/* The dining room */
+.dining-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+}
+
+.dining-header h2 {
+    margin: 0;
+}
+
+.dining-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.chip.stars {
+    background: #fdf3d0;
+    font-weight: 600;
+}
+
+button.play {
+    border: none;
+    background: #2e9e44;
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.5rem 1.1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+button.play:hover { background: #257f37; }
+
+button.play.playing {
+    background: #b8860b;
+}
+
+.stack {
+    display: flex;
+    flex-direction: column;
+}
+
+.stack .panel {
+    margin-bottom: 1.25rem;
+}
+
 /* Order form */
 .order-form {
     display: flex;

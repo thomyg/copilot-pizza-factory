@@ -1,0 +1,92 @@
+.floor {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 1;
+    background:
+        radial-gradient(circle at 85% 8%, #f9e0c8 0, transparent 24%),
+        #f6efe3;
+    border: 2px solid #e3d5bd;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.door {
+    position: absolute;
+    left: 1%;
+    bottom: 2%;
+    font-size: 0.72rem;
+    color: #a08c72;
+    letter-spacing: 0.04em;
+}
+
+.kitchen {
+    position: absolute;
+    right: 1.5%;
+    top: 2%;
+    font-size: 0.72rem;
+    color: #a08c72;
+    letter-spacing: 0.04em;
+}
+
+.table {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.05rem;
+    border: 2px solid #c9b391;
+    background: #fffdf8;
+    transition: background 0.5s ease, border-color 0.5s ease, transform 0.3s ease;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    box-shadow: 0 1px 2px rgba(90, 62, 27, 0.12);
+}
+
+.table.round { border-radius: 50%; }
+.table.square { border-radius: 8px; }
+.table.rect { border-radius: 10px; }
+
+.table .tno {
+    font-weight: 700;
+    color: #8a7a66;
+    font-size: 0.68rem;
+}
+
+.table .who {
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.table.free { background: #fffdf8; border-style: dashed; }
+.table.free .who { color: #c2b299; font-weight: 400; }
+
+.table.seated { background: #e8f0fd; border-color: #3d7fe8; }
+.table.waiting { background: #fdf0d5; border-color: #e8a33d; }
+.table.eating { background: #e6f7e6; border-color: #2e9e44; transform: scale(1.03); }
+.table.paying { background: #f1e8fb; border-color: #8b5cd6; }
+
+.legend {
+    display: flex;
+    gap: 0.9rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: #6b5d4f;
+}
+
+.legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+.swatch {
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 3px;
+    border: 2px solid #c9b391;
+}
+
+.swatch.free { background: #fffdf8; border-style: dashed; }
+.swatch.seated { background: #e8f0fd; border-color: #3d7fe8; }
+.swatch.waiting { background: #fdf0d5; border-color: #e8a33d; }
+.swatch.eating { background: #e6f7e6; border-color: #2e9e44; }
+.swatch.paying { background: #f1e8fb; border-color: #8b5cd6; }

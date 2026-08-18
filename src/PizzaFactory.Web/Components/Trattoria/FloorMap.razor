@@ -1,0 +1,61 @@
+@using PizzaFactory.Trattoria
+
+<div class="floor" role="img" aria-label="Restaurant floor map">
+    @foreach (var view in Snapshot.Tables)
+    {
+        var t = view.Table;
+        var p = view.Party;
+        <div class="table @Shape(t.Shape) @StateClass(p)"
+             style="left:@(Pct(t.X)); top:@(Pct(t.Y)); width:@(Pct(t.W)); height:@(Pct(t.H))"
+             title="@Tooltip(t, p)">
+            <span class="tno">@t.Id</span>
+            <span class="who">@(p is null ? $"· {t.Seats} ·" : $"{Emoji(p.State)} {p.Size}")</span>
+        </div>
+    }
+    <span class="door">🚪 entrance</span>
+    <span class="kitchen">🔥 kitchen</span>
+</div>
+<div class="legend">
+    <span><i class="swatch free"></i> free</span>
+    <span><i class="swatch seated"></i> deciding</span>
+    <span><i class="swatch waiting"></i> waiting for food</span>
+    <span><i class="swatch eating"></i> eating</span>
+    <span><i class="swatch paying"></i> paying</span>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public required TrattoriaSnapshot Snapshot { get; set; }
+
+    private static string Pct(double value) => $"{value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
+
+    private static string Shape(TableShape shape) => shape switch
+    {
+        TableShape.Round => "round",
+        TableShape.Rect => "rect",
+        _ => "square",
+    };
+
+    private static string StateClass(Party? p) => p?.State switch
+    {
+        null => "free",
+        PartyState.Seated => "seated",
+        PartyState.WaitingForFood => "waiting",
+        PartyState.Eating => "eating",
+        PartyState.Paying => "paying",
+        _ => "free",
+    };
+
+    private static string Emoji(PartyState state) => state switch
+    {
+        PartyState.Seated => "📋",
+        PartyState.WaitingForFood => "⏳",
+        PartyState.Eating => "🍕",
+        PartyState.Paying => "💳",
+        _ => "🪑",
+    };
+
+    private static string Tooltip(Table t, Party? p) => p is null
+        ? $"Table {t.Id} — {t.Seats} seats, free"
+        : $"Table {t.Id} — {p.Name} (party of {p.Size}), {p.State}" + (p.Wish is null ? "" : $" — wish: {p.Wish}");
+}

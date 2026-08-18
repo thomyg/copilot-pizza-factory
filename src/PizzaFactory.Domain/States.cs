@@ -36,4 +36,6 @@ public enum OrderChannel
     Planned,
     Bot,
     Guest,
+    Copilot,
+    Phone,
 }

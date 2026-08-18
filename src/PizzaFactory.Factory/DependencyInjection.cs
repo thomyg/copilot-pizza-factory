@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.TryAddSingleton<IEscalationSink, LoggingEscalationSink>();
         services.AddSingleton<DoughMaster>();
         services.AddSingleton<Pizzaiolo>();
+        services.AddSingleton<Expeditor>();
         services.AddSingleton<Procurement>();
         services.AddSingleton<CrisisWatch>();
         services.AddHostedService<FactoryWorker>();

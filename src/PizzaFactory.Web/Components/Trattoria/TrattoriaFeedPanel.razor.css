@@ -1,0 +1,28 @@
+.trattoria-feed {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.84rem;
+    max-height: 430px;
+    overflow-y: auto;
+}
+
+.trattoria-feed li {
+    padding: 0.3rem 0.2rem;
+    border-bottom: 1px dashed #eadfcd;
+    line-height: 1.35;
+}
+
+.trattoria-feed .at {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.72rem;
+    color: #b8a68e;
+    margin-right: 0.3rem;
+}
+
+.hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #8a7a66;
+    font-style: italic;
+}

@@ -1,0 +1,25 @@
+.tickets {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.tickets td {
+    padding: 0.3rem 0.45rem;
+    border-bottom: 1px dashed #eadfcd;
+    vertical-align: middle;
+}
+
+.tickets .channel { width: 1.6rem; font-size: 1rem; }
+.tickets .what { font-weight: 600; white-space: nowrap; }
+.tickets .who { color: #6b5d4f; }
+.tickets .mode, .tickets .state { white-space: nowrap; font-size: 0.82rem; }
+
+.tickets tr.done { opacity: 0.55; }
+
+.hint {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #8a7a66;
+    font-style: italic;
+}

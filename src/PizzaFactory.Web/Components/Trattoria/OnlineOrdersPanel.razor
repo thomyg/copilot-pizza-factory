@@ -1,0 +1,28 @@
+@using PizzaFactory.Trattoria
+
+@if (Tickets.Count == 0)
+{
+    <p class="hint">No online orders yet — press Play, or nudge one from the Engine Room.</p>
+}
+else
+{
+    <table class="tickets">
+        <tbody>
+        @foreach (var t in Tickets)
+        {
+            <tr class="@(t.State == TicketState.Done ? "done" : "cooking")">
+                <td class="channel" title="@t.Channel">@OnlineOrderDesk.ChannelEmoji(t.Channel)</td>
+                <td class="what">@t.Amount× @t.Pizza</td>
+                <td class="who">@t.Customer</td>
+                <td class="mode">@(t.Mode == FulfilmentMode.Delivery ? "🛵 delivery" : "🛍️ takeaway")</td>
+                <td class="state">@(t.State == TicketState.Done ? "✅ out the door" : "🔥 cooking")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<OnlineTicket> Tickets { get; set; }
+}

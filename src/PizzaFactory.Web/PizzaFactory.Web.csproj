@@ -6,6 +6,7 @@
     <ProjectReference Include="..\PizzaFactory.Factory\PizzaFactory.Factory.csproj" />
     <ProjectReference Include="..\PizzaFactory.Safety\PizzaFactory.Safety.csproj" />
     <ProjectReference Include="..\PizzaFactory.FrontOfHouse\PizzaFactory.FrontOfHouse.csproj" />
+    <ProjectReference Include="..\PizzaFactory.Trattoria\PizzaFactory.Trattoria.csproj" />
     <ProjectReference Include="..\PizzaFactory.ServiceDefaults\PizzaFactory.ServiceDefaults.csproj" />
     <ProjectReference Include="..\PizzaFactory.Giuseppe\PizzaFactory.Giuseppe.csproj" />
   </ItemGroup>

@@ -4,13 +4,18 @@
 @using PizzaFactory.Factory
 @using PizzaFactory.FrontOfHouse
 @using PizzaFactory.Giuseppe
+@using PizzaFactory.Trattoria
 @using PizzaFactory.Web
+@using PizzaFactory.Web.Components.Trattoria
 @inject FactorySnapshotProvider Snapshots
 @inject GuestOrderService Intake
 @inject IServiceProvider Services
 @inject WindowEventLog Events
 @inject OrderingGate Gate
 @inject FactoryOptions Options
+@inject MaitreD MaitreD
+@inject OnlineOrderDesk Desk
+@inject TrattoriaFeed DiningFeed
 @inject ILogger<Home> Logger
 @implements IDisposable
 
@@ -47,6 +52,39 @@
                 <span class="chip">⏱️ @_snapshot.At.ToLocalTime().ToString("HH:mm:ss")</span>
             </div>
         </section>
+
+        <section class="panel dining">
+            <div class="dining-header">
+                <h2>🍽️ The Dining Room</h2>
+                <div class="dining-controls">
+                    <span class="chip">👥 @_trattoria.Tables.Count(t => t.Party is not null)/17 tables</span>
+                    <span class="chip">✅ @_trattoria.PartiesServed served</span>
+                    <span class="chip">😤 @_trattoria.Walkouts walkouts</span>
+                    <span class="chip stars">⭐ @(_trattoria.AverageStars is { } avg ? avg.ToString("0.0") : "—")</span>
+                    <button class="play @(MaitreD.IsOpen ? "playing" : null)" @onclick="ToggleService">
+                        @(MaitreD.IsOpen ? "⏸ Close service" : "▶ Open the floor")
+                    </button>
+                </div>
+            </div>
+            <FloorMap Snapshot="_trattoria" />
+        </section>
+
+        <div class="columns">
+            <section class="panel">
+                <h2>📡 Tonight, live</h2>
+                <TrattoriaFeedPanel Entries="DiningFeed.Recent" />
+            </section>
+            <div class="stack">
+                <section class="panel">
+                    <h2>🛵 Online orders — web · chat · Copilot · phone</h2>
+                    <OnlineOrdersPanel Tickets="Desk.Tickets" />
+                </section>
+                <section class="panel">
+                    <h2>📅 Pre-orders &amp; reservations</h2>
+                    <PreOrdersPanel />
+                </section>
+            </div>
+        </div>
 
         <div class="columns">
             <section class="panel order">
@@ -156,6 +194,7 @@
 
 @code {
     private FactorySnapshot? _snapshot;
+    private TrattoriaSnapshot _trattoria = new(false, [], 0, 0, null, []);
     private PeriodicTimer? _timer;
     private CancellationTokenSource? _cts;
 
@@ -177,9 +216,27 @@
     {
         _giuseppe = Services.GetService(typeof(GiuseppeAgent)) as GiuseppeAgent;
         _snapshot = await Snapshots.GetAsync();
+        _trattoria = MaitreD.Snapshot();
         _cts = new CancellationTokenSource();
         _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         _ = RefreshLoopAsync(_cts.Token);
+    }
+
+    private void ToggleService()
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (MaitreD.IsOpen)
+        {
+            MaitreD.CloseService(now);
+            Desk.Close();
+        }
+        else
+        {
+            MaitreD.OpenService(now);
+            Desk.Open();
+        }
+
+        _trattoria = MaitreD.Snapshot();
     }
 
     private async Task AskGiuseppeAsync()
@@ -242,6 +299,7 @@
             while (await _timer!.WaitForNextTickAsync(cancellationToken))
             {
                 _snapshot = await Snapshots.GetAsync(cancellationToken);
+                _trattoria = MaitreD.Snapshot();
                 await InvokeAsync(StateHasChanged);
             }
         }

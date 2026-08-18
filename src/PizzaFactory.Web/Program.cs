@@ -3,6 +3,7 @@ using PizzaFactory.FrontOfHouse;
 using PizzaFactory.Giuseppe;
 using PizzaFactory.Infrastructure;
 using PizzaFactory.Safety;
+using PizzaFactory.Trattoria;
 using PizzaFactory.Web;
 using PizzaFactory.Web.Components;
 
@@ -27,6 +28,9 @@ else
 builder.Services.AddHeuristicContentGuard();
 builder.Services.AddFrontOfHouse();
 builder.Services.AddPizzaFactoryFloor();
+
+// The dining room: 17 tables, online orders, pre-orders. Starts closed — the Play button opens it.
+builder.Services.AddTrattoria();
 builder.Services.AddSingleton<FactorySnapshotProvider>();
 
 // The Engine Room's steering levers (sabotage, rush hour, restock) — same repos as the floor.

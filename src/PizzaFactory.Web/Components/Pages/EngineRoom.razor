@@ -4,12 +4,15 @@
 @using PizzaFactory.Domain.Entities
 @using PizzaFactory.Factory
 @using PizzaFactory.FrontOfHouse
+@using PizzaFactory.Trattoria
 @using PizzaFactory.Web
 @inject FactorySnapshotProvider Snapshots
 @inject DemoDirector Director
 @inject FactoryOptions Options
 @inject WindowEventLog Events
 @inject OrderingGate Gate
+@inject MaitreD MaitreD
+@inject OnlineOrderDesk Desk
 @implements IDisposable
 
 <PageTitle>The Engine Room</PageTitle>
@@ -46,6 +49,8 @@
             <div class="chips">
                 <span class="chip">🧾 @_snapshot.OpenOrders open orders</span>
                 <span class="chip">🥖 @_snapshot.DoughReady dough ready</span>
+                <span class="chip">🍽️ @(MaitreD.IsOpen ? "service OPEN" : "service closed") · @Dining.Tables.Count(t => t.Party is not null)/17 tables</span>
+                <span class="chip">⭐ @(Dining.AverageStars is { } avg ? avg.ToString("0.0") : "—") satisfaction</span>
                 <span class="chip">⏱️ updated @_snapshot.At.ToLocalTime().ToString("HH:mm:ss")</span>
             </div>
             <p class="note">@Note(
@@ -105,6 +110,16 @@
                     <p>The kill switch for public ordering — close it between runs, open it for the crowd.</p>
                     <button @onclick="ToggleGate">@(Gate.IsOpen ? "🟢 Ordering open — close it" : "🔴 Ordering closed — open it")</button>
                 </div>
+                <div class="chaos-card">
+                    <h3>🚌 Bus Tour</h3>
+                    <p>Six parties at once storm the dining room — the maître d' earns the big money now. Ignores the closed sign, obviously.</p>
+                    <button @onclick="BusTourAsync">Park the bus</button>
+                </div>
+                <div class="chaos-card">
+                    <h3>📞 Surprise Online Order</h3>
+                    <p>A random web / chat / Copilot / phone order lands on the counter mid-sentence.</p>
+                    <button @onclick="SurpriseOrderAsync">Ring it in</button>
+                </div>
             </div>
             @if (!string.IsNullOrEmpty(_chaosMessage))
             {
@@ -140,7 +155,7 @@
             <h2>🎬 Showtime Script</h2>
             <ol>
                 <li>Open the <a href="/" target="_blank">Window</a> on the projector, keep this room on your laptop. Two views, one factory.</li>
-                <li>Let the line hum for a minute — point out nobody is clicking anything.</li>
+                <li>Press <strong>▶ Open the floor</strong> on the Window — parties arrive, tables fill, online orders ping in, reviews roll. Nobody is clicking anything.</li>
                 <li>🍍 Trigger the Pineapple Incident. Watch The Wire light up and the Supplier agent restock via A2A.</li>
                 <li>🌊 Rush Hour (20). Watch 'ordered' pile up against the prep/oven caps, then drain.</li>
                 <li>😈 Ask Giuseppe for "100 pizzas lol" — his prank radar wants a real headcount, and the factory's ordering tool has a hard cap of its own. Two lines of defense, one raised eyebrow.</li>
@@ -160,6 +175,8 @@
     private bool _nerdMode;
     private int _rushCount = 20;
     private string? _chaosMessage;
+
+    private TrattoriaSnapshot Dining => MaitreD.Snapshot();
 
     private static readonly Dictionary<string, int> _openingStock =
         Enum.GetValues<Ingredient>().ToDictionary(i => i.ToString(), i => Stock.Initial().GramsOf(i));
@@ -215,6 +232,22 @@
     {
         if (Gate.IsOpen) { Gate.Close(); } else { Gate.Open(); }
         Events.RecordDirector(Gate.IsOpen ? "opened the front door" : "closed the front door");
+    }
+
+    private async Task BusTourAsync()
+    {
+        MaitreD.BusTour(DateTimeOffset.UtcNow);
+        Events.RecordDirector("parked a tour bus outside (6 parties inbound)");
+        _chaosMessage = "🚌 The bus is unloading. Watch the floor map on the Window fill up.";
+        await RefreshNowAsync();
+    }
+
+    private async Task SurpriseOrderAsync()
+    {
+        var ticket = await Desk.PlaceRandomOrderAsync(DateTimeOffset.UtcNow);
+        Events.RecordDirector($"rang in a surprise {ticket.Channel} order ({ticket.Amount}× {ticket.Pizza})");
+        _chaosMessage = $"📞 {ticket.Customer} just ordered {ticket.Amount}× {ticket.Pizza} via {ticket.Channel} ({ticket.Mode}).";
+        await RefreshNowAsync();
     }
 
     private async Task RefreshNowAsync()

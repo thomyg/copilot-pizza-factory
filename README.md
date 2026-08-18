@@ -5,7 +5,7 @@
 ![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-46b3a8?style=flat-square)
 ![A2A](https://img.shields.io/badge/A2A-Agent_to_Agent-d8703f?style=flat-square)
 ![Key-less](https://img.shields.io/badge/auth-key--less_(managed_identity)-46b36a?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-118_passing_incl._E2E-46b36a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-132_passing_incl._E2E-46b36a?style=flat-square)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e0a92e?style=flat-square)
 
 An **AI-first demo** of a pizza factory that runs itself — a "perpetuum mobile" where autonomous
@@ -31,9 +31,14 @@ dotnet run --project src/PizzaFactory.AppHost
 dotnet run --project src/PizzaFactory.Web
 ```
 
-Open the **Window**: order a pizza, watch it cross the stations live, chat with Giuseppe (when a model
-is configured), and see the "Bouncer" block bad input. With no Azure configured it falls back
-gracefully — in-memory store, Giuseppe "off the clock", no external supplier.
+Open the **Window** — now a full business dashboard — and press **▶ Open the floor**: a 17-table
+trattoria comes to life. Parties arrive, get seated on the live floor map, order (real orders on the
+real factory), wait, eat, pay, and leave star reviews in the ticker — while online orders ping in
+over four channels (🌐 web · 💬 chat · 🤖 Copilot · 📞 phone) for takeaway and delivery, and
+pre-orders ("10× Diavolo, Saturday 18:00, Nonna's Bingo Club") wait in the book and fire on
+schedule. You can still order a pizza yourself, chat with Giuseppe (when a model is configured),
+and watch the "Bouncer" block bad input. With no Azure configured it falls back gracefully —
+in-memory store, Giuseppe "off the clock", no external supplier.
 
 Then open **`/engine-room`** — the presenter's cockpit. A live watch-along of the whole line, a
 pantry you can sabotage, a **Chaos Console** (drain the pineapple, unleash a 100-order rush hour,
@@ -76,6 +81,7 @@ system — not a slide.
 | **06** | **Cater my meeting** | "Giuseppe, order pizza for Friday's retro" — he finds the meeting, counts heads, remembers the vegetarian, and places real orders. | AI that knows *your* world, not just its own menu. |
 | **07** | **The prank radar** | Someone asks for 100 pizzas "lol". Giuseppe raises an eyebrow and asks for a real headcount — and the factory's ordering tool has a hard cap of its own. | AI with common sense *and* guardrails underneath it. |
 | **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
+| **09** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
 
 ### 🛬 Technical flight level — how it's built
 
@@ -90,6 +96,7 @@ graph TD
   classDef data fill:#97a8bc22,stroke:#97a8bc,stroke-width:1.5px;
 
   WIN["The Window — Blazor live dashboard"]:::biz
+  TRAT["Trattoria — 17-table dining sim + online orders + pre-orders"]:::biz
   ENG["The Engine Room — presenter cockpit + chaos console"]:::biz
   subgraph FLOOR["Autonomous Floor — perpetuum mobile"]
     DM["Dough Master"]:::tech
@@ -107,7 +114,8 @@ graph TD
   WIQ["Microsoft Work IQ — M365 context (MCP)"]:::warm
 
   WIN --> FLOOR
-  ENG -->|"sabotage / rush hour / restock"| FLOOR
+  TRAT -->|"real orders (dine-in, takeaway, delivery, planned)"| FLOOR
+  ENG -->|"sabotage / rush hour / bus tour"| FLOOR
   WIN -->|"guarded chat"| GIU
   WIN -->|"moderate input"| GUARD
   GIU -->|"tool calls"| MCP
@@ -136,6 +144,8 @@ graph TD
 | "Order pizza for Friday's retro" just… works | A `Microsoft.Extensions.AI` function-calling loop over **two MCP servers at once** — our factory tools and Microsoft's **Work IQ** (live M365 calendar) — with a deterministic rehearsal fallback so the demo can't die on stage |
 | 100-pizza prank gets an eyebrow, not an invoice | Persona-level prank radar **plus** a hard `create_order` cap at the MCP boundary — defense in depth, with jokes |
 | The presenter breaks the factory and it heals | Engine Room chaos buttons drive `DemoDirector` against the **same repositories** the autonomous floor runs on — real sabotage, real recovery |
+| Tables fill, guests dine, reviews roll in | `MaitreD`/`OnlineOrderDesk`/`PreOrderBook` step on a `TimeProvider` and place **real orders**; the new `Expeditor` station completes tickets when every pizza is out of the oven |
+| A slow kitchen earns one-star reviews | Feedback stars derive from actual food wait time — sabotage the pantry and watch satisfaction drop, causally |
 
 **Engineering patterns worth showing:**
 
@@ -147,7 +157,7 @@ graph TD
 - **Swappable persistence** — repository interfaces with in-memory *and* Cosmos implementations; flip one DI line, runs cloud-free for local dev.
 - **One agent, two MCP servers** — Giuseppe's `Microsoft.Extensions.AI` tool loop mixes our factory MCP tools with Microsoft's Work IQ MCP tools in a single conversation turn; `McpClientTool` *is* an `AIFunction`, so there's zero glue code. Every tool source degrades gracefully on failure.
 - **Steerable demo, honest data** — the Engine Room's `DemoDirector` sabotages and floods through the same repositories the floor runs on. No mock switches: what the audience watches recover is the real system recovering.
-- **Tested & live-verified** — 118 tests incl. 11 Playwright E2E browser journeys; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
+- **Tested & live-verified** — 132 tests incl. 15 Playwright E2E browser journeys; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
 
 ## What's inside
 
@@ -159,6 +169,7 @@ graph TD
 | `PizzaFactory.Mcp` | A **Model Context Protocol** server (Streamable HTTP) exposing 9 tools over the factory (orders, inventory, recipes, live telemetry). |
 | `PizzaFactory.Safety` | **Responsible-AI guardrail** — offline heuristic + Azure AI Content Safety & Prompt Shields, behind one interface. |
 | `PizzaFactory.FrontOfHouse` | Public guest intake — auto pseudonyms (zero-PII), moderation, an ordering **kill-switch**. |
+| `PizzaFactory.Trattoria` | The **dining room simulation** — 17-table floor plan, maître d' (arrivals → seating → orders → reviews), online order desk (web/chat/Copilot/phone, takeaway/delivery), and the pre-order book. |
 | `PizzaFactory.Giuseppe` | The **AI concierge** — a guarded, tool-calling agent (`Microsoft.Extensions.AI`) that consumes the factory MCP server *and* Microsoft's **Work IQ** MCP server, caters meetings, and doesn't fall for pizza pranks. |
 | `PizzaFactory.GiuseppeBot` | Giuseppe in **Microsoft Teams** — a Microsoft 365 Agents SDK host over the Bot Framework, key-less (managed identity). |
 | `GiuseppeCopilotAgent` | Giuseppe in **M365 Copilot** — a declarative agent + MCP connector, built with the Work IQ Developer Tools (`wiqd`). |
@@ -169,11 +180,11 @@ graph TD
 
 ## The tech, in one breath
 
-.NET 10 · .NET Aspire · Blazor (interactive Server) · Azure Cosmos DB · Model Context Protocol (MCP) ·
+.NET 10 · .NET Aspire · Blazor (interactive Server) · a live restaurant floor simulation · Azure Cosmos DB · Model Context Protocol (MCP) ·
 Agent-to-Agent (A2A) · `Microsoft.Extensions.AI` function calling · Microsoft **Work IQ** (M365 context
 over MCP) · Microsoft 365 Agents SDK (Teams) · M365 Copilot declarative agent (built with `wiqd`) ·
 Azure AI Content Safety + Prompt Shields · Azure OpenAI · **key-less throughout** (managed identity /
-`az login`, no secrets in source) · 118 tests incl. Playwright E2E.
+`az login`, no secrets in source) · 132 tests incl. Playwright E2E.
 
 ## Optional: run on Azure (key-less)
 

@@ -10,6 +10,7 @@ namespace PizzaFactory.Factory;
 public sealed class FactoryWorker(
     DoughMaster doughMaster,
     Pizzaiolo pizzaiolo,
+    Expeditor expeditor,
     Procurement procurement,
     CrisisWatch crisisWatch,
     FactoryOptions options,
@@ -28,6 +29,7 @@ public sealed class FactoryWorker(
             {
                 await doughMaster.StepAsync(now, stoppingToken);
                 await pizzaiolo.StepAsync(now, stoppingToken);
+                await expeditor.StepAsync(now, stoppingToken);
                 await procurement.StepAsync(now, stoppingToken);
                 await crisisWatch.StepAsync(now, stoppingToken);
             }

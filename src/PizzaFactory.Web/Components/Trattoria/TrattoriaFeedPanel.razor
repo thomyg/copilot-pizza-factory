@@ -1,0 +1,20 @@
+@using PizzaFactory.Trattoria
+
+@if (Entries.Count == 0)
+{
+    <p class="hint">The room is quiet. Press ▶ Play and watch the evening unfold.</p>
+}
+else
+{
+    <ul class="trattoria-feed">
+        @foreach (var entry in Entries)
+        {
+            <li><span class="at">@entry.At.ToLocalTime().ToString("HH:mm:ss")</span> @entry.Text</li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter, EditorRequired]
+    public required IReadOnlyList<FeedEntry> Entries { get; set; }
+}

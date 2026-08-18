@@ -1,0 +1,72 @@
+@using PizzaFactory.Domain.Recipes
+@using PizzaFactory.Trattoria
+@inject PreOrderBook Book
+@inject TimeProvider Clock
+
+<div class="preorder-form">
+    <select @bind="_pizza" aria-label="Pizza">
+        @foreach (var pizza in RecipeCatalog.Menu)
+        {
+            <option value="@pizza">@pizza</option>
+        }
+    </select>
+    <input class="amount" type="number" @bind="_amount" min="1" max="@PreOrderBook.MaxAmount" aria-label="Amount" />
+    <input class="when" type="datetime-local" @bind="_when" aria-label="When" />
+    <input class="name" @bind="_name" placeholder="who is it for?" />
+    <button class="primary" @onclick="Add">Book it 📅</button>
+</div>
+@if (!string.IsNullOrEmpty(_message))
+{
+    <p class="preorder-result @(_error ? "error" : null)">@_message</p>
+}
+
+@if (Book.Upcoming.Count > 0)
+{
+    <ul class="preorders">
+        @foreach (var p in Book.Upcoming)
+        {
+            <li>
+                <span>📅 <strong>@p.Amount× @p.Pizza</strong> for @p.Name — @p.When.ToLocalTime().ToString("ddd d MMM HH:mm")</span>
+                <button class="cancel" title="Cancel this pre-order" @onclick="() => Book.Cancel(p.Id)">✖</button>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="hint">Nothing booked ahead. Try "10× Diavolo, Saturday 18:00, Nonna's Bingo Club".</p>
+}
+
+@code {
+    private string _pizza = RecipeCatalog.Menu[0];
+    private int _amount = 10;
+    private DateTime _when = NextSaturdayAtSix(DateTime.Now);
+    private string? _name;
+    private string? _message;
+    private bool _error;
+
+    private void Add()
+    {
+        var now = Clock.GetUtcNow();
+        var when = new DateTimeOffset(_when, TimeZoneInfo.Local.GetUtcOffset(_when));
+        var error = Book.TryAdd(_pizza, _amount, when, _name ?? "", now);
+
+        _error = error is not null;
+        _message = error ?? $"✅ Booked — {_amount}× {_pizza} will fire on {when.ToLocalTime():ddd d MMM HH:mm}.";
+        if (error is null)
+        {
+            _name = null;
+        }
+    }
+
+    internal static DateTime NextSaturdayAtSix(DateTime from)
+    {
+        var days = ((int)DayOfWeek.Saturday - (int)from.DayOfWeek + 7) % 7;
+        if (days == 0 && from.Hour >= 18)
+        {
+            days = 7;
+        }
+
+        return from.Date.AddDays(days).AddHours(18);
+    }
+}

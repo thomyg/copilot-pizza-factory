@@ -1,0 +1,76 @@
+.preorder-form {
+    display: flex;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.preorder-form select,
+.preorder-form input {
+    border: 1px solid #cbb894;
+    border-radius: 8px;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.9rem;
+    background: #fff;
+}
+
+.preorder-form .amount { width: 4rem; }
+.preorder-form .name { flex-grow: 1; min-width: 8rem; }
+
+.preorder-form button.primary {
+    border: none;
+    background: #d83b01;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+}
+
+.preorder-form button.primary:hover { background: #b53201; }
+
+.preorder-result {
+    margin: 0.6rem 0 0;
+    padding: 0.45rem 0.7rem;
+    background: #eef7ff;
+    border-left: 4px solid #3d7fe8;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.88rem;
+}
+
+.preorder-result.error {
+    background: #fdecec;
+    border-left-color: #d92b2b;
+}
+
+.preorders {
+    list-style: none;
+    margin: 0.6rem 0 0;
+    padding: 0;
+    font-size: 0.88rem;
+}
+
+.preorders li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.3rem 0.2rem;
+    border-bottom: 1px dashed #eadfcd;
+}
+
+.preorders .cancel {
+    border: none;
+    background: transparent;
+    color: #b8a68e;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.preorders .cancel:hover { color: #d92b2b; }
+
+.hint {
+    margin: 0.6rem 0 0;
+    font-size: 0.85rem;
+    color: #8a7a66;
+    font-style: italic;
+}
