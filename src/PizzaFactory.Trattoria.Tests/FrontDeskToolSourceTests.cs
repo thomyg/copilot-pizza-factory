@@ -24,7 +24,7 @@ public class FrontDeskToolSourceTests
         var book = new PreOrderBook(orders, feed);
         var maitreD = new MaitreD(orders, pizzas, options, feed);
         var clock = new FixedTimeProvider(T0);
-        var bookkeeper = new Bookkeeper(orders, maitreD, clock);
+        var bookkeeper = new Bookkeeper(orders, new InMemoryStockRepository(), new InMemoryRestingDoughRepository(), maitreD, book, options, clock);
         return (new FrontDeskToolSource(book, maitreD, bookkeeper, clock), book, orders);
     }
 
@@ -36,7 +36,7 @@ public class FrontDeskToolSourceTests
         var tools = await desk.GetToolsAsync();
 
         Assert.Equal(
-            new[] { "book_pre_order", "business_report", "dining_room_status", "list_pre_orders", "sales_history" },
+            new[] { "book_pre_order", "business_report", "dining_room_status", "forecast_risks", "list_pre_orders", "sales_history" },
             tools.Select(t => t.Name).OrderBy(n => n).ToArray());
     }
 

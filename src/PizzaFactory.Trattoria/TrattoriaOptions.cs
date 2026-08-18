@@ -35,6 +35,12 @@ public sealed class TrattoriaOptions
 
     public TimeSpan TickInterval { get; set; } = TimeSpan.FromSeconds(1);
 
+    /// <summary>Mirror of the factory's restock threshold — used by the risk forecast. Keep in sync with FactoryOptions.</summary>
+    public int RestockThresholdGrams { get; set; } = 300;
+
+    /// <summary>Mirror of the factory's crisis threshold — used by the risk forecast. Keep in sync with FactoryOptions.</summary>
+    public int CrisisThresholdGrams { get; set; } = 150;
+
     /// <summary>Optional fixed random seed — used by tests to make the theatre deterministic.</summary>
     public int? RandomSeed { get; set; }
 }

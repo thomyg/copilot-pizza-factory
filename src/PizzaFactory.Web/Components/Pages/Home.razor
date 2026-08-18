@@ -42,7 +42,7 @@
             <p class="tagline">A pizza factory that runs itself. Nobody is clicking anything — watch.</p>
         </div>
         <div class="header-links">
-            <button class="view-toggle @(_warRoom ? "active" : null)" title="Toggle the war-room live rail" @onclick="() => _warRoom = !_warRoom">@(_warRoom ? "🌿 Overview" : "🎛️ War Room")</button>
+            <button class="view-toggle @(_warRoom ? "active" : null)" title="Toggle the war-room live rail" @onclick="ToggleWarRoom">@(_warRoom ? "🌿 Overview" : "🎛️ War Room")</button>
             <button class="chat-toggle @(_chatOpen ? "active" : null)" title="Chat with Giuseppe" @onclick="() => _chatOpen = !_chatOpen">👨‍🍳 Giuseppe</button>
             <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
         </div>
@@ -211,6 +211,15 @@
         _cts = new CancellationTokenSource();
         _timer = new PeriodicTimer(TimeSpan.FromSeconds(1));
         _ = RefreshLoopAsync(_cts.Token);
+    }
+
+    private void ToggleWarRoom()
+    {
+        _warRoom = !_warRoom;
+        if (_warRoom)
+        {
+            _chatOpen = true;   // war room without the pizzaiolo is just a room
+        }
     }
 
     private void ToggleService()

@@ -148,6 +148,7 @@ graph TD
 | A slow kitchen earns one-star reviews | Feedback stars derive from actual food wait time — sabotage the pantry and watch satisfaction drop, causally |
 | "Giuseppe, book 10 Diavolo for Saturday 18:00" | The trattoria's front desk hands the agent its reservations book as tools (`list_pre_orders`, `book_pre_order`, `dining_room_status`) — the booking lands in the same `PreOrderBook` the UI shows |
 | "Status report — how are we doing tonight?" | The `Bookkeeper` aggregates the REAL order stream (revenue via a price list, channels, top seller, guests, stars) plus an honest pace projection and a seeded 7-day ledger for "versus a typical Tuesday" — Giuseppe narrates it like a proud owner |
+| "What will go wrong soon?" | `forecast_risks` cross-references stock against committed demand (open orders + reservations firing within 3h), the dough buffer, and seating pressure — severity-ranked risks with the arithmetic behind each, and Giuseppe adds a mitigation per risk |
 
 **Engineering patterns worth showing:**
 

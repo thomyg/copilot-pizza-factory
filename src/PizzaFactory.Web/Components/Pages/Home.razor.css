@@ -55,11 +55,12 @@
     border-color: #d83b01;
 }
 
-/* War Room mode: a fixed left rail streams the live feed; the dashboard shifts once, then stays put. */
+/* War Room mode: left rail + reserved right lane for Giuseppe. The middle claims the space
+   between them ONCE and then never reflows — drawer open or closed. */
 @media (min-width: 1100px) {
     .window.war-room {
-        margin-left: calc(360px + 2rem);
-        margin-right: 2rem;
+        margin-left: calc(360px + 1.5rem);
+        margin-right: calc(380px + 1.5rem);
         max-width: none;
     }
 }

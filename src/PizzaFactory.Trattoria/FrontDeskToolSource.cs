@@ -38,6 +38,11 @@ public sealed class FrontDeskToolSource(
             AIFunctionFactory.Create(SalesHistory, "sales_history",
                 "The ledger for the last seven days (orders, guests, revenue EUR, stars per day) — for " +
                 "'versus a typical Tuesday' comparisons and simple trends."),
+            AIFunctionFactory.Create(ForecastRisksAsync, "forecast_risks",
+                "The crystal ball: cross-references stock against committed demand (open orders + " +
+                "reservations firing within three hours), the dough buffer, and seating pressure, and " +
+                "predicts what will most likely become a problem soon — severity-ranked, with the " +
+                "numbers behind each risk."),
         ];
 
         return Task.FromResult(tools);
@@ -76,6 +81,9 @@ public sealed class FrontDeskToolSource(
 
     private string SalesHistory() =>
         JsonSerializer.Serialize(bookkeeper.History(), SerializerOptions);
+
+    private async Task<string> ForecastRisksAsync(CancellationToken cancellationToken = default) =>
+        JsonSerializer.Serialize(await bookkeeper.ForecastAsync(cancellationToken), SerializerOptions);
 
     private string DiningRoomStatus()
     {

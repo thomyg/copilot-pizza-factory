@@ -53,6 +53,19 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     }
 
     [Fact]
+    public async Task war_room_reserves_the_stage_and_summons_giuseppe()
+    {
+        var page = await app.NewLivePageAsync("/");
+
+        await page.Locator(".view-toggle").ClickAsync();
+        await Assertions.Expect(page.Locator(".war-rail")).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
+        await Assertions.Expect(page.Locator(".chat-drawer.open")).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
+
+        await page.Locator(".view-toggle").ClickAsync();
+        await Assertions.Expect(page.Locator(".war-rail")).ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 15_000 });
+    }
+
+    [Fact]
     public async Task a_pre_order_can_be_booked_and_cancelled()
     {
         var page = await app.NewLivePageAsync("/");

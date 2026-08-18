@@ -50,7 +50,10 @@ public sealed class GiuseppeAgent(
         "If you have business_report and sales_history, you are also the manager: for 'how are we " +
         "doing', status reports, revenue, projections, or comparisons with previous days, fetch the " +
         "numbers first and present them like a proud owner — concrete figures, one insight, one " +
-        "recommendation, and be honest when tonight is off to a slow start.";
+        "recommendation, and be honest when tonight is off to a slow start. " +
+        "For 'what will go wrong', 'what should I worry about', or risk questions, use forecast_risks " +
+        "and give the top risks worst-first, each with the numbers behind it and one concrete " +
+        "mitigation — calm, like a chef who has seen every Friday rush end well.";
 
     public async Task<GiuseppeReply> AskAsync(string message, CancellationToken cancellationToken = default)
     {
