@@ -1,3 +1,4 @@
+using System.Globalization;
 using PizzaFactory.Domain;
 using PizzaFactory.Domain.Abstractions;
 using PizzaFactory.Domain.Entities;
@@ -56,6 +57,23 @@ public sealed class PreOrderBook(IOrderRepository orders, TrattoriaFeed feed)
 
         feed.Post(now, $"📅 Pre-order booked: {amount}× {recipe.Name} for {name.Trim()} at {when.ToLocalTime():ddd d MMM HH:mm}.");
         return null;
+    }
+
+    /// <summary>
+    /// Books from a free-text date ("yyyy-MM-dd HH:mm") — the one implementation behind every
+    /// concierge tool. Returns a confirmation, or the reason the book refused.
+    /// </summary>
+    public string BookFromText(string pizza, int amount, string when, string forName, DateTimeOffset now)
+    {
+        if (!DateTimeOffset.TryParseExact(when, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeLocal, out var parsed) &&
+            !DateTimeOffset.TryParse(when, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsed))
+        {
+            return $"Could not read '{when}' as a date — use the format yyyy-MM-dd HH:mm.";
+        }
+
+        return TryAdd(pizza, amount, parsed, forName, now)
+            ?? $"Reservation booked: {amount}× {pizza} for {forName} at {parsed.ToLocalTime():dddd d MMMM HH:mm}. We'll fire the ovens right on time.";
     }
 
     public void Cancel(string id)

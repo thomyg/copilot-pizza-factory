@@ -18,9 +18,6 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
 
-    <!-- ASP.NET Core extras -->
-    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
-
     <!-- Infrastructure: DI, Cosmos DB, key-less Azure auth, config binding -->
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.11" />

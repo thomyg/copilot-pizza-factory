@@ -50,9 +50,9 @@ public class StorefrontJourneyTests(WebAppFixture app)
         await page.GotoAsync(app.BaseUrl + "/storefront");
         await WaitForInteractiveAsync(page);
 
-        await page.Locator(".reserve-form .name").FillAsync("E2E Bingo Club");
-        await page.Locator(".reserve-form .cta").ClickAsync();
-        await Assertions.Expect(page.Locator("#reserve .result")).ToContainTextAsync("Booked", Patient);
+        await page.Locator(".preorder-form .name").FillAsync("E2E Bingo Club");
+        await page.Locator(".preorder-form button.primary").ClickAsync();
+        await Assertions.Expect(page.Locator("#reserve .preorder-result")).ToContainTextAsync("Booked", Patient);
 
         var house = await app.NewLivePageAsync("/");
         await Assertions.Expect(house.Locator(".preorders")).ToContainTextAsync("E2E Bingo Club", Patient);

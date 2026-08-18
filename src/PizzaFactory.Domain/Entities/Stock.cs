@@ -33,6 +33,10 @@ public sealed class Stock
         [Ingredient.Tuna] = 600,
     });
 
+    /// <summary>Opening grams keyed by ingredient name — for dashboard gauge scaling.</summary>
+    public static IReadOnlyDictionary<string, int> InitialByName { get; } =
+        Enum.GetValues<Ingredient>().ToDictionary(i => i.ToString(), i => Initial().GramsOf(i));
+
     /// <summary>Grams currently in stock for an ingredient.</summary>
     public int GramsOf(Ingredient ingredient) => _grams.GetValueOrDefault(ingredient);
 

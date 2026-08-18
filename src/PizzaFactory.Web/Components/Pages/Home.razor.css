@@ -296,8 +296,7 @@ button.play.playing {
 }
 
 .order-form select,
-.order-form input,
-.chat-input input {
+.order-form input {
     border: 1px solid var(--flour-300);
     border-radius: 8px;
     padding: 0.45rem 0.6rem;

@@ -27,20 +27,4 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>
-    /// Makes the crisis self-healing: escalations are fanned out to the logging sink AND the supplier
-    /// sink (orders the missing ingredient over the A2A gateway and restocks). Requires a supplier
-    /// gateway (AddSupplierGateway) and a store to be registered.
-    /// </summary>
-    public static IServiceCollection AddSupplierSelfHeal(this IServiceCollection services)
-    {
-        services.AddSingleton<LoggingEscalationSink>();
-        services.AddSingleton<SupplierEscalationSink>();
-        services.AddSingleton<IEscalationSink>(sp => new CompositeEscalationSink(
-        [
-            sp.GetRequiredService<LoggingEscalationSink>(),
-            sp.GetRequiredService<SupplierEscalationSink>(),
-        ]));
-        return services;
-    }
 }

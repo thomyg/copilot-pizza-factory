@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
 using PizzaFactory.Giuseppe.Tools;
@@ -62,19 +61,8 @@ public sealed class FrontDeskToolSource(
         [Description("Pizza name from the menu, e.g. 'Diavolo'.")] string pizza,
         [Description("How many pizzas (1 to 24).")] int amount,
         [Description("When the order should fire, local time, format yyyy-MM-dd HH:mm (e.g. 2026-08-22 18:00).")] string when,
-        [Description("Who the pre-order is for, e.g. 'Nonna's Bingo Club'.")] string forName)
-    {
-        if (!DateTimeOffset.TryParseExact(when, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal, out var parsed) &&
-            !DateTimeOffset.TryParse(when, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsed))
-        {
-            return $"Could not read '{when}' as a date — use the format yyyy-MM-dd HH:mm.";
-        }
-
-        var error = book.TryAdd(pizza, amount, parsed, forName, clock.GetUtcNow());
-        return error ?? $"Booked: {amount}× {pizza} for {forName} at {parsed.ToLocalTime():dddd d MMMM HH:mm}. " +
-            "It will fire into the oven right on time.";
-    }
+        [Description("Who the pre-order is for, e.g. 'Nonna's Bingo Club'.")] string forName) =>
+        book.BookFromText(pizza, amount, when, forName, clock.GetUtcNow());
 
     private async Task<string> BusinessReportAsync(CancellationToken cancellationToken = default) =>
         JsonSerializer.Serialize(await bookkeeper.ReportAsync(cancellationToken), SerializerOptions);

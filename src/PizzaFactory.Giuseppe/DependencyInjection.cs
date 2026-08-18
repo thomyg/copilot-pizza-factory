@@ -48,9 +48,7 @@ public static class DependencyInjection
         switch (options.WorkIqMode)
         {
             case WorkIqMode.Rehearsal:
-                services.AddSingleton<IWorkContext, RehearsalWorkContext>();
-                services.AddSingleton<IGiuseppeToolSource>(sp =>
-                    new WorkContextToolSource(sp.GetRequiredService<IWorkContext>()));
+                services.AddSingleton<IGiuseppeToolSource>(_ => new WorkContextToolSource(new RehearsalWorkContext()));
                 break;
 
             case WorkIqMode.Live:
@@ -88,20 +86,6 @@ public static class DependencyInjection
         return services;
     }
 
-    /// <summary>
-    /// Legacy registration (endpoint + deployment only, no tools). Kept so existing hosts and
-    /// tests that don't need the Friday-retro tooling keep working unchanged.
-    /// </summary>
-    public static IServiceCollection AddGiuseppe(this IServiceCollection services, Uri endpoint, string deployment)
-    {
-        services.AddSingleton(new GiuseppeOptions { Endpoint = endpoint, Deployment = deployment });
-        services.AddSingleton<TokenCredential>(_ => new DefaultAzureCredential());
-        services.AddSingleton(CreateChatClient);
-        services.AddSingleton(sp => new GiuseppeAgent(
-            sp.GetRequiredService<IChatClient>(),
-            sp.GetRequiredService<Safety.IContentGuard>()));
-        return services;
-    }
 
     private static IChatClient CreateChatClient(IServiceProvider sp)
     {

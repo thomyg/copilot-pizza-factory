@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Globalization;
 using System.Text.Json;
 using Microsoft.Extensions.AI;
 using PizzaFactory.Domain.Recipes;
@@ -78,18 +77,8 @@ public sealed class StorefrontToolSource(
         [Description("Pizza name from the menu.")] string pizza,
         [Description("How many pizzas (1 to 24).")] int amount,
         [Description("When, local time, format yyyy-MM-dd HH:mm.")] string when,
-        [Description("Who the reservation is for.")] string forName)
-    {
-        if (!DateTimeOffset.TryParseExact(when, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeLocal, out var parsed) &&
-            !DateTimeOffset.TryParse(when, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out parsed))
-        {
-            return $"Could not read '{when}' as a date — use the format yyyy-MM-dd HH:mm.";
-        }
-
-        var error = book.TryAdd(pizza, amount, parsed, forName, clock.GetUtcNow());
-        return error ?? $"Reservation booked: {amount}× {pizza} for {forName} at {parsed.ToLocalTime():dddd d MMMM HH:mm}. We'll fire the ovens right on time.";
-    }
+        [Description("Who the reservation is for.")] string forName) =>
+        book.BookFromText(pizza, amount, when, forName, clock.GetUtcNow());
 
     private string CheckOrderStatus(
         [Description("The customer's name, or the order id (or its first characters).")] string nameOrId)

@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PizzaFactory.ApiService\PizzaFactory.ApiService.csproj" />
     <ProjectReference Include="..\PizzaFactory.Mcp\PizzaFactory.Mcp.csproj" />
     <ProjectReference Include="..\PizzaFactory.Supplier\PizzaFactory.Supplier.csproj" />
     <ProjectReference Include="..\PizzaFactory.Web\PizzaFactory.Web.csproj" />

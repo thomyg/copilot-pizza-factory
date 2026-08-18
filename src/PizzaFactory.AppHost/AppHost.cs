@@ -9,8 +9,6 @@ var builder = DistributedApplication.CreateBuilder(args);
 // otherwise services fall back to their in-memory store. Key-less (managed identity / az login).
 var cosmosEndpoint = builder.Configuration["Cosmos:Endpoint"];
 
-builder.AddProject<Projects.PizzaFactory_ApiService>("apiservice");
-
 // MCP server exposing the factory's Orders + Inventory tools over Streamable HTTP.
 var mcp = builder.AddProject<Projects.PizzaFactory_Mcp>("mcp");
 if (!string.IsNullOrWhiteSpace(cosmosEndpoint))

@@ -56,7 +56,7 @@ public class FrontDeskToolSourceTests
             ["forName"] = "Nonna's Bingo Club",
         }))?.ToString();
 
-        Assert.Contains("Booked", confirmation);
+        Assert.Contains("Reservation booked", confirmation);
         Assert.Contains("Nonna", confirmation);
         var entry = Assert.Single(book.Upcoming);
         Assert.Equal("Diavolo", entry.Pizza);

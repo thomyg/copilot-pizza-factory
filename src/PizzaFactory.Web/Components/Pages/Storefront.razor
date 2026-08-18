@@ -4,7 +4,6 @@
 @using PizzaFactory.Trattoria
 @using PizzaFactory.Web.Components.Trattoria
 @inject OnlineOrderDesk Desk
-@inject PreOrderBook Book
 @inject StorefrontConcierge Concierge
 @inject TimeProvider Clock
 @implements IDisposable
@@ -92,22 +91,8 @@
         <section id="reserve" class="panel">
             <h2>📅 Reserve ahead</h2>
             <p class="blurb">Party, retro, bingo night — book your pizzas and we fire the ovens right on time.</p>
-            <div class="reserve-form">
-                <select @bind="_reservePizza" aria-label="Pizza">
-                    @foreach (var pizza in RecipeCatalog.Menu)
-                    {
-                        <option value="@pizza">@pizza</option>
-                    }
-                </select>
-                <input class="amount" type="number" @bind="_reserveAmount" min="1" max="@PreOrderBook.MaxAmount" aria-label="Amount" />
-                <input class="when" type="datetime-local" @bind="_reserveWhen" aria-label="When" />
-                <input class="name" @bind="_reserveName" placeholder="who is it for?" />
-                <button class="cta" @onclick="Reserve">Book it</button>
-            </div>
-            @if (!string.IsNullOrEmpty(_reserveMessage))
-            {
-                <p class="result @(_reserveError ? "error" : null)">@_reserveMessage</p>
-            }
+            @* Same component as the house's internal pre-orders panel — one booking form, two rooms. *@
+            <PreOrdersPanel />
         </section>
     </div>
 
@@ -127,12 +112,6 @@
     private bool _orderError;
     private string? _myOrderId;
 
-    private string _reservePizza = RecipeCatalog.Menu[0];
-    private int _reserveAmount = 10;
-    private DateTime _reserveWhen = PreOrdersPanel.NextSaturdayAtSix(DateTime.Now);
-    private string? _reserveName;
-    private string? _reserveMessage;
-    private bool _reserveError;
 
     private PeriodicTimer? _timer;
     private CancellationTokenSource? _cts;
@@ -159,17 +138,6 @@
         }
     }
 
-    private void Reserve()
-    {
-        var when = new DateTimeOffset(_reserveWhen, TimeZoneInfo.Local.GetUtcOffset(_reserveWhen));
-        var error = Book.TryAdd(_reservePizza, _reserveAmount, when, _reserveName ?? "", Clock.GetUtcNow());
-        _reserveError = error is not null;
-        _reserveMessage = error ?? $"Booked! {_reserveAmount}× {_reservePizza} on {when.ToLocalTime():ddd d MMM HH:mm} — we'll be ready.";
-        if (error is null)
-        {
-            _reserveName = null;
-        }
-    }
 
     private async Task RefreshLoopAsync(CancellationToken cancellationToken)
     {

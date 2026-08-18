@@ -6,11 +6,11 @@ using PizzaFactory.Giuseppe.WorkContext;
 namespace PizzaFactory.Giuseppe.Tools;
 
 /// <summary>
-/// Exposes an <see cref="IWorkContext"/> as a single <c>find_meeting</c> tool so the model
-/// can look up the meeting it's asked to cater. Wraps rehearsal data locally; the live
-/// Work IQ MCP source replaces this when Microsoft 365 context is available.
+/// Exposes the rehearsal work context as a single <c>find_meeting</c> tool so the model can
+/// look up the meeting it's asked to cater. The live path is the Work IQ MCP source; this is
+/// the deterministic stand-in (and its on-stage fallback).
 /// </summary>
-public sealed class WorkContextToolSource(IWorkContext workContext) : IGiuseppeToolSource
+public sealed class WorkContextToolSource(RehearsalWorkContext workContext) : IGiuseppeToolSource
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 

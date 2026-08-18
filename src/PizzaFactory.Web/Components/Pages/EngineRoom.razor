@@ -64,7 +64,7 @@
                 <tbody>
                 @foreach (var level in _snapshot.Stock)
                 {
-                    var initial = Math.Max(1, _openingStock.GetValueOrDefault(level.Ingredient, 1));
+                    var initial = Math.Max(1, PizzaFactory.Domain.Entities.Stock.InitialByName.GetValueOrDefault(level.Ingredient, 1));
                     var pct = Math.Min(100, level.Grams * 100 / initial);
                     var state = level.Grams <= Options.CrisisThresholdGrams ? "crisis"
                         : level.Grams <= Options.RestockThresholdGrams ? "low" : "ok";
@@ -178,8 +178,6 @@
 
     private TrattoriaSnapshot Dining => MaitreD.Snapshot();
 
-    private static readonly Dictionary<string, int> _openingStock =
-        Enum.GetValues<Ingredient>().ToDictionary(i => i.ToString(), i => Stock.Initial().GramsOf(i));
 
     private string Note(string suits, string nerds) => _nerdMode ? nerds : suits;
 

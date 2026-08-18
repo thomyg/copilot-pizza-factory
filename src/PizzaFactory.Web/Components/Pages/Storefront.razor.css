@@ -325,15 +325,14 @@
     font-size: 0.95rem;
 }
 
-.order-form, .reserve-form {
+.order-form {
     display: flex;
     gap: 0.55rem;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.order-form select, .order-form input,
-.reserve-form select, .reserve-form input {
+.order-form select, .order-form input {
     border: 1.5px solid var(--flour-300);
     border-radius: var(--radius-sm);
     padding: 0.55rem 0.7rem;
@@ -344,15 +343,14 @@
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.order-form select:focus, .order-form input:focus,
-.reserve-form select:focus, .reserve-form input:focus {
+.order-form select:focus, .order-form input:focus {
     outline: none;
     border-color: var(--tomato);
     box-shadow: 0 0 0 3px rgba(201, 58, 33, 0.15);
 }
 
-.order-form .amount, .reserve-form .amount { width: 4.4rem; }
-.order-form .name, .reserve-form .name { flex-grow: 1; min-width: 9rem; }
+.order-form .amount { width: 4.4rem; }
+.order-form .name { flex-grow: 1; min-width: 9rem; }
 
 .mode {
     display: flex;

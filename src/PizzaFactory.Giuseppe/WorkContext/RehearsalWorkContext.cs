@@ -5,7 +5,7 @@ namespace PizzaFactory.Giuseppe.WorkContext;
 /// Microsoft 365 context is unavailable (no user token, offline rehearsal, deployed bot
 /// before SSO lands) so the demo storyline works everywhere, every time.
 /// </summary>
-public sealed class RehearsalWorkContext(TimeProvider? clock = null) : IWorkContext
+public sealed class RehearsalWorkContext(TimeProvider? clock = null)
 {
     private static readonly string[] RetroAttendees =
         ["Thomas", "Anna", "Lukas", "Sofia", "Markus", "Elena", "Jonas", "Petra"];
