@@ -27,6 +27,44 @@
     font-style: italic;
 }
 
+.header-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.chat-toggle {
+    font-size: 0.85rem;
+    color: #8a7a66;
+    background: transparent;
+    border: 1px solid #eadfcd;
+    border-radius: 999px;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.chat-toggle:hover,
+.chat-toggle.active {
+    color: #fff;
+    background: #d83b01;
+    border-color: #d83b01;
+}
+
+.window {
+    transition: margin 0.25s ease;
+}
+
+/* Wide screens: the chat drawer pushes the dashboard right, VS Code style. */
+@media (min-width: 1200px) {
+    .window.chat-open {
+        margin-left: calc(380px + 2rem);
+        margin-right: 2rem;
+        max-width: none;
+    }
+}
+
 .engine-room-link {
     flex-shrink: 0;
     font-size: 0.85rem;
@@ -256,63 +294,6 @@ button.primary:disabled {
     border-left: 4px solid #3d7fe8;
     border-radius: 0 8px 8px 0;
     font-size: 0.95rem;
-}
-
-/* Giuseppe chat */
-.chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 320px;
-    overflow-y: auto;
-    margin-bottom: 0.7rem;
-}
-
-.bubble {
-    max-width: 88%;
-    padding: 0.5rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-}
-
-.bubble .who {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #8a7a66;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.bubble.you {
-    align-self: flex-end;
-    background: #fdf3e3;
-    border: 1px solid #eadfcd;
-    border-bottom-right-radius: 4px;
-}
-
-.bubble.chef {
-    align-self: flex-start;
-    background: #fff;
-    border: 1px solid #eadfcd;
-    border-bottom-left-radius: 4px;
-}
-
-.typing {
-    font-style: italic;
-    color: #8a7a66;
-}
-
-.chat-input {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.chat-input input {
-    flex-grow: 1;
 }
 
 /* Stock gauges */

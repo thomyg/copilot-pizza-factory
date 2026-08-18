@@ -1,0 +1,99 @@
+@using PizzaFactory.Giuseppe
+@using PizzaFactory.Web
+@inject WindowEventLog Events
+@inject ILogger<GiuseppeChatPanel> Logger
+
+<aside class="chat-drawer @(Open ? "open" : null)" aria-label="Chat with Giuseppe" aria-hidden="@(!Open)">
+    <header>
+        <span class="title">👨‍🍳 Giuseppe</span>
+        <span class="subtitle">pizzaiolo on duty</span>
+        <button class="close" title="Close the chat" @onclick="CloseAsync">✖</button>
+    </header>
+
+    @if (Giuseppe is null)
+    {
+        <div class="off-clock">
+            <p><em>Giuseppe is off the clock — set Giuseppe:Endpoint + Giuseppe:Deployment to chat.</em></p>
+        </div>
+    }
+    else
+    {
+        <div class="chat-log">
+            @* column-reverse keeps the newest message pinned to the bottom without any JS —
+               so the markup renders newest-first. *@
+            @if (_busy)
+            {
+                <div class="bubble chef"><span class="who">👨‍🍳 Giuseppe</span><span class="typing">is tossing the dough…</span></div>
+            }
+            @foreach (var (role, text) in Enumerable.Reverse(_chat))
+            {
+                <div class="bubble @(role == "You" ? "you" : "chef")">
+                    <span class="who">@(role == "You" ? "🙋 You" : "👨‍🍳 Giuseppe")</span>
+                    <span>@text</span>
+                </div>
+            }
+            @if (_chat.Count == 0)
+            {
+                <p class="hint">Ask him anything — the menu, a recipe, or "order pizza for Friday's retro".</p>
+            }
+        </div>
+        <div class="chat-input">
+            <input @bind="_input" @bind:event="oninput" placeholder="Ask Giuseppe…" disabled="@_busy"
+                   @onkeydown="@(e => { if (e.Key == "Enter") { _ = AskAsync(); } })" />
+            <button class="primary" @onclick="AskAsync" disabled="@_busy">Send</button>
+        </div>
+    }
+</aside>
+
+@code {
+    [Parameter]
+    public GiuseppeAgent? Giuseppe { get; set; }
+
+    [Parameter]
+    public bool Open { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OpenChanged { get; set; }
+
+    private readonly List<(string Role, string Text)> _chat = [];
+    private string? _input;
+    private bool _busy;
+
+    private Task CloseAsync() => OpenChanged.InvokeAsync(false);
+
+    private async Task AskAsync()
+    {
+        if (Giuseppe is null || string.IsNullOrWhiteSpace(_input))
+        {
+            return;
+        }
+
+        var question = _input!;
+        _chat.Add(("You", question));
+        _input = null;
+        _busy = true;
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+            var reply = await Giuseppe.AskAsync(question);
+            if (!reply.Allowed)
+            {
+                Events.RecordBlock("chat input");
+            }
+
+            _chat.Add(("Giuseppe", reply.Text));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // In-character apology, never a dead circuit; real exception goes to the logs.
+            Logger.LogError(ex, "Giuseppe chat failed");
+            _chat.Add(("Giuseppe", "Mamma mia — I just dropped a whole tray in the kitchen! 🍕💥 " +
+                "Give me a moment to clean up and ask me again."));
+        }
+        finally
+        {
+            _busy = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

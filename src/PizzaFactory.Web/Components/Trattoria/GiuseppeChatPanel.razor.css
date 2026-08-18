@@ -1,0 +1,150 @@
+.chat-drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 380px;
+    max-width: 92vw;
+    background: #fffdf8;
+    border-right: 2px solid #eadfcd;
+    box-shadow: 4px 0 18px rgba(90, 62, 27, 0.14);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-102%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.chat-drawer.open {
+    transform: translateX(0);
+}
+
+.chat-drawer header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 2px solid #d83b01;
+    background: #fdf3e3;
+}
+
+.chat-drawer .title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.chat-drawer .subtitle {
+    font-size: 0.78rem;
+    color: #8a7a66;
+    font-style: italic;
+    flex-grow: 1;
+}
+
+.chat-drawer .close {
+    border: none;
+    background: transparent;
+    color: #8a7a66;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.chat-drawer .close:hover {
+    color: #d83b01;
+}
+
+.off-clock {
+    padding: 1rem;
+    color: #8a7a66;
+    font-size: 0.9rem;
+}
+
+/* column-reverse pins the latest message to the bottom without JS scroll plumbing. */
+.chat-log {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    overflow-y: auto;
+    padding: 0.9rem;
+}
+
+.bubble {
+    max-width: 90%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.bubble .who {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #8a7a66;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.bubble.you {
+    align-self: flex-end;
+    background: #fdf3e3;
+    border: 1px solid #eadfcd;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble.chef {
+    align-self: flex-start;
+    background: #fff;
+    border: 1px solid #eadfcd;
+    border-bottom-left-radius: 4px;
+}
+
+.typing {
+    font-style: italic;
+    color: #8a7a66;
+}
+
+.hint {
+    color: #8a7a66;
+    font-style: italic;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.chat-input {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 0.9rem;
+    border-top: 1px solid #eadfcd;
+    background: #fffdf8;
+}
+
+.chat-input input {
+    flex-grow: 1;
+    border: 1px solid #cbb894;
+    border-radius: 8px;
+    padding: 0.45rem 0.6rem;
+    font-size: 0.95rem;
+    background: #fff;
+}
+
+.chat-input button.primary {
+    border: none;
+    background: #d83b01;
+    color: #fff;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.chat-input button.primary:hover {
+    background: #b53201;
+}
+
+.chat-input button.primary:disabled {
+    background: #cbb894;
+    cursor: default;
+}

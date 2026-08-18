@@ -46,6 +46,7 @@ public class WindowJourneyTests(WebAppFixture app)
     {
         var page = await app.NewLivePageAsync("/");
 
+        await OpenChatDrawerAsync(page);
         await page.Locator(".chat-input input").FillAsync("What pizzas can I order?");
         await page.Locator(".chat-input button").ClickAsync();
 
@@ -65,6 +66,7 @@ public class WindowJourneyTests(WebAppFixture app)
     {
         var page = await app.NewLivePageAsync("/");
 
+        await OpenChatDrawerAsync(page);
         await page.Locator(".chat-input input").FillAsync("Ciao Giuseppe!");
         await page.Locator(".chat-input input").PressAsync("Enter");
 
@@ -84,6 +86,14 @@ public class WindowJourneyTests(WebAppFixture app)
 
         await page.Locator(".tagline a").ClickAsync();
         await Assertions.Expect(page.Locator("h1")).ToContainTextAsync("Window into the Factory", new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
+    }
+
+    /// <summary>Giuseppe lives in a VS Code-style left drawer now — open it before chatting.</summary>
+    private static async Task OpenChatDrawerAsync(IPage page)
+    {
+        await page.Locator(".chat-toggle").ClickAsync();
+        await Assertions.Expect(page.Locator(".chat-drawer.open"))
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 10_000 });
     }
 
     private static async Task<int> ReadOpenOrdersAsync(IPage page)

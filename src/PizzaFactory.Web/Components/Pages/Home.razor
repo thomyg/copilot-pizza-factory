@@ -21,13 +21,18 @@
 
 <PageTitle>Window into the Factory</PageTitle>
 
-<div class="window">
+<GiuseppeChatPanel Giuseppe="_giuseppe" Open="_chatOpen" OpenChanged="open => _chatOpen = open" />
+
+<div class="window @(_chatOpen ? "chat-open" : null)">
     <header>
         <div>
             <h1>🍕 Window into the Factory</h1>
             <p class="tagline">A pizza factory that runs itself. Nobody is clicking anything — watch.</p>
         </div>
-        <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
+        <div class="header-links">
+            <button class="chat-toggle @(_chatOpen ? "active" : null)" title="Chat with Giuseppe" @onclick="() => _chatOpen = !_chatOpen">👨‍🍳 Giuseppe</button>
+            <a class="engine-room-link" href="/engine-room" title="Presenter view: watch-along, talk track, chaos console">🔧 Engine&nbsp;Room</a>
+        </div>
     </header>
 
     @if (_snapshot is null)
@@ -87,71 +92,53 @@
         </div>
 
         <div class="columns">
-            <section class="panel order">
-                <h2>🛎️ Order from Giuseppe</h2>
-                @if (Gate.IsOpen)
-                {
-                    <div class="order-form">
-                        <select @bind="_pizza" aria-label="Pizza">
-                            @foreach (var pizza in RecipeCatalog.Menu)
+            <div class="stack">
+                <section class="panel order">
+                    <h2>🛎️ Order from Giuseppe</h2>
+                    @if (Gate.IsOpen)
+                    {
+                        <div class="order-form">
+                            <select @bind="_pizza" aria-label="Pizza">
+                                @foreach (var pizza in RecipeCatalog.Menu)
+                                {
+                                    <option value="@pizza">@pizza</option>
+                                }
+                            </select>
+                            <input class="amount" type="number" @bind="_amount" min="1" max="5" aria-label="Amount" />
+                            <input class="name" @bind="_name" placeholder="(optional) your name" />
+                            <button class="primary" @onclick="PlaceOrderAsync">Order 🍕</button>
+                        </div>
+                        <p class="hint">Your order joins the line above — watch it cross the floor.</p>
+                    }
+                    else
+                    {
+                        <p class="closed">🔴 Ordering is closed right now — check back soon!</p>
+                    }
+                    @if (!string.IsNullOrEmpty(_orderMessage))
+                    {
+                        <p class="order-result">@_orderMessage</p>
+                    }
+                </section>
+
+                <section class="panel bouncer">
+                    <h2>🛡️ Trust &amp; Safety — the Bouncer</h2>
+                    <p class="blocked">Blocked attempts: <strong>@Events.BlockedCount</strong></p>
+                    @if (Events.Recent.Count == 0)
+                    {
+                        <p class="hint">All quiet on the door. The Bouncer is watching.</p>
+                    }
+                    else
+                    {
+                        <ul class="ticker">
+                            @foreach (var entry in Events.Recent)
                             {
-                                <option value="@pizza">@pizza</option>
+                                <li>@entry</li>
                             }
-                        </select>
-                        <input class="amount" type="number" @bind="_amount" min="1" max="5" aria-label="Amount" />
-                        <input class="name" @bind="_name" placeholder="(optional) your name" />
-                        <button class="primary" @onclick="PlaceOrderAsync">Order 🍕</button>
-                    </div>
-                    <p class="hint">Your order joins the line above — watch it cross the floor.</p>
-                }
-                else
-                {
-                    <p class="closed">🔴 Ordering is closed right now — check back soon!</p>
-                }
-                @if (!string.IsNullOrEmpty(_orderMessage))
-                {
-                    <p class="order-result">@_orderMessage</p>
-                }
-            </section>
+                        </ul>
+                    }
+                </section>
+            </div>
 
-            <section class="panel giuseppe">
-                <h2>👨‍🍳 Chat with Giuseppe</h2>
-                @if (_giuseppe is null)
-                {
-                    <p class="closed"><em>Giuseppe is off the clock — set Giuseppe:Endpoint + Giuseppe:Deployment to chat.</em></p>
-                }
-                else
-                {
-                    <div class="chat-log">
-                        @if (_chat.Count == 0)
-                        {
-                            <p class="hint">Ask him anything — the menu, a recipe, or "order pizza for Friday's retro".</p>
-                        }
-                        @foreach (var (role, text) in _chat)
-                        {
-                            <div class="bubble @(role == "You" ? "you" : "chef")">
-                                <span class="who">@(role == "You" ? "🙋 You" : "👨‍🍳 Giuseppe")</span>
-                                <span>@text</span>
-                            </div>
-                        }
-                        @if (_giuseppeBusy)
-                        {
-                            <div class="bubble chef"><span class="who">👨‍🍳 Giuseppe</span><span class="typing">is tossing the dough…</span></div>
-                        }
-                    </div>
-                    <div class="chat-input">
-                        @* @bind:event="oninput" keeps the bound value current per keystroke — with the
-                           default (onchange) binding, Enter fires the keydown handler BEFORE the bind
-                           updates and the message silently vanishes. *@
-                        <input @bind="_chatInput" @bind:event="oninput" placeholder="Ask Giuseppe…" disabled="@_giuseppeBusy"
-                               @onkeydown="@(e => { if (e.Key == "Enter") { _ = AskGiuseppeAsync(); } })" />
-                        <button class="primary" @onclick="AskGiuseppeAsync" disabled="@_giuseppeBusy">Send</button>
-                    </div>
-                }
-            </section>
-        </div>
-
-        <div class="columns">
             <section class="panel stock">
                 <h2>🧺 Stock</h2>
                 <table class="pantry">
@@ -170,24 +157,6 @@
                 </table>
                 <p class="hint">Amber means the self-healing supply chain is about to earn its salary.</p>
             </section>
-
-            <section class="panel bouncer">
-                <h2>🛡️ Trust &amp; Safety — the Bouncer</h2>
-                <p class="blocked">Blocked attempts: <strong>@Events.BlockedCount</strong></p>
-                @if (Events.Recent.Count == 0)
-                {
-                    <p class="hint">All quiet on the door. The Bouncer is watching.</p>
-                }
-                else
-                {
-                    <ul class="ticker">
-                        @foreach (var entry in Events.Recent)
-                        {
-                            <li>@entry</li>
-                        }
-                    </ul>
-                }
-            </section>
         </div>
     }
 </div>
@@ -204,9 +173,7 @@
     private string? _orderMessage;
 
     private GiuseppeAgent? _giuseppe;
-    private readonly List<(string Role, string Text)> _chat = [];
-    private string? _chatInput;
-    private bool _giuseppeBusy;
+    private bool _chatOpen;
 
     private static readonly Dictionary<string, int> _openingStock =
         Enum.GetValues<PizzaFactory.Domain.Ingredient>()
@@ -237,43 +204,6 @@
         }
 
         _trattoria = MaitreD.Snapshot();
-    }
-
-    private async Task AskGiuseppeAsync()
-    {
-        if (_giuseppe is null || string.IsNullOrWhiteSpace(_chatInput))
-        {
-            return;
-        }
-
-        var question = _chatInput!;
-        _chat.Add(("You", question));
-        _chatInput = null;
-        _giuseppeBusy = true;
-        try
-        {
-            await InvokeAsync(StateHasChanged);
-            var reply = await _giuseppe.AskAsync(question);
-            if (!reply.Allowed)
-            {
-                Events.RecordBlock("chat input");
-            }
-
-            _chat.Add(("Giuseppe", reply.Text));
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            // The show must go on: a model/auth/network failure becomes an in-character apology,
-            // never a dead Blazor circuit. The real exception goes to the server logs.
-            Logger.LogError(ex, "Giuseppe chat failed");
-            _chat.Add(("Giuseppe", "Mamma mia — I just dropped a whole tray in the kitchen! 🍕💥 " +
-                "Give me a moment to clean up and ask me again."));
-        }
-        finally
-        {
-            _giuseppeBusy = false;
-            await InvokeAsync(StateHasChanged);
-        }
     }
 
     private async Task PlaceOrderAsync()
