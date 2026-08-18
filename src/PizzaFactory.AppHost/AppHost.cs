@@ -42,6 +42,14 @@ if (!string.IsNullOrWhiteSpace(giuseppeEndpoint) && !string.IsNullOrWhiteSpace(g
        .WithEnvironment("Giuseppe__Deployment", giuseppeDeployment)
        .WithEnvironment("Giuseppe__FactoryMcpUrl", ReferenceExpression.Create($"{mcp.GetEndpoint("http")}/mcp"));
 
+    // Real Responsible-AI guard (Azure AI Content Safety + Prompt Shields) when configured —
+    // otherwise the web app falls back to the offline heuristic Bouncer.
+    var contentSafetyEndpoint = builder.Configuration["ContentSafety:Endpoint"];
+    if (!string.IsNullOrWhiteSpace(contentSafetyEndpoint))
+    {
+        web.WithEnvironment("ContentSafety__Endpoint", contentSafetyEndpoint);
+    }
+
     // Local dev credential wiring: the Azure OpenAI resource may live in a different tenant than
     // az login's default. Set Azure:TenantId (user-secrets) so DefaultAzureCredential asks the CLI
     // for the RIGHT tenant — otherwise every Giuseppe chat dies with a 400 tenant mismatch.
