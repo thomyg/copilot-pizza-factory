@@ -42,7 +42,11 @@
       "description": "Giuseppe's Pizza Factory tools: list the pizza menu and recipes, check ingredient stock, place pizza orders, and track order status on the live factory floor.",
       "toolSource": {
         "remoteMcpServer": {
-          "mcpServerUrl": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp"
+          "mcpServerUrl": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp",
+          "authorization": {
+            "type": "OAuthPluginVault",
+            "referenceId": "${{MCP_AUTH_CONFIG_ID}}"
+          }
         }
       }
     }
