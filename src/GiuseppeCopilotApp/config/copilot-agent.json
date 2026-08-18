@@ -3,7 +3,7 @@
   "agents": [
     {
       "name": {
-        "default": "Giuseppe — Trattoria Command"
+        "default": "Trattoria Command"
       },
       "description": {
         "default": "Giuseppe's back-of-house manager cockpit: tonight's service, business reports, forecast risks and the reservation book, rendered as a living UI inside Copilot."

@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.8/schema.json",
   "version": "v1.8",
-  "name": "Giuseppe${{APP_NAME_SUFFIX}}",
+  "name": "Giuseppe Catering${{APP_NAME_SUFFIX}}",
   "description": "Giuseppe, the AI pizzaiolo of the Copilot Pizza Factory: browse the menu, check live ingredient stock, and place real pizza orders on the factory floor - including catering for your meetings.",
   "instructions": "$[file('instruction.txt')]",
   "conversation_starters": [

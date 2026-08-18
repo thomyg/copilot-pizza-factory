@@ -1,4 +1,4 @@
-# Giuseppe — Trattoria Command (SharePoint Copilot App)
+# Trattoria Command (SharePoint Copilot App)
 
 > ⚠️ **PREVIEW TECH.** Built on **SPFx 1.24.0-beta.2 Copilot components** — Microsoft's
 > SharePoint Copilot Apps are in public preview and explicitly not for production.
@@ -51,7 +51,7 @@ npm test              # heft build + 9 jest tests
 npm run build         # production build + sharepoint/solution/giuseppe-copilot-app.sppkg
 ```
 
-The build also emits `teams/giuseppe--trattoria-command.zip` — the merged declarative
+The build also emits `teams/trattoria-command.zip` — the merged declarative
 agent package (the heft copilot-agent plugin combines `copilot/` with the component's
 tools automatically).
 
@@ -61,8 +61,7 @@ tools automatically).
    tenant SharePoint app catalog and check **Enable this app and add it to all sites**.
 2. When prompted, select **Add to Teams** — this also syncs the declarative agent to
    the tenant agent catalog (that button does both; no separate publishing step).
-3. Open **M365 Copilot** (or Copilot Chat) → agent list → **Giuseppe — Trattoria
-   Command** → try "How is tonight looking at the trattoria?"
+3. Open **M365 Copilot** (or Copilot Chat) → agent list → **Trattoria Command** → try "How is tonight looking at the trattoria?"
 4. Changed `declarativeAgent.json`? **Bump its `version`** or Copilot keeps the old one.
 
 ### Inner dev loop (Copilot Workbench)
@@ -76,7 +75,14 @@ Workbench loads the local debug component against a real Copilot surface.
 
 ## Relationship to the wiqd agent
 
-`src/GiuseppeCopilotAgent/` (the wiqd-scaffolded declarative agent) remains the
-Friday-retro **catering experiment** with its API connector story. This app is the
-**manager surface** and, being a full declarative agent with UI, is the one to demo in
-Copilot going forward.
+Two agents, two names, zero confusion:
+
+- **Trattoria Command** (this app) — the manager cockpit with the custom UI. The one
+  to demo in Copilot.
+- **Giuseppe Catering (Lab)** (`src/GiuseppeCopilotAgent/`, wiqd-scaffolded) — the
+  Friday-retro catering experiment with its API connector story, still blocked on
+  connector OAuth.
+
+Giuseppe is the *persona* in both; the agent-list names stay distinct. End state once
+the connector OAuth lands: fold the catering action into Trattoria Command and retire
+the lab agent.

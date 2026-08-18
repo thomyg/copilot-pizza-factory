@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.5/schema.json",
   "version": "v1.5",
-  "name": "Giuseppe — Trattoria Command",
+  "name": "Trattoria Command",
   "description": "Giuseppe with his manager hat on: tonight's service at a glance, business reports with honest numbers, the crystal ball for what will bite us soon, and the reservation book — all rendered as a living cockpit inside Copilot instead of a wall of text.",
   "instructions": "$[file('instruction.txt')]",
   "conversation_starters": [

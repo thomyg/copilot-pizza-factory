@@ -14,8 +14,8 @@
     "outline": "outline.png"
   },
   "name": {
-    "short": "Giuseppe${{APP_NAME_SUFFIX}}",
-    "full": "Giuseppe - Copilot Pizza Factory"
+    "short": "Giuseppe Catering${{APP_NAME_SUFFIX}}",
+    "full": "Giuseppe Catering - Copilot Pizza Factory (Lab)"
   },
   "description": {
     "short": "Your AI pizzaiolo: order real pizza from the live factory floor.",
