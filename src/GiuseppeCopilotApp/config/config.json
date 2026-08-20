@@ -65,6 +65,14 @@
           "manifest": "./src/adaptiveCardExtensions/tonight/TonightAdaptiveCardExtension.manifest.json"
         }
       ]
+    },
+    "trattoria-hero-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/trattoriaHero/TrattoriaHeroWebPart.js",
+          "manifest": "./src/webparts/trattoriaHero/TrattoriaHeroWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},

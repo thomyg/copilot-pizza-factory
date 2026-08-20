@@ -1,0 +1,28 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "f015f005-9ca2-4a7d-9000-6b9584c0af4c",
+  "alias": "TrattoriaHeroWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Trattoria Hero (live)" },
+      "description": {
+        "default": "The FORNO ROSSO front door: the demo's headline over a charred oven glow, with tonight's real numbers read live from the running factory."
+      },
+      "officeFabricIconFontName": "Fire",
+      "properties": {
+        "eyebrow": "Copilot Pizza Factory",
+        "headline": "The trattoria that runs itself",
+        "lede": "Right now, in a real Azure deployment, a pizza factory is taking orders, resting dough, baking, seating guests and reordering its own ingredients from an outside supplier — with nobody at the controls.",
+        "showLinks": true
+      }
+    }
+  ]
+}
