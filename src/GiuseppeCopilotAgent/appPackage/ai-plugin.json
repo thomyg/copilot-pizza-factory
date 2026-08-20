@@ -1,0 +1,183 @@
+{
+  "$schema": "https://aka.ms/json-schemas/copilot-extensions/v2.1/plugin.schema.json",
+  "schema_version": "v2.4",
+  "namespace": "pizzaFactory",
+  "name_for_human": "Pizza Factory",
+  "description_for_human": "Giuseppe's factory floor: the menu, the pantry, and real pizza orders.",
+  "description_for_model": "Giuseppe's tools for the live Copilot Pizza Factory. Use them to browse the menu (list_pizzas), look up a pizza's toppings and timings (get_recipe), read ingredient stock (get_stock) or check whether a pizza can be made right now (check_can_make), place real orders on the factory floor (create_order), and track them (get_order_status, list_orders). Every menu item, stock level and order confirmation must come from these tools - never invent them.",
+  "contact_email": "publisher@contoso.com",
+  "functions": [
+    {
+      "name": "list_pizzas",
+      "description": "List the pizzas on the menu.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "get_recipe",
+      "description": "Get a pizza's toppings and prep/bake times.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pizza": { "type": "string", "description": "Pizza name from the menu." }
+        },
+        "required": ["pizza"]
+      }
+    },
+    {
+      "name": "get_stock",
+      "description": "List the current grams in stock for every ingredient.",
+      "parameters": { "type": "object", "properties": {} }
+    },
+    {
+      "name": "check_can_make",
+      "description": "Check whether there is enough stock to make a given pizza right now.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pizza": { "type": "string", "description": "Pizza name from the menu." }
+        },
+        "required": ["pizza"]
+      }
+    },
+    {
+      "name": "create_order",
+      "description": "Place a new order for a pizza from the menu. Returns the created order with its id and state. Orders above 24 of one pizza are refused - split large events into multiple orders with a real headcount.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "pizza": { "type": "string", "description": "Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'." },
+          "amount": { "type": "integer", "description": "How many of this pizza to make (1 to 24)." },
+          "customerName": { "type": "string", "description": "Optional display name to show on the factory floor." }
+        },
+        "required": ["pizza", "amount"]
+      }
+    },
+    {
+      "name": "get_order_status",
+      "description": "Get the current status of a single order by its id.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "orderId": { "type": "string", "description": "The order id returned by create_order." }
+        },
+        "required": ["orderId"]
+      }
+    },
+    {
+      "name": "list_orders",
+      "description": "List orders, optionally filtered by state (created, started, ready, delivered).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": ["created", "started", "ready", "delivered"],
+            "description": "Optional state filter. Omit to list all orders."
+          }
+        }
+      }
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "RemoteMCPServer",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{MCP_AUTH_CONFIG_ID}}"
+      },
+      "spec": {
+        "url": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp",
+        "mcp_tool_description": {
+          "tools": [
+            {
+              "name": "list_pizzas",
+              "description": "List the pizzas on the menu.",
+              "inputSchema": { "type": "object", "properties": {} },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            },
+            {
+              "name": "get_recipe",
+              "description": "Get a pizza's toppings and prep/bake times.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "pizza": { "type": "string", "description": "Pizza name from the menu." }
+                },
+                "required": ["pizza"]
+              },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            },
+            {
+              "name": "get_stock",
+              "description": "List the current grams in stock for every ingredient.",
+              "inputSchema": { "type": "object", "properties": {} },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            },
+            {
+              "name": "check_can_make",
+              "description": "Check whether there is enough stock to make a given pizza right now.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "pizza": { "type": "string", "description": "Pizza name from the menu." }
+                },
+                "required": ["pizza"]
+              },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            },
+            {
+              "name": "create_order",
+              "description": "Place a new order for a pizza from the menu. Returns the created order with its id and state. Orders above 24 of one pizza are refused - split large events into multiple orders with a real headcount.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "pizza": { "type": "string", "description": "Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'." },
+                  "amount": { "type": "integer", "description": "How many of this pizza to make (1 to 24)." },
+                  "customerName": { "type": "string", "description": "Optional display name to show on the factory floor." }
+                },
+                "required": ["pizza", "amount"]
+              },
+              "annotations": { "readOnlyHint": false, "destructiveHint": false }
+            },
+            {
+              "name": "get_order_status",
+              "description": "Get the current status of a single order by its id.",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "description": "The order id returned by create_order." }
+                },
+                "required": ["orderId"]
+              },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            },
+            {
+              "name": "list_orders",
+              "description": "List orders, optionally filtered by state (created, started, ready, delivered).",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "string",
+                    "enum": ["created", "started", "ready", "delivered"],
+                    "description": "Optional state filter. Omit to list all orders."
+                  }
+                }
+              },
+              "annotations": { "readOnlyHint": true, "destructiveHint": false }
+            }
+          ]
+        }
+      },
+      "run_for_functions": [
+        "list_pizzas",
+        "get_recipe",
+        "get_stock",
+        "check_can_make",
+        "create_order",
+        "get_order_status",
+        "list_orders"
+      ]
+    }
+  ]
+}

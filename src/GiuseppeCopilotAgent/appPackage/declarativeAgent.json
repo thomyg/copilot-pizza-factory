@@ -25,5 +25,11 @@
       "title": "Recipe peek",
       "text": "How does Giuseppe make the Diavolo?"
     }
+  ],
+  "actions": [
+    {
+      "id": "pizza-factory",
+      "file": "ai-plugin.json"
+    }
   ]
 }
