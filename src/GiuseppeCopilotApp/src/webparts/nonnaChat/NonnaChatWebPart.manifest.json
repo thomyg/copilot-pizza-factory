@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "92c97556-29a7-4e8b-8d64-6b389b7597f8",
+  "alias": "NonnaChatWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Ask Nonna (live)" },
+      "description": {
+        "default": "Chat with the REAL Nonna — the back-office agent: rota, absences, purchase orders, invoices. She never opens the store backend."
+      },
+      "officeFabricIconFontName": "AccountManagement",
+      "properties": {
+        "apiUrl": "https://localhost:7069/api/nonna/chat",
+        "darkMode": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-component-manifest.schema.json",
+  "id": "ae9f1db1-0d17-439a-810c-4bf4d4c86fae",
+  "alias": "NonnaDeskCopilotComponent",
+  "componentType": "CopilotComponent",
+  "copilotType": "Ux",
+  "version": "*",
+  "manifestVersion": 2,
+
+  "capabilities": {
+    "availableDisplayModes": ["inline", "fullscreen"]
+  },
+
+  "tools": [
+    {
+      "name": "NonnaDeskTool",
+      "description": {
+        "default": "Renders Nonna's back-office desk for the Copilot Pizza Factory trattoria on the Copilot canvas: the shift rota (who works which slot, open seats highlighted), purchase orders waiting for a signature (with grams, cost and supplier), and the supplier invoice ledger with a running total — starting as a compact inline card and expanding to the full desk. Invoke for any question about shifts, sick calls and cover, approvals and procurement, or supplier spending."
+      },
+      "propertiesSchema": {
+        "id": "$../../../lib/copilotComponents/nonnaDesk/NonnaDeskCopilotComponentProperties.js:default;"
+      }
+    }
+  ]
+}

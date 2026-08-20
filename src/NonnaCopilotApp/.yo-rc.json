@@ -1,0 +1,19 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "useGulp": false,
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.20.0",
+    "sdksVersions": {},
+    "version": "1.24.0-beta.2",
+    "libraryName": "nonna-copilot-app",
+    "libraryId": "3db9c475-56ba-4e67-b584-631ab881787f",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "nonna-copilot-app",
+    "solutionShortDescription": "Trattoria Command — Giuseppe's manager cockpit inside Microsoft 365 Copilot",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "copilotComponent"
+  }
+}

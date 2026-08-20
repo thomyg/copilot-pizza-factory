@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "2e6f52bc-3316-4534-af6a-7f5c7428c1d3",
+  "alias": "NonnaDeskWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Nonna's Desk (live)" },
+      "description": {
+        "default": "Pending purchase orders with real approve/reject buttons, the rota with open seats, and the invoices — live from TrattoriaSoft."
+      },
+      "officeFabricIconFontName": "Financial",
+      "properties": {
+        "apiBase": "https://localhost:7069/api/nonna",
+        "darkMode": false
+      }
+    }
+  ]
+}

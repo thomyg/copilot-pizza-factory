@@ -55,6 +55,8 @@ the "build once, reach every surface" model, actually built:
 | `PreOrdersWebPart` | SharePoint page | Reserve ahead — booking form + the reservation book |
 | `TonightAdaptiveCardExtension` | **Viva Connections** dashboard (Teams mobile) | "Tonight at the trattoria" card + quick view — the factory in your pocket |
 | `GiuseppeChatWebPart` | SharePoint page | **The pro-code route**: chat with the REAL GiuseppeAgent over the factory's guarded API — not rehearsal data |
+| `NonnaChatWebPart` | SharePoint page | **Ask Nonna (live)** — the back-office agent (rota, absences, POs, invoices) via `/api/nonna/chat` |
+| `NonnaDeskWebPart` | SharePoint page | **Nonna's Desk (live)** — pending POs with real approve/reject buttons, the rota, the invoices; approvals refill the real pantry |
 
 After deploying, the web parts appear in the page toolbox under the **Trattoria** group;
 the ACE appears in the Viva Connections dashboard toolbox.

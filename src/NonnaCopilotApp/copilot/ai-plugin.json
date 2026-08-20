@@ -1,0 +1,9 @@
+{
+  "$schema": "https://aka.ms/json-schemas/copilot-extensions/v2.1/plugin.schema.json",
+  "schema_version": "v2.4",
+  "namespace": "nonnaDesk",
+  "name_for_human": "Nonna's Desk",
+  "description_for_human": "The back office at a glance — rota, approvals and invoices.",
+  "description_for_model": "Renders Nonna's back-office desk on the Copilot canvas. Invoke whenever the user asks about shifts or the rota (who works when, sick calls, cover), purchase orders and approvals (what needs a signature), or supplier invoices and spending. Choose the view parameter that matches the question and pass a short remark as nonnaSays.",
+  "contact_email": "publisher@contoso.com"
+}

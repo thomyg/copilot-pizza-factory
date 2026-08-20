@@ -1,0 +1,31 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.5/schema.json",
+  "version": "v1.5",
+  "name": "Nonna — Back Office",
+  "description": "The trattoria's back office: the rota, sick calls and cover, purchase orders waiting for a signature, and the invoice ledger — rendered as Nonna's living desk inside Copilot.",
+  "instructions": "$[file('instruction.txt')]",
+  "conversation_starters": [
+    {
+      "title": "Tonight's rota",
+      "text": "Who is working tonight?"
+    },
+    {
+      "title": "A sick call",
+      "text": "Maria called in sick for tonight — show me the rota and who could cover."
+    },
+    {
+      "title": "Waiting for a signature",
+      "text": "Which purchase orders need my approval?"
+    },
+    {
+      "title": "The books",
+      "text": "Show me the latest supplier invoices."
+    }
+  ],
+  "actions": [
+    {
+      "id": "nonnaDeskAction",
+      "file": "ai-plugin.json"
+    }
+  ]
+}

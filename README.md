@@ -82,6 +82,13 @@ instantly get what's running. *(Danke für den Wunsch, Kollege. 🎬)*
 
 ![Cinema mode — restock arcs mid-flight from the A2A supplier](docs/images/cinema.jpg)
 
+**Nonna's Desk** — the back office, live on SharePoint: the 4 kg emergency pineapple order waiting
+for a signature (the factory filed it itself and is *waiting*), the rota with tonight's cover, and
+the invoice ledger where every A2A restock leaves a paper trail. Approve the order and the real
+pantry refills two seconds later.
+
+![Nonna's Desk — live approvals, rota and invoices](docs/images/nonna-desk.png)
+
 **The Window** — the live business dashboard: the kitchen line, a 17-table dining room living its
 own life, tonight's ticker, and online orders arriving over four channels.
 
@@ -133,6 +140,7 @@ system — not a slide.
 | **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
 | **09** | **The storefront** | Customers browse the menu, order delivery, and reserve on the "public" website — by form or by chatting with Giuseppe — and every action appears live on the house's boards. Ask the storefront chat for the business report: charming refusal. | One brand, two hats: the public agent physically cannot reach the back office. |
 | **10** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
+| **13** | **Nonna & the back office** | The trattoria has the same "boring" processes as any corporation — and a second agent runs them. A sabotaged silo files a purchase order that WAITS for a human signature on Nonna's SharePoint desk; approve it and the real pantry refills, invoice booked. Tell her "Maria is sick tonight" and she finds qualified cover and updates the rota. | The serious layer: HR, procurement, bookkeeping — human-in-the-loop where money moves, autonomous everywhere else. |
 | **12** | **Cinema mode** | A dark, wall-projectable stage where the running factory is pure motion: pizzas flow station to station, the oven glows with load, guests arrive, silos drain — and a supply drop arcs in from the external supplier agent the moment stock runs low. | Autonomy you can *see*. No slide, no narration — the process explains itself. |
 | **11** | **Trattoria Command in Copilot** | Ask Microsoft 365 Copilot "how is tonight looking at the trattoria?" — and instead of a wall of text, a living cockpit renders inside the chat: tables, kitchen line, revenue pace, the crystal ball. One click expands it to a fullscreen war room. *(SPFx Copilot Apps, preview)* | Nobody expects Copilot to answer with an app. The manager's whole world, without leaving the chat. |
 
@@ -227,10 +235,12 @@ graph TD
 | `PizzaFactory.Mcp` | A **Model Context Protocol** server (Streamable HTTP) exposing 9 tools over the factory (orders, inventory, recipes, live telemetry). |
 | `PizzaFactory.Safety` | **Responsible-AI guardrail** — offline heuristic + Azure AI Content Safety & Prompt Shields, behind one interface. |
 | `PizzaFactory.FrontOfHouse` | Public guest intake — auto pseudonyms (zero-PII), moderation, an ordering **kill-switch**. |
+| `PizzaFactory.BackOffice` | **TrattoriaSoft ERP 3000** — the mimicked legacy vendor: staff roster + certifications, shift rota, absences and rule-based cover, purchase orders with an approval gate on big spending, invoices (incl. the A2A supplier's paper trail). Run by **Nonna**, who lives only in M365. |
 | `PizzaFactory.Trattoria` | The **dining room simulation** — 17-table floor plan, maître d' (arrivals → seating → orders → reviews), online order desk (web/chat/Copilot/phone, takeaway/delivery), and the pre-order book. |
 | `PizzaFactory.Giuseppe` | The **AI concierge** — a guarded, tool-calling agent (`Microsoft.Extensions.AI`) that consumes the factory MCP server *and* Microsoft's **Work IQ** MCP server, caters meetings, and doesn't fall for pizza pranks. |
 | `PizzaFactory.GiuseppeBot` | Giuseppe in **Microsoft Teams** — a Microsoft 365 Agents SDK host over the Bot Framework, key-less (managed identity). |
 | `GiuseppeCopilotAgent` | **Giuseppe Catering (Lab)** — a wiqd-scaffolded declarative agent + MCP connector experiment for M365 Copilot (Friday-retro catering). |
+| `NonnaCopilotApp` | **Nonna — Back Office** in M365 Copilot (SPFx 1.24 **preview**): her desk rendered live in the chat — rota with open seats, approvals, the books. One declarative agent per sppkg, so the second persona gets her own package. |
 | `GiuseppeCopilotApp` | **Trattoria Command** — a SharePoint Copilot App (SPFx 1.24 **preview**): one `.sppkg`, four surfaces — the Copilot agent cockpit, the same cockpit + menu + reserve-ahead as SharePoint web parts, and a Viva Connections card. One UX, everywhere. |
 | `PizzaFactory.Supplier` | An **external Agent-to-Agent (A2A)** supplier — publishes an agent card and fulfils restock requests. |
 | `PizzaFactory.Web` | The **"Window"** (public live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |

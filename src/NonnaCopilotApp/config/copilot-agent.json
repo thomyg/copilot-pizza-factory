@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/@microsoft/spfx-heft-plugins/lib-commonjs/plugins/copilotAgentPlugin/copilot-agent.schema.json",
+  "agents": [
+    {
+      "name": {
+        "default": "Nonna — Back Office"
+      },
+      "description": {
+        "default": "The trattoria's back office, rendered live in Copilot: the rota, purchase orders waiting for a signature, and the invoice ledger."
+      },
+      "components": [
+        "ae9f1db1-0d17-439a-810c-4bf4d4c86fae"
+      ]
+    }
+  ]
+}

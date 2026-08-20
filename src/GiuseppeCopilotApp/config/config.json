@@ -34,6 +34,22 @@
         }
       ]
     },
+    "nonna-chat-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/nonnaChat/NonnaChatWebPart.js",
+          "manifest": "./src/webparts/nonnaChat/NonnaChatWebPart.manifest.json"
+        }
+      ]
+    },
+    "nonna-desk-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/nonnaDesk/NonnaDeskWebPart.js",
+          "manifest": "./src/webparts/nonnaDesk/NonnaDeskWebPart.manifest.json"
+        }
+      ]
+    },
     "pre-orders-web-part": {
       "components": [
         {

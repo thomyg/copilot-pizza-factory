@@ -37,9 +37,16 @@ interface IChatLine {
 }
 
 export interface IChatBoardProps {
-  /** POST endpoint of the factory's Giuseppe chat API, e.g. https://host/api/giuseppe/chat */
+  /** POST endpoint of the chat API, e.g. https://host/api/giuseppe/chat */
   apiUrl: string;
   theme?: SPCopilotTheme;
+  /** Branding — defaults are Giuseppe's; Nonna passes her own. */
+  title?: string;
+  subtitle?: string;
+  emptyHint?: string;
+  placeholder?: string;
+  failText?: string;
+  busyText?: string;
 }
 
 /**
@@ -82,7 +89,12 @@ const ChatBoard: React.FunctionComponent<IChatBoardProps> = (props) => {
     } catch {
       setLines((prev) => [
         ...prev,
-        { who: 'blocked', text: 'Mamma mia — the line to the kitchen is down. Is the factory running (and its address in the web part settings)?' }
+        {
+          who: 'blocked',
+          text:
+            props.failText ??
+            'Mamma mia — the line to the kitchen is down. Is the factory running (and its address in the web part settings)?'
+        }
       ]);
     } finally {
       setBusy(false);
@@ -93,13 +105,14 @@ const ChatBoard: React.FunctionComponent<IChatBoardProps> = (props) => {
     <TrattoriaTheme theme={props.theme}>
       <div className={s.board}>
         <div className={s.header}>
-          <h2 className={s.title}>💬 Ask Giuseppe</h2>
-          <span className={s.sub}>the real one — live from the factory floor</span>
+          <h2 className={s.title}>{props.title ?? '💬 Ask Giuseppe'}</h2>
+          <span className={s.sub}>{props.subtitle ?? 'the real one — live from the factory floor'}</span>
         </div>
         <div className={s.log} ref={logRef}>
           {lines.length === 0 && (
             <p className={s.hint}>
-              Try &quot;How is tonight looking?&quot;, &quot;Give me the business report&quot;, or &quot;What will bite us soon?&quot;
+              {props.emptyHint ??
+                'Try "How is tonight looking?", "Give me the business report", or "What will bite us soon?"'}
             </p>
           )}
           {lines.map((line, i) => (
@@ -110,13 +123,13 @@ const ChatBoard: React.FunctionComponent<IChatBoardProps> = (props) => {
               {line.text}
             </div>
           ))}
-          {busy && <Spinner size="tiny" label="Giuseppe is thinking…" />}
+          {busy && <Spinner size="tiny" label={props.busyText ?? 'Giuseppe is thinking…'} />}
         </div>
         <div className={s.form}>
           <Input
             className={s.input}
             value={draft}
-            placeholder="Ask the pizzaiolo…"
+            placeholder={props.placeholder ?? 'Ask the pizzaiolo…'}
             onChange={(_, d) => setDraft(d.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
