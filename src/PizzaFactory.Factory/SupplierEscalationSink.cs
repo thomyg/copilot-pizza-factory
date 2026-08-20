@@ -14,7 +14,8 @@ public sealed class SupplierEscalationSink(
     ISupplierGateway gateway,
     IStockRepository stock,
     FactoryOptions options,
-    ILogger<SupplierEscalationSink> logger) : IEscalationSink
+    ILogger<SupplierEscalationSink> logger,
+    ISupplierLedger? ledger = null) : IEscalationSink
 {
     public async Task RaiseAsync(Escalation escalation, CancellationToken cancellationToken = default)
     {
@@ -27,6 +28,7 @@ public sealed class SupplierEscalationSink(
 
         var current = await stock.GetAsync(cancellationToken);
         await stock.SaveAsync(current.Refill([IngredientQuantity.Of(escalation.Ingredient, quote.Grams)]), cancellationToken);
+        ledger?.RecordExternalDelivery(quote.Supplier, escalation.Ingredient, quote.Grams);
 
         logger.LogInformation("Self-heal: {Supplier} confirmed {Grams}g of {Ingredient} (ETA {Eta}s); restocked.",
             quote.Supplier, quote.Grams, escalation.Ingredient, quote.EtaSeconds);

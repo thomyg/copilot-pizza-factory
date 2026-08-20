@@ -65,12 +65,16 @@ public class FactoryFlowTests
     public async Task procurement_restocks_low_ingredients()
     {
         var stock = new InMemoryStockRepository();
-        await stock.SaveAsync(Stock.Empty); // everything at zero -> all below threshold
         var options = new FactoryOptions();
+        // Low but not empty — the ordinary top-up path (empty silos take the 4× emergency path,
+        // covered in ProcurementGateTests).
+        await stock.SaveAsync(Stock.Empty.Refill([IngredientQuantity.Of(Ingredient.Mozzarella, options.RestockThresholdGrams)]));
         var procurement = new Procurement(stock, options, NullLogger<Procurement>.Instance);
 
         await procurement.StepAsync(T0);
 
-        Assert.Equal(options.RestockAmountGrams, (await stock.GetAsync()).GramsOf(Ingredient.Mozzarella));
+        Assert.Equal(
+            options.RestockThresholdGrams + options.RestockAmountGrams,
+            (await stock.GetAsync()).GramsOf(Ingredient.Mozzarella));
     }
 }

@@ -3,6 +3,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PizzaFactory.Domain\PizzaFactory.Domain.csproj" />
     <ProjectReference Include="..\PizzaFactory.Infrastructure\PizzaFactory.Infrastructure.csproj" />
+    <ProjectReference Include="..\PizzaFactory.BackOffice\PizzaFactory.BackOffice.csproj" />
     <ProjectReference Include="..\PizzaFactory.Factory\PizzaFactory.Factory.csproj" />
     <ProjectReference Include="..\PizzaFactory.Safety\PizzaFactory.Safety.csproj" />
     <ProjectReference Include="..\PizzaFactory.FrontOfHouse\PizzaFactory.FrontOfHouse.csproj" />

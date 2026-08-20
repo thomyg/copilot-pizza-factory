@@ -1,3 +1,4 @@
+using PizzaFactory.BackOffice;
 using PizzaFactory.Factory;
 using PizzaFactory.FrontOfHouse;
 using PizzaFactory.Giuseppe;
@@ -31,6 +32,25 @@ builder.Services.AddPizzaFactoryFloor();
 
 // The dining room: 17 tables, online orders, pre-orders. Starts closed — the Play button opens it.
 builder.Services.AddTrattoria();
+
+// TrattoriaSoft ERP 3000: rota, absences, purchase orders with an approval gate on big
+// spending, invoices (incl. the A2A supplier's paper trail), and the delivery-dock worker.
+builder.Services.AddBackOffice();
+
+// Nonna: the back office made flesh. Her belt holds rota + purchase tools and NOTHING of the
+// kitchen — Giuseppe cannot touch the ledger, Nonna cannot touch the oven. She surfaces only
+// in Microsoft 365 (Copilot, Teams, SharePoint) via /api/nonna; there is no Nonna UI here.
+builder.Services.AddSingleton<NonnaToolSource>();
+builder.Services.AddSingleton(sp =>
+{
+    var chat = sp.GetService<Microsoft.Extensions.AI.IChatClient>();
+    return new Nonna(chat is null ? null : new GiuseppeAgent(
+        chat,
+        sp.GetRequiredService<IContentGuard>(),
+        [sp.GetRequiredService<NonnaToolSource>()],
+        logger: sp.GetService<ILogger<GiuseppeAgent>>(),
+        personaOverride: Nonna.Persona(sp.GetRequiredService<TimeProvider>())));
+});
 
 // The front desk hands Giuseppe the reservations book + dining room status as chat tools.
 builder.Services.AddSingleton<PizzaFactory.Giuseppe.Tools.IGiuseppeToolSource, FrontDeskToolSource>();
@@ -106,6 +126,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapGiuseppeChatApi();
+app.MapNonnaApi();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
