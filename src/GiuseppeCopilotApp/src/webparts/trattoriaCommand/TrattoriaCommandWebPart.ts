@@ -11,7 +11,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import TrattoriaApp from '../../copilotComponents/trattoriaCommand/components/TrattoriaApp';
 import type { ViewKey } from '../../copilotComponents/trattoriaCommand/models/trattoria';
-import { RehearsalTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/RehearsalTrattoriaService';
+import { LiveTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/LiveTrattoriaService';
 
 export interface ITrattoriaCommandWebPartProps {
   view: ViewKey;
@@ -25,7 +25,7 @@ export interface ITrattoriaCommandWebPartProps {
  * data service; only the host class differs.
  */
 export default class TrattoriaCommandWebPart extends BaseClientSideWebPart<ITrattoriaCommandWebPartProps> {
-  private readonly _dataService = new RehearsalTrattoriaService();
+  private readonly _dataService = new LiveTrattoriaService();
 
   public render(): void {
     const element: React.ReactElement = React.createElement(TrattoriaApp, {

@@ -3,7 +3,7 @@
   "solution": {
     "name": "nonna-copilot-app",
     "id": "3db9c475-56ba-4e67-b584-631ab881787f",
-    "version": "1.0.0.0",
+    "version": "1.0.1.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -16,10 +16,10 @@
     },
     "metadata": {
       "shortDescription": {
-        "default": "Nonna — the trattoria's back office as a Copilot agent with a live desk UI."
+        "default": "Nonna \u2014 the trattoria's back office as a Copilot agent with a live desk UI."
       },
       "longDescription": {
-        "default": "Nonna runs the books, the rota and the purchase orders of the Copilot Pizza Factory's trattoria — and she lives entirely inside Microsoft 365. Ask about the rota, report a sick call, review purchase orders waiting for a signature, or check the invoices, and Copilot renders her desk as a living UI. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
+        "default": "Nonna runs the books, the rota and the purchase orders of the Copilot Pizza Factory's trattoria \u2014 and she lives entirely inside Microsoft 365. Ask about the rota, report a sick call, review purchase orders waiting for a signature, or check the invoices, and Copilot renders her desk as a living UI. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
       },
       "screenshotPaths": [],
       "videoUrl": "",

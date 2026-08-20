@@ -31,7 +31,8 @@ builder.Services.AddFrontOfHouse();
 builder.Services.AddPizzaFactoryFloor();
 
 // The dining room: 17 tables, online orders, pre-orders. Starts closed — the Play button opens it.
-builder.Services.AddTrattoria();
+builder.Services.AddTrattoria(options =>
+    options.OpenOnStart = builder.Configuration.GetValue<bool>("Trattoria:OpenOnStart"));
 
 // TrattoriaSoft ERP 3000: rota, absences, purchase orders with an approval gate on big
 // spending, invoices (incl. the A2A supplier's paper trail), and the delivery-dock worker.
@@ -127,6 +128,7 @@ app.UseAntiforgery();
 
 app.MapGiuseppeChatApi();
 app.MapNonnaApi();
+app.MapTrattoriaApi();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

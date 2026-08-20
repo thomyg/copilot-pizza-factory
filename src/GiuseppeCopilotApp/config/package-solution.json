@@ -3,7 +3,7 @@
   "solution": {
     "name": "giuseppe-copilot-app",
     "id": "c3f38a4f-1910-4d81-a6ca-fa7c8b1ff2d0",
-    "version": "1.0.4.0",
+    "version": "1.0.5.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -16,10 +16,10 @@
     },
     "metadata": {
       "shortDescription": {
-        "default": "Trattoria Command — Giuseppe's back-of-house manager cockpit inside Microsoft 365 Copilot."
+        "default": "Trattoria Command \u2014 Giuseppe's back-of-house manager cockpit inside Microsoft 365 Copilot."
       },
       "longDescription": {
-        "default": "Giuseppe, the pizzaiolo of the Copilot Pizza Factory, wearing his manager hat inside Microsoft 365 Copilot. Ask about tonight's service, the business report, what will bite us soon, or the reservation book — and instead of a wall of text, Copilot renders a living cockpit: inline card for a glance, fullscreen for the war room. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
+        "default": "Giuseppe, the pizzaiolo of the Copilot Pizza Factory, wearing his manager hat inside Microsoft 365 Copilot. Ask about tonight's service, the business report, what will bite us soon, or the reservation book \u2014 and instead of a wall of text, Copilot renders a living cockpit: inline card for a glance, fullscreen for the war room. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
       },
       "screenshotPaths": [],
       "videoUrl": "",

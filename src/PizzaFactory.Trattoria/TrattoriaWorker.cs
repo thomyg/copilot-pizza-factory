@@ -19,6 +19,16 @@ public sealed class TrattoriaWorker(
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Trattoria front of house ready (tick every {Interval}).", options.TickInterval);
+
+        if (options.OpenOnStart)
+        {
+            // Both doors: the dining room AND the online counter, exactly like the
+            // dashboard's Play button — otherwise every order arrives as a walk-in.
+            maitreD.OpenService(clock.GetUtcNow());
+            desk.Open();
+            logger.LogInformation("Floor and online counter opened on start — the hosted demo never sits dark.");
+        }
+
         using var timer = new PeriodicTimer(options.TickInterval, clock);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))

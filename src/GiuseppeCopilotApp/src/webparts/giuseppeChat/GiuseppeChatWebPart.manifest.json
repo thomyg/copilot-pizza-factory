@@ -18,7 +18,7 @@
       },
       "officeFabricIconFontName": "ChatBot",
       "properties": {
-        "apiUrl": "https://localhost:7069/api/giuseppe/chat",
+        "apiUrl": "https://trattoria-copilotpizzafactory.azurewebsites.net/api/giuseppe/chat",
         "darkMode": false
       }
     }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using PizzaFactory.BackOffice;
 
 namespace PizzaFactory.Web;
@@ -85,5 +86,47 @@ public static class NonnaApi
                 cost = i.Cost,
                 at = i.At,
             })));
+
+        // Her whole desk in one call, shaped as the SPFx cockpit's IBackOfficeSnapshot —
+        // so Nonna in Microsoft 365 Copilot reads the REAL ERP instead of rehearsal data.
+        group.MapGet("/desk", () =>
+        {
+            var rota = staff.Rota(staff.Today, 3);
+            var absentToday = staff.Absences()
+                .Where(a => a.Date == staff.Today)
+                .Select(a => a.Name)
+                .FirstOrDefault();
+
+            return Results.Ok(new
+            {
+                rota = rota.Select(e => new
+                {
+                    dayLabel = e.Date.ToString("ddd d MMM", CultureInfo.InvariantCulture),
+                    slot = e.Slot.ToString(),
+                    role = e.Role.ToString(),
+                    assignedTo = e.AssignedTo,
+                }),
+                orders = purchases.Orders().Select(o => new
+                {
+                    id = o.Id,
+                    ingredient = o.Ingredient.ToString(),
+                    grams = o.Grams,
+                    cost = o.Cost,
+                    supplier = o.Supplier,
+                    state = o.State.ToString(),
+                    note = o.Note,
+                }),
+                invoices = purchases.Invoices().Select(i => new
+                {
+                    id = i.Id,
+                    supplier = i.Supplier,
+                    ingredient = i.Ingredient.ToString(),
+                    grams = i.Grams,
+                    cost = i.Cost,
+                }),
+                invoiceTotal = purchases.Invoices().Sum(i => i.Cost),
+                absentToday = absentToday ?? "Nobody — full house today.",
+            });
+        });
     }
 }

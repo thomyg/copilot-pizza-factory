@@ -18,7 +18,7 @@
       },
       "officeFabricIconFontName": "Financial",
       "properties": {
-        "apiBase": "https://localhost:7069/api/nonna",
+        "apiBase": "https://trattoria-copilotpizzafactory.azurewebsites.net/api/nonna",
         "darkMode": false
       }
     }

@@ -5,7 +5,7 @@ import { type IPropertyPaneConfiguration, PropertyPaneToggle } from '@microsoft/
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import PreOrderBoard from '../../copilotComponents/trattoriaCommand/components/boards/PreOrderBoard';
-import { RehearsalTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/RehearsalTrattoriaService';
+import { LiveTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/LiveTrattoriaService';
 
 export interface IPreOrdersWebPartProps {
   darkMode: boolean;
@@ -13,7 +13,7 @@ export interface IPreOrdersWebPartProps {
 
 /** The reservation book on a SharePoint page — book pizzas for the team event without leaving the intranet. */
 export default class PreOrdersWebPart extends BaseClientSideWebPart<IPreOrdersWebPartProps> {
-  private readonly _dataService = new RehearsalTrattoriaService();
+  private readonly _dataService = new LiveTrattoriaService();
 
   public render(): void {
     ReactDOM.render(

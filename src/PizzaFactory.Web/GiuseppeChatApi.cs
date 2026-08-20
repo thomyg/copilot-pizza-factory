@@ -27,7 +27,7 @@ public static class GiuseppeChatApi
         if (origins.Length > 0)
         {
             builder.Services.AddCors(options => options.AddPolicy(CorsPolicy, policy =>
-                policy.WithOrigins(origins).AllowAnyHeader().WithMethods("POST")));
+                policy.WithOrigins(origins).AllowAnyHeader().WithMethods("GET", "POST")));
         }
 
         builder.Services.AddRateLimiter(options =>

@@ -5,7 +5,7 @@ import { type IPropertyPaneConfiguration, PropertyPaneToggle } from '@microsoft/
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import MenuBoard from '../../copilotComponents/trattoriaCommand/components/boards/MenuBoard';
-import { RehearsalTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/RehearsalTrattoriaService';
+import { LiveTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/LiveTrattoriaService';
 
 export interface IMenuBoardWebPartProps {
   darkMode: boolean;
@@ -13,7 +13,7 @@ export interface IMenuBoardWebPartProps {
 
 /** The canteen play: the house menu with live pantry-derived availability badges. */
 export default class MenuBoardWebPart extends BaseClientSideWebPart<IMenuBoardWebPartProps> {
-  private readonly _dataService = new RehearsalTrattoriaService();
+  private readonly _dataService = new LiveTrattoriaService();
 
   public render(): void {
     ReactDOM.render(
