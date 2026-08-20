@@ -1,6 +1,6 @@
 import type { IBackOfficeSnapshot } from './RehearsalBackOffice';
 import { backOfficeSnapshot } from './RehearsalBackOffice';
-import { FACTORY_API_BASE, fetchWithTimeout } from '../../factoryApi';
+import { FACTORY_API_BASE, type FactoryHttp } from '../../factoryApi';
 
 /**
  * The live route to TrattoriaSoft ERP 3000.
@@ -13,15 +13,11 @@ import { FACTORY_API_BASE, fetchWithTimeout } from '../../factoryApi';
  */
 export async function liveBackOfficeSnapshot(
   now: Date,
+  http: FactoryHttp,
   apiBase: string = FACTORY_API_BASE
 ): Promise<IBackOfficeSnapshot> {
   try {
-    const response: Response = await fetchWithTimeout(`${apiBase}/api/nonna/desk`);
-    if (!response.ok) {
-      return backOfficeSnapshot(now);
-    }
-
-    const payload: unknown = await response.json();
+    const payload: unknown = await http.getJson<unknown>(`${apiBase}/api/nonna/desk`);
     return isSnapshot(payload) ? payload : backOfficeSnapshot(now);
   } catch {
     return backOfficeSnapshot(now);

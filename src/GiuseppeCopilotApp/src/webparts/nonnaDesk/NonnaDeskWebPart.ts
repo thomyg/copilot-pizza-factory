@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom';
 import { type IPropertyPaneConfiguration, PropertyPaneTextField, PropertyPaneToggle } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
+import { FactoryHttp } from '../../factoryApi';
 import NonnaDeskBoard from '../../copilotComponents/trattoriaCommand/components/boards/NonnaDeskBoard';
 
 export interface INonnaDeskWebPartProps {
@@ -21,6 +22,7 @@ export default class NonnaDeskWebPart extends BaseClientSideWebPart<INonnaDeskWe
     ReactDOM.render(
       React.createElement(NonnaDeskBoard, {
         apiBase: this.properties.apiBase,
+        http: new FactoryHttp(this.context.aadHttpClientFactory),
         theme: this.properties.darkMode ? 'dark' : 'light'
       }),
       this.domElement

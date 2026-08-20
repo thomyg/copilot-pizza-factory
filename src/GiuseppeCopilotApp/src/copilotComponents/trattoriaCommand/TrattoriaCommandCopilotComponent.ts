@@ -5,14 +5,19 @@ import { BaseCopilotComponent } from '@microsoft/sp-copilot-component';
 
 import TrattoriaApp from './components/TrattoriaApp';
 import type { ITrattoriaCommandCopilotComponentProperties } from './TrattoriaCommandCopilotComponentProperties';
+import { FactoryHttp } from '../../factoryApi';
 import { LiveTrattoriaService } from './services/LiveTrattoriaService';
 
 export default class TrattoriaCommandCopilotComponent extends BaseCopilotComponent<ITrattoriaCommandCopilotComponentProperties> {
   // The seam, wired live: reads the real running factory, and degrades to
   // rehearsal data on its own if the factory can't be reached.
-  private readonly _dataService = new LiveTrattoriaService();
+  private _dataService: LiveTrattoriaService | undefined;
 
   protected render(): void {
+    if (!this._dataService) {
+      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory));
+    }
+
     const element: React.ReactElement = React.createElement(TrattoriaApp, {
       view: this.properties.view ?? 'tonight',
       giuseppeSays: this.properties.giuseppeSays,

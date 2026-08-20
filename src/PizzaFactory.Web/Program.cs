@@ -28,11 +28,15 @@ else
 // The Window hosts the running factory: content guard, public intake, the floor, and the live feed.
 builder.Services.AddHeuristicContentGuard();
 builder.Services.AddFrontOfHouse();
-builder.Services.AddPizzaFactoryFloor();
+// Both sections bind from configuration, so a hosted always-on demo can be paced
+// differently from a ten-minute laptop demo without a rebuild: the factory's tick
+// has to keep up with the dining room's, or the queue grows all day and the reviews
+// collapse honestly. Defaults are unchanged for local runs and tests.
+builder.Services.AddPizzaFactoryFloor(builder.Configuration.GetSection(FactoryOptions.SectionName).Bind);
 
-// The dining room: 17 tables, online orders, pre-orders. Starts closed — the Play button opens it.
-builder.Services.AddTrattoria(options =>
-    options.OpenOnStart = builder.Configuration.GetValue<bool>("Trattoria:OpenOnStart"));
+// The dining room: 17 tables, online orders, pre-orders. Starts closed unless
+// Trattoria:OpenOnStart says otherwise — the Play button opens it.
+builder.Services.AddTrattoria(builder.Configuration.GetSection(TrattoriaOptions.SectionName).Bind);
 
 // TrattoriaSoft ERP 3000: rota, absences, purchase orders with an approval gate on big
 // spending, invoices (incl. the A2A supplier's paper trail), and the delivery-dock worker.

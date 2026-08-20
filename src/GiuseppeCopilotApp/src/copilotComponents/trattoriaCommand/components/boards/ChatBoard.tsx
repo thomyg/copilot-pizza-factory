@@ -4,6 +4,7 @@ import { Button, Input, Spinner, makeStyles, tokens } from '@fluentui/react-comp
 import type { SPCopilotTheme } from '@microsoft/sp-copilot-component';
 
 import { SERIF } from '../widgets/atoms';
+import type { FactoryHttp } from '../../../../factoryApi';
 import TrattoriaTheme from '../TrattoriaTheme';
 
 const useStyles = makeStyles({
@@ -39,6 +40,8 @@ interface IChatLine {
 export interface IChatBoardProps {
   /** POST endpoint of the chat API, e.g. https://host/api/giuseppe/chat */
   apiUrl: string;
+  /** The factory's front door, with the signed-in user's token attached. */
+  http: FactoryHttp;
   theme?: SPCopilotTheme;
   /** Branding — defaults are Giuseppe's; Nonna passes her own. */
   title?: string;
@@ -76,15 +79,10 @@ const ChatBoard: React.FunctionComponent<IChatBoardProps> = (props) => {
     setLines((prev) => [...prev, { who: 'user', text: message }]);
 
     try {
-      const response = await fetch(props.apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message })
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data: { allowed: boolean; reply: string } = await response.json();
+      const data: { allowed: boolean; reply: string } = await props.http.postJson<{
+        allowed: boolean;
+        reply: string;
+      }>(props.apiUrl, { message });
       setLines((prev) => [...prev, { who: data.allowed ? 'giuseppe' : 'blocked', text: data.reply }]);
     } catch {
       setLines((prev) => [

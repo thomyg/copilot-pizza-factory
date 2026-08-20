@@ -4,6 +4,7 @@ import { Button, Spinner, makeStyles, mergeClasses, tokens } from '@fluentui/rea
 import type { SPCopilotTheme } from '@microsoft/sp-copilot-component';
 
 import { SERIF } from '../widgets/atoms';
+import type { FactoryHttp } from '../../../../factoryApi';
 import TrattoriaTheme from '../TrattoriaTheme';
 
 interface IPurchaseOrderDto {
@@ -84,6 +85,8 @@ function groupRota(rota: IRotaEntryDto[]): Array<{ when: string; seats: IRotaEnt
 export interface INonnaDeskBoardProps {
   /** Base of the Nonna API, e.g. https://host/api/nonna */
   apiBase: string;
+  /** The factory's front door, with the signed-in user's token attached. */
+  http: FactoryHttp;
   theme?: SPCopilotTheme;
 }
 
@@ -103,9 +106,9 @@ const NonnaDeskBoard: React.FunctionComponent<INonnaDeskBoardProps> = (props) =>
   const refresh = React.useCallback(async (): Promise<void> => {
     try {
       const [po, ro, inv] = await Promise.all([
-        fetch(`${props.apiBase}/purchase-orders`).then((r) => r.json()),
-        fetch(`${props.apiBase}/rota?days=2`).then((r) => r.json()),
-        fetch(`${props.apiBase}/invoices`).then((r) => r.json())
+        props.http.getJson<IPurchaseOrderDto[]>(`${props.apiBase}/purchase-orders`),
+        props.http.getJson<IRotaEntryDto[]>(`${props.apiBase}/rota?days=2`),
+        props.http.getJson<IInvoiceDto[]>(`${props.apiBase}/invoices`)
       ]);
       setOrders(po);
       setRota(ro);
@@ -114,7 +117,7 @@ const NonnaDeskBoard: React.FunctionComponent<INonnaDeskBoardProps> = (props) =>
     } catch {
       setError('TrattoriaSoft is not answering — is the factory running (and the API base configured)?');
     }
-  }, [props.apiBase]);
+  }, [props.apiBase, props.http]);
 
   React.useEffect(() => {
     void refresh();
@@ -123,11 +126,12 @@ const NonnaDeskBoard: React.FunctionComponent<INonnaDeskBoardProps> = (props) =>
   }, [refresh]);
 
   const act = async (id: string, action: 'approve' | 'reject'): Promise<void> => {
-    await fetch(`${props.apiBase}/purchase-orders/${id}/${action}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: action === 'reject' ? JSON.stringify({ reason: 'Nonna said no' }) : JSON.stringify({})
-    }).catch(() => undefined);
+    await props.http
+      .postJson<unknown>(
+        `${props.apiBase}/purchase-orders/${id}/${action}`,
+        action === 'reject' ? { reason: 'Nonna said no' } : {}
+      )
+      .catch(() => undefined);
     await refresh();
   };
 

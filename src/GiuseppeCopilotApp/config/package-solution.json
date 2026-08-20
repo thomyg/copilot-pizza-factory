@@ -3,7 +3,7 @@
   "solution": {
     "name": "giuseppe-copilot-app",
     "id": "c3f38a4f-1910-4d81-a6ca-fa7c8b1ff2d0",
-    "version": "1.0.5.0",
+    "version": "1.0.6.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -31,6 +31,12 @@
         "description": "Activates the Trattoria Command Copilot component and the Giuseppe declarative agent.",
         "id": "c3032824-2de2-4dd2-81bb-564ed0cc5ba0",
         "version": "1.0.0.0"
+      }
+    ],
+    "webApiPermissionRequests": [
+      {
+        "resource": "Copilot Pizza Factory \u2014 Trattoria Web",
+        "scope": "access_as_user"
       }
     ]
   },

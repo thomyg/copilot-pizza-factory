@@ -8,6 +8,7 @@ import type { INonnaDeskCopilotComponentProperties } from './NonnaDeskCopilotCom
 import type { IBackOfficeSnapshot } from './RehearsalBackOffice';
 import { backOfficeSnapshot } from './RehearsalBackOffice';
 import { liveBackOfficeSnapshot } from './LiveBackOffice';
+import { FactoryHttp } from '../../factoryApi';
 
 export default class NonnaDeskCopilotComponent extends BaseCopilotComponent<INonnaDeskCopilotComponentProperties> {
   /**
@@ -43,7 +44,7 @@ export default class NonnaDeskCopilotComponent extends BaseCopilotComponent<INon
   /** Fire-and-forget: liveBackOfficeSnapshot already falls back on its own. */
   private _loadLive(): void {
     this._live = true;
-    liveBackOfficeSnapshot(new Date())
+    liveBackOfficeSnapshot(new Date(), new FactoryHttp(this.context.aadHttpClientFactory))
       .then((snapshot: IBackOfficeSnapshot) => {
         if (this._torndown) {
           return;
