@@ -3,7 +3,7 @@
   "solution": {
     "name": "giuseppe-copilot-app",
     "id": "c3f38a4f-1910-4d81-a6ca-fa7c8b1ff2d0",
-    "version": "1.0.11.0",
+    "version": "1.0.12.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

@@ -323,8 +323,14 @@ Copilot keys off the manifest. Change `declarativeAgent.json` and you must bump
 
 **Easy Auth's `allowedApplications` must not be an empty array.** Empty means
 *deny*, and you get a 403 for a token that is otherwise perfect. Omit the
-property or list the callers — for SPFx that is the SharePoint Online Client
-Extensibility Web Application Principal.
+property or list the callers.
+
+**And there are two principals with nearly the same name.** SPFx tokens come from
+**SharePoint Online Web Client Extensibility** — not from *SharePoint Online
+Client Extensibility Web Application Principal*, which is a different object.
+Approving through the admin centre picks the right one for you; hand-granting
+through Graph is how you pick the wrong one and then spend an afternoon
+wondering why a permission that plainly exists does nothing.
 
 ## The look: FORNO ROSSO
 
