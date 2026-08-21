@@ -247,6 +247,85 @@ graph TD
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
+## 🧩 The Microsoft 365 side
+
+Half of this demo does not live in the repo — it lives in a tenant. Two SPFx
+packages, two declarative agents, a SharePoint site, an Entra app and a handful
+of Azure resources. This is what they are and how to recreate them.
+
+> Everything sits behind Microsoft Entra. There is no anonymous route into any
+> surface, including the APIs.
+
+### What gets deployed
+
+**`giuseppe-copilot-app`** — one package, nine components:
+
+| Component | What it is |
+|---|---|
+| **Trattoria Hero (live)** | The FORNO ROSSO front door: the headline over a charred oven glow, with tonight's real service state, tables, orders and revenue read live from the factory. |
+| **Trattoria Command** | The manager's cockpit — tonight, the business report, the crystal ball, the reservation book. |
+| **Ask Giuseppe (live)** | The real tool-calling agent on a SharePoint page, wearing the staff belt. |
+| **Ask Nonna (live)** | The same machinery with the back-office belt only. |
+| **Nonna's Desk (live)** | Pending purchase orders with working approve/reject buttons, the rota, the invoices. Approving refills the factory's actual pantry. |
+| **Trattoria Menu** | The house menu with availability badges derived from the live pantry. |
+| **Trattoria Reserve Ahead** | The pre-order book, bookable. |
+| *Copilot component* | Trattoria Command rendered inside Microsoft 365 Copilot. |
+| *Viva Connections card* | "Tonight at the trattoria". |
+
+**`nonna-copilot-app`** — Nonna's desk as a Copilot component, plus her
+declarative agent. A second package because the SPFx toolchain allows **one
+declarative agent per `.sppkg`** and fails the build on two.
+
+Both packages ship with `webApiPermissionRequests` for the factory's API, and
+every surface reads it through `AadHttpClient` — the signed-in user's SharePoint
+identity, traded for a token with the factory's audience. Nothing is anonymous
+and nothing holds a key.
+
+### Recreating it in your own tenant
+
+1. Provision the Azure side (Cosmos, Content Safety, a managed identity, an
+   App Service for `PizzaFactory.Web`). The factory runs its own background
+   loops, so it wants **always-on** — scale-to-zero stops the perpetuum mobile.
+2. Register one Entra app for the front door: single tenant, `api://<appId>`,
+   one delegated scope `access_as_user`. No roles — the requirement is "signed
+   in to this tenant", not "holds a permission".
+3. Turn on App Service built-in authentication against it, and put CORS at the
+   **App Service** level rather than in the app.
+4. Point `factoryApi.ts` in each package at your host and app id — one constant
+   per package — and rebuild.
+5. Upload both `.sppkg`, tick **Enable this app and add it to all sites**, and
+   choose **Sync to Teams**.
+6. Approve the API access request in the SharePoint admin centre.
+
+Steps 5 and 6 are the irreducibly manual ones. Everything else is scriptable.
+
+### Four things that will cost you an afternoon
+
+**A Graph-level permission grant is not enough.** `AadHttpClient` resolves its
+resource through *SharePoint's own* API-access store. A grant created with
+`POST /v1.0/oauth2PermissionGrants` appears in Graph, passes every check you are
+likely to run, and `m365 spo serviceprincipal grant list` still will not show it.
+The web parts then fail to get a token — and because every live service falls
+back to rehearsal data, the page looks perfectly healthy. Plausible numbers, no
+error, no clue. Grant it through the admin centre instead. (The tell in this
+demo: rehearsal stock lists **Dough**; the live API only ever reports **Flour**.)
+
+**The declarative agent only reaches the agent catalog via "Sync to Teams".**
+Uploading the `.sppkg` and deploying it is not enough, and `m365 spo app add` /
+`app deploy` do not perform the sync. There is no automated route:
+`SyncSolutionToTeams` over REST refuses non-first-party clients, and the merged
+agent zip cannot be sideloaded directly because only the app-catalog sync
+substitutes the MCP URL placeholder inside it.
+
+**The Copilot manifest version is not the solution version.** They drift, and
+Copilot keys off the manifest. Change `declarativeAgent.json` and you must bump
+`copilot/manifest.json` too, or Copilot keeps serving the old agent.
+
+**Easy Auth's `allowedApplications` must not be an empty array.** Empty means
+*deny*, and you get a 403 for a token that is otherwise perfect. Omit the
+property or list the callers — for SPFx that is the SharePoint Online Client
+Extensibility Web Application Principal.
+
 ## The look: FORNO ROSSO
 
 The design language is the glow of the wood fire: molten tomato **red is the hero** — embers,
