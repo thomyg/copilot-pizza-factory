@@ -322,8 +322,14 @@ Copilot keys off the manifest. Change `declarativeAgent.json` and you must bump
 `copilot/manifest.json` too, or Copilot keeps serving the old agent.
 
 **Easy Auth's `allowedApplications` must not be an empty array.** Empty means
-*deny*, and you get a 403 for a token that is otherwise perfect. Omit the
-property or list the callers.
+*deny*, and you get a 403 for a token that is otherwise perfect. Omitting the
+property is usually the better answer than listing callers — a single-tenant app
+plus one allowed audience is already a tight gate, and the list has to name an
+exact client principal (see below).
+
+**Changes to the auth settings need a site restart.** Until then the middleware
+keeps enforcing the previous policy, which looks precisely like a permission
+problem and will send you hunting in the wrong place.
 
 **And there are two principals with nearly the same name.** SPFx tokens come from
 **SharePoint Online Web Client Extensibility** — not from *SharePoint Online
