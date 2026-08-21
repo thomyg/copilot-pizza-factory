@@ -127,11 +127,17 @@ public static class TrattoriaApi
         .Select(ingredient =>
         {
             var grams = stock.GramsOf(ingredient);
+            var opening = Stock.InitialByName.GetValueOrDefault(ingredient.ToString(), grams);
+
             return new
             {
                 ingredient = Humanise(ingredient),
                 grams,
-                openingGrams = Stock.InitialByName.GetValueOrDefault(ingredient.ToString(), grams),
+                // The gauge's full mark, not a historical fact: a silo the supplier has
+                // topped up sits ABOVE its opening level, and a bar drawn against the
+                // opening level would render past 100%. Take whichever is larger so the
+                // gauge always reads as a fraction of something the silo has actually held.
+                openingGrams = Math.Max(opening, grams),
                 state = grams <= CrisisGrams ? "crisis" : grams <= LowGrams ? "low" : "ok",
             };
         })

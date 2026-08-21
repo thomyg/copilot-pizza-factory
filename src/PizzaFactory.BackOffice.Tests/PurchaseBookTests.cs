@@ -42,6 +42,23 @@ public sealed class PurchaseBookTests
         Assert.Single(book.Orders(PurchaseOrderState.PendingApproval));
     }
 
+    /// <summary>
+    /// The queue must not become a blockade. An ingredient with a bulk order awaiting a
+    /// signature can still take an ordinary, within-limit refill — otherwise anything that
+    /// once ran dry stays dry until a human signs, and the line starves behind paperwork.
+    /// </summary>
+    [Fact]
+    public void a_pending_bulk_order_does_not_block_an_ordinary_refill()
+    {
+        var book = Book();
+        Assert.False(book.Request(Ingredient.Flour, 4000, "emergency replenishment (silo empty)"));
+
+        Assert.True(book.Request(Ingredient.Flour, 1000, "stop-gap while the bulk order awaits approval"));
+
+        Assert.Single(book.Orders(PurchaseOrderState.PendingApproval));
+        Assert.Single(book.Orders(PurchaseOrderState.Approved));
+    }
+
     [Fact]
     public void approval_leads_to_delivery_and_an_invoice()
     {

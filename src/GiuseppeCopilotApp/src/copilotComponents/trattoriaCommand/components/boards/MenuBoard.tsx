@@ -8,6 +8,7 @@ import { MENU } from '../../models/trattoria';
 import type { ITrattoriaDataService } from '../../services/ITrattoriaDataService';
 import { pizzaAvailability } from '../../services/RehearsalTrattoriaService';
 import { SERIF } from '../widgets/atoms';
+import { useSnapshot } from '../../services/useSnapshot';
 import TrattoriaTheme from '../TrattoriaTheme';
 
 const TOPPINGS: Record<string, string> = {
@@ -79,11 +80,7 @@ export interface IMenuBoardProps {
 /** The canteen play: the house menu with live pantry-derived availability badges. */
 const MenuBoard: React.FunctionComponent<IMenuBoardProps> = (props) => {
   const s = useStyles();
-  const [snapshot, setSnapshot] = React.useState<ITrattoriaSnapshot | undefined>(undefined);
-
-  React.useEffect(() => {
-    props.dataService.getSnapshot(new Date()).then(setSnapshot).catch(() => undefined);
-  }, [props.dataService]);
+  const snapshot: ITrattoriaSnapshot | undefined = useSnapshot(props.dataService);
 
   const availability: Record<string, 'ok' | 'low' | 'out'> = snapshot
     ? pizzaAvailability(snapshot.tonight.stock)

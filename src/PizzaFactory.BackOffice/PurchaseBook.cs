@@ -77,13 +77,19 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
     {
         lock (_gate)
         {
-            // One pending order per ingredient — TrattoriaSoft does not nag twice per tick.
-            if (_orders.Any(o => o.Ingredient == ingredient && o.State == PurchaseOrderState.PendingApproval))
+            var auto = grams <= options.AutoApproveLimitGrams;
+
+            // One PENDING order per ingredient — TrattoriaSoft does not nag twice per tick.
+            // The guard deliberately applies to orders that would also need a signature:
+            // blocking auto-approvable refills too would mean an ingredient that once ran
+            // dry could never be topped up again until a human signed, and the line would
+            // starve behind its own paperwork. A small refill and a bulk order awaiting
+            // approval are different things, and only the second one queues.
+            if (!auto && _orders.Any(o => o.Ingredient == ingredient && o.State == PurchaseOrderState.PendingApproval))
             {
                 return false;
             }
 
-            var auto = grams <= options.AutoApproveLimitGrams;
             var order = new PurchaseOrder(
                 $"PO-{_nextNumber++}",
                 ingredient,

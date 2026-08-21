@@ -18,6 +18,13 @@ public sealed class ProcurementGateTests
         }
     }
 
+    /// <summary>Stands in for TrattoriaSoft: small refills pass, big ones need a signature.</summary>
+    private sealed class LimitedGate(int autoApproveLimitGrams) : IPurchaseGate
+    {
+        public bool RequestRefill(Ingredient ingredient, int grams, string? note = null) =>
+            grams <= autoApproveLimitGrams;
+    }
+
     [Fact]
     public async Task a_denying_gate_holds_the_refill_and_the_silo_stays_low()
     {
@@ -31,10 +38,36 @@ public sealed class ProcurementGateTests
 
         await procurement.StepAsync(DateTimeOffset.UtcNow);
 
-        // The empty silo triggered a 4× emergency request — and it was held, not applied.
-        var request = Assert.Single(gate.Requests, r => r.Ingredient == Ingredient.Pineapple);
-        Assert.Equal(options.RestockAmountGrams * 4, request.Grams);
+        // The empty silo asks twice: the 4× emergency order, then an ordinary stop-gap
+        // to keep the line moving while a human considers the big one. This gate refuses
+        // both, so nothing is applied and the silo stays empty.
+        var asked = gate.Requests.Where(r => r.Ingredient == Ingredient.Pineapple).ToList();
+        Assert.Equal(
+            [options.RestockAmountGrams * 4, options.RestockAmountGrams],
+            asked.Select(r => r.Grams));
         Assert.Equal(0, (await stock.GetAsync()).GramsOf(Ingredient.Pineapple));
+    }
+
+    /// <summary>
+    /// The gate that matters in practice: TrattoriaSoft auto-approves small refills and
+    /// parks anything bigger. Before the stop-gap existed, an empty silo always asked for
+    /// 4× the restock amount, always exceeded the limit, and therefore never refilled —
+    /// the factory starved itself waiting on a signature it could not give.
+    /// </summary>
+    [Fact]
+    public async Task an_empty_silo_still_gets_a_stop_gap_when_only_the_bulk_order_is_too_big()
+    {
+        var stock = new InMemoryStockRepository();
+        var options = new FactoryOptions();
+        var current = await stock.GetAsync();
+        current.TryConsume([IngredientQuantity.Of(Ingredient.Pineapple, current.GramsOf(Ingredient.Pineapple))], out var drained, out _);
+        await stock.SaveAsync(drained);
+        var gate = new LimitedGate(options.RestockAmountGrams);
+        var procurement = new Procurement(stock, options, NullLogger<Procurement>.Instance, gate);
+
+        await procurement.StepAsync(DateTimeOffset.UtcNow);
+
+        Assert.Equal(options.RestockAmountGrams, (await stock.GetAsync()).GramsOf(Ingredient.Pineapple));
     }
 
     [Fact]

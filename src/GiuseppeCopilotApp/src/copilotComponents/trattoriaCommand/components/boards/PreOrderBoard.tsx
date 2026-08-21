@@ -8,6 +8,7 @@ import { MENU } from '../../models/trattoria';
 import type { ITrattoriaDataService } from '../../services/ITrattoriaDataService';
 import { SERIF } from '../widgets/atoms';
 import { PreOrderList } from '../widgets/panels';
+import { useSnapshot } from '../../services/useSnapshot';
 import TrattoriaTheme from '../TrattoriaTheme';
 
 const MAX_AMOUNT = 24;
@@ -69,7 +70,7 @@ export interface IPreOrderBoardProps {
 /** The reservation book on a SharePoint page: rehearsal entries plus locally-added ones. */
 const PreOrderBoard: React.FunctionComponent<IPreOrderBoardProps> = (props) => {
   const s = useStyles();
-  const [snapshot, setSnapshot] = React.useState<ITrattoriaSnapshot | undefined>(undefined);
+  const snapshot: ITrattoriaSnapshot | undefined = useSnapshot(props.dataService);
   const [stored, setStored] = React.useState<IStoredPreOrder[]>(loadStored);
   const [pizza, setPizza] = React.useState<string>(MENU[0].name);
   const [amount, setAmount] = React.useState<number>(10);
@@ -77,10 +78,6 @@ const PreOrderBoard: React.FunctionComponent<IPreOrderBoardProps> = (props) => {
   const [forName, setForName] = React.useState<string>('');
   const [message, setMessage] = React.useState<string | undefined>(undefined);
   const [error, setError] = React.useState<boolean>(false);
-
-  React.useEffect(() => {
-    props.dataService.getSnapshot(new Date()).then(setSnapshot).catch(() => undefined);
-  }, [props.dataService]);
 
   const book = (): void => {
     const parsed = new Date(when);

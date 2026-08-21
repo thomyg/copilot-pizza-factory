@@ -32,17 +32,38 @@ public sealed class Procurement(
                 continue;
             }
 
-            var amount = grams == 0 ? options.RestockAmountGrams * EmergencyMultiplier : options.RestockAmountGrams;
-            if (purchases is not null && !purchases.RequestRefill(ingredient, amount,
-                    grams == 0 ? "emergency replenishment (silo empty)" : null))
+            var emergency = grams == 0;
+            var amount = emergency ? options.RestockAmountGrams * EmergencyMultiplier : options.RestockAmountGrams;
+
+            if (purchases is null)
             {
-                logger.LogInformation(
-                    "Procurement: {Ingredient} order ({Grams}g) held for approval — the back office has the pen",
-                    ingredient, amount);
+                refills.Add(IngredientQuantity.Of(ingredient, amount));
                 continue;
             }
 
-            refills.Add(IngredientQuantity.Of(ingredient, amount));
+            if (purchases.RequestRefill(ingredient, amount, emergency ? "emergency replenishment (silo empty)" : null))
+            {
+                refills.Add(IngredientQuantity.Of(ingredient, amount));
+                continue;
+            }
+
+            logger.LogInformation(
+                "Procurement: {Ingredient} order ({Grams}g) held for approval — the back office has the pen",
+                ingredient, amount);
+
+            // The big order now waits for a signature, which is the point. But an EMPTY silo
+            // stops the line, and "agents stop the bleeding" has to survive contact with the
+            // approval gate: fall back to one ordinary, auto-approvable refill so the kitchen
+            // keeps working while the human decides on the bulk order. Without this the
+            // emergency multiplier guarantees every drained silo exceeds the auto-approve
+            // limit, the refill is never granted, and the factory starves waiting on Nonna.
+            if (emergency && purchases.RequestRefill(ingredient, options.RestockAmountGrams, "stop-gap while the bulk order awaits approval"))
+            {
+                logger.LogInformation(
+                    "Procurement: {Ingredient} stop-gap refill (+{Grams}g) keeps the line moving",
+                    ingredient, options.RestockAmountGrams);
+                refills.Add(IngredientQuantity.Of(ingredient, options.RestockAmountGrams));
+            }
         }
 
         if (refills.Count == 0)
