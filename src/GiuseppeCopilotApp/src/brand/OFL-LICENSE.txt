@@ -1,0 +1,6 @@
+Fraunces is licensed under the SIL Open Font License 1.1 — https://openfontlicense.org
+
+fraunces.ts embeds the variable latin subset of Fraunces as a base64 data URI.
+It is the same file served from src/PizzaFactory.Web/wwwroot/fonts/fraunces-latin.woff2;
+this copy exists because an SPFx bundle has no shared font host to fetch it from.
+Redistributing the font data carries this notice with it, as the OFL requires.
