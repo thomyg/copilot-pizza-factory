@@ -14,4 +14,14 @@ public sealed class FactoryOptions
     public int CrisisThresholdGrams { get; set; } = 150;  // escalate (human decision) at/below this
 
     public TimeSpan TickInterval { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// How long a plated ticket may stand at the pass before the kitchen writes it off.
+    /// Guests and pickup tickets live in memory while orders live in the store, so a restart
+    /// strands food nobody remembers ordering; without this it sits at Ready forever.
+    /// </summary>
+    public TimeSpan AbandonedAfter { get; set; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>How often the pass is swept. Reads the whole order book, so not every tick.</summary>
+    public TimeSpan PassSweepInterval { get; set; } = TimeSpan.FromSeconds(30);
 }
