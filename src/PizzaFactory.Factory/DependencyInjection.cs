@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using PizzaFactory.Domain;
 
 namespace PizzaFactory.Factory;
 
@@ -17,6 +18,8 @@ public static class DependencyInjection
 
         services.AddSingleton(options);
         services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton(new ServiceWindowOptions());
+        services.TryAddSingleton<ServiceWindow>();
         services.TryAddSingleton<IEscalationSink, LoggingEscalationSink>();
         services.AddSingleton<DoughMaster>();
         services.AddSingleton<Pizzaiolo>();

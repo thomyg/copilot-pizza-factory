@@ -19,6 +19,14 @@ public static class GiuseppeChatApi
 {
     public const string CorsPolicy = "spfx-chat";
     public const string RateLimitPolicy = "giuseppe-chat";
+
+    /// <summary>
+    /// Read-only board traffic. The chat limit exists to protect a model that costs money per
+    /// message; a snapshot costs a database read. Four polling web parts on one page already
+    /// make about a dozen calls a minute per viewer, so sharing the chat's budget meant two
+    /// people behind one NAT could 429 each other mid-demo.
+    /// </summary>
+    public const string ReadRateLimitPolicy = "trattoria-read";
     private const int MaxMessageLength = 2000;
 
     public static void AddGiuseppeChatApi(this WebApplicationBuilder builder)
@@ -36,6 +44,10 @@ public static class GiuseppeChatApi
             options.AddPolicy(RateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
                 _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromMinutes(1) }));
+
+            options.AddPolicy(ReadRateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 600, Window = TimeSpan.FromMinutes(1) }));
         });
     }
 

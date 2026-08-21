@@ -31,17 +31,40 @@ public static class TrattoriaApi
     {
         var hasCors = !string.IsNullOrWhiteSpace(app.Configuration["SharePointChat:AllowedOrigins"]);
 
-        var group = app.MapGroup("/api/trattoria").RequireRateLimiting(GiuseppeChatApi.RateLimitPolicy);
+        var group = app.MapGroup("/api/trattoria").RequireRateLimiting(GiuseppeChatApi.ReadRateLimitPolicy);
         if (hasCors)
         {
             group = group.RequireCors(GiuseppeChatApi.CorsPolicy);
         }
+
+        // Opening and closing the house. Deliberately POST with no body: the button on the
+        // SharePoint hero and the one in the Engine Room press the same thing.
+        group.MapPost("/service/open", (ServiceWindow service) =>
+        {
+            var session = service.Open();
+            return Results.Ok(new
+            {
+                open = true,
+                id = session.Id,
+                openedAt = session.OpenedAt,
+                minutesLeft = Math.Round((service.Remaining ?? TimeSpan.Zero).TotalMinutes, 1),
+            });
+        });
+
+        group.MapPost("/service/close", (ServiceWindow service) =>
+        {
+            var closed = service.Close();
+            return closed is null
+                ? Results.Ok(new { open = false, closed = false })
+                : Results.Ok(new { open = false, closed = true, id = closed.Id, closedAt = closed.ClosedAt });
+        });
 
         group.MapGet("/snapshot", async (
             MaitreD maitreD,
             Bookkeeper bookkeeper,
             PreOrderBook preOrders,
             TrattoriaFeed feed,
+            ServiceWindow service,
             IPizzaRepository pizzas,
             IStockRepository stockRepository,
             TimeProvider clock,
@@ -53,8 +76,19 @@ public static class TrattoriaApi
             var forecast = await bookkeeper.ForecastAsync(cancellationToken);
             var stock = await stockRepository.GetAsync(cancellationToken);
 
+            var session = service.Current;
             return Results.Ok(new
             {
+                // The window itself, so a surface can say "between services" honestly and
+                // offer to open one instead of pretending the house is merely quiet.
+                service = new
+                {
+                    open = service.IsOpen,
+                    minutesLeft = Math.Round((service.Remaining ?? TimeSpan.Zero).TotalMinutes, 1),
+                    openedAt = session?.OpenedAt,
+                    closedAt = session?.ClosedAt,
+                    everRan = session is not null,
+                },
                 tonight = new
                 {
                     serviceOpen = house.IsOpen,

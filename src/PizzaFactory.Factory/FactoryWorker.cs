@@ -1,11 +1,17 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PizzaFactory.Domain;
 
 namespace PizzaFactory.Factory;
 
 /// <summary>
-/// The perpetuum mobile: ticks the three stations on an interval. This replaces the legacy
+/// The perpetuum mobile: ticks the stations on an interval. This replaces the legacy
 /// Timer-driven IHostedServices with a single, testable, cancellation-aware loop.
+///
+/// It only runs while a service is open. A kitchen with nobody in the dining room does not
+/// bake on speculation, and an unattended floor running around the clock is how this demo
+/// came to report three and a half thousand orders in one day. The loop keeps ticking so the
+/// window can close itself on time; it simply does no work in between.
 /// </summary>
 public sealed class FactoryWorker(
     DoughMaster doughMaster,
@@ -13,6 +19,7 @@ public sealed class FactoryWorker(
     Expeditor expeditor,
     Procurement procurement,
     CrisisWatch crisisWatch,
+    ServiceWindow service,
     FactoryOptions options,
     TimeProvider clock,
     ILogger<FactoryWorker> logger) : BackgroundService
@@ -25,6 +32,12 @@ public sealed class FactoryWorker(
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             var now = clock.GetUtcNow();
+            service.CloseIfExpired(now);
+            if (!service.IsOpen)
+            {
+                continue;
+            }
+
             try
             {
                 await doughMaster.StepAsync(now, stoppingToken);

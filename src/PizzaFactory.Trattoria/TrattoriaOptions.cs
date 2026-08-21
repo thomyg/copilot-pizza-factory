@@ -44,10 +44,4 @@ public sealed class TrattoriaOptions
     /// <summary>Optional fixed random seed — used by tests to make the theatre deterministic.</summary>
     public int? RandomSeed { get; set; }
 
-    /// <summary>
-    /// Open the floor as soon as the worker starts, instead of waiting for the dashboard's
-    /// Play button. Off by default so local runs and tests keep the deliberate cold start;
-    /// on for the always-on hosted demo, where visitors arrive to a house already alive.
-    /// </summary>
-    public bool OpenOnStart { get; set; }
 }

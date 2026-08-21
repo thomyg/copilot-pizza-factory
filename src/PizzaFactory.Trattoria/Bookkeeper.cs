@@ -41,6 +41,7 @@ public sealed class Bookkeeper(
     IRestingDoughRepository doughs,
     MaitreD maitreD,
     PreOrderBook preOrders,
+    ServiceWindow service,
     TrattoriaOptions options,
     TimeProvider clock)
 {
@@ -139,11 +140,26 @@ public sealed class Bookkeeper(
             .OrderBy(r => r.Severity switch { "High" => 0, "Medium" => 1, _ => 2 })];
     }
 
+    /// <summary>
+    /// Tonight's numbers, scoped to THE SERVICE rather than the calendar day.
+    ///
+    /// A day is the wrong frame for a house that only trades when someone is presenting it:
+    /// filtering by date meant an always-on deployment happily reported three and a half
+    /// thousand orders and seventy-eight thousand euros for seventeen tables. A service is
+    /// the honest unit — everything since the doors opened, and nothing from the one before.
+    /// Between services this reports the service that just closed, so the page shows the last
+    /// real sitting instead of zeroes.
+    /// </summary>
     public async Task<BusinessReport> ReportAsync(CancellationToken cancellationToken = default)
     {
         var now = clock.GetUtcNow();
-        var today = (await orders.ListAsync(cancellationToken))
-            .Where(o => o.CreatedAt.ToLocalTime().Date == now.ToLocalTime().Date)
+        var session = service.Current;
+        var all = await orders.ListAsync(cancellationToken);
+
+        var today = (session is null
+                ? all.Where(o => o.CreatedAt.ToLocalTime().Date == now.ToLocalTime().Date)
+                : all.Where(o => o.CreatedAt >= session.OpenedAt
+                                 && (session.ClosedAt is not { } end || o.CreatedAt <= end)))
             .ToList();
 
         var delivered = today.Where(o => o.State == OrderState.Delivered).ToList();

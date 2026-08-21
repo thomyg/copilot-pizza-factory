@@ -23,7 +23,15 @@ public class BookkeeperTests
         var trattoriaOptions = new TrattoriaOptions { RandomSeed = 3 };
         var book = new PreOrderBook(orders, feed);
         var maitreD = new MaitreD(orders, new InMemoryPizzaRepository(), trattoriaOptions, feed);
-        return (new Bookkeeper(orders, stock, new InMemoryRestingDoughRepository(), maitreD, book, trattoriaOptions, new FixedTimeProvider(T0)), orders, stock, book);
+        return (new Bookkeeper(orders, stock, new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(new FixedTimeProvider(T0)), trattoriaOptions, new FixedTimeProvider(T0)), orders, stock, book);
+    }
+
+    /// <summary>A service that is open, so the books scope to it exactly as they do in the house.</summary>
+    private static ServiceWindow OpenWindow(TimeProvider clock)
+    {
+        var window = new ServiceWindow(new ServiceWindowOptions(), clock);
+        window.Open();
+        return window;
     }
 
     [Fact]

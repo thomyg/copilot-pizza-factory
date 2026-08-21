@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using PizzaFactory.Domain;
 
 namespace PizzaFactory.Trattoria;
 
@@ -7,33 +8,43 @@ namespace PizzaFactory.Trattoria;
 /// Ticks the dining room: maître d' (arrivals, serving, departures), online desk, and the
 /// pre-order book. Runs alongside the factory floor's worker — the restaurant is the demand
 /// side of the same perpetuum mobile.
+///
+/// It also works the doors. The floor and the online counter follow the service window rather
+/// than a flag of their own: opening the service unlocks both, closing it locks both, and the
+/// worker re-checks every tick so the two can never drift apart. Between services it ticks
+/// and does nothing, which is what a restaurant between services does.
 /// </summary>
 public sealed class TrattoriaWorker(
     MaitreD maitreD,
     OnlineOrderDesk desk,
     PreOrderBook preOrders,
+    ServiceWindow service,
     TrattoriaOptions options,
     TimeProvider clock,
     ILogger<TrattoriaWorker> logger) : BackgroundService
 {
+    private bool _doorsOpen;
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("Trattoria front of house ready (tick every {Interval}).", options.TickInterval);
 
-        if (options.OpenOnStart)
-        {
-            // Both doors: the dining room AND the online counter, exactly like the
-            // dashboard's Play button — otherwise every order arrives as a walk-in.
-            maitreD.OpenService(clock.GetUtcNow());
-            desk.Open();
-            logger.LogInformation("Floor and online counter opened on start — the hosted demo never sits dark.");
-        }
+        // The diary is full before the doors open — a house between services still has
+        // tonight and the weekend spoken for.
+        preOrders.SeedUpcoming(clock.GetUtcNow());
 
         using var timer = new PeriodicTimer(options.TickInterval, clock);
 
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             var now = clock.GetUtcNow();
+            WorkTheDoors(now);
+
+            if (!_doorsOpen)
+            {
+                continue;
+            }
+
             try
             {
                 await maitreD.StepAsync(now, stoppingToken);
@@ -45,5 +56,30 @@ public sealed class TrattoriaWorker(
                 logger.LogError(ex, "Trattoria tick failed");
             }
         }
+    }
+
+    /// <summary>Keeps the floor and the counter in step with the service window.</summary>
+    private void WorkTheDoors(DateTimeOffset now)
+    {
+        var shouldBeOpen = service.IsOpen;
+        if (shouldBeOpen == _doorsOpen)
+        {
+            return;
+        }
+
+        if (shouldBeOpen)
+        {
+            maitreD.OpenService(now);
+            desk.Open();
+            logger.LogInformation("Service open — chairs down, counter live.");
+        }
+        else
+        {
+            maitreD.CloseService(now);
+            desk.Close();
+            logger.LogInformation("Service closed — books shut, nobody new seated.");
+        }
+
+        _doorsOpen = shouldBeOpen;
     }
 }

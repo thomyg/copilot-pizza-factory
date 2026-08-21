@@ -1,5 +1,6 @@
 @page "/"
 @rendermode InteractiveServer
+@using PizzaFactory.Domain
 @using PizzaFactory.Domain.Recipes
 @using PizzaFactory.Factory
 @using PizzaFactory.FrontOfHouse
@@ -13,6 +14,7 @@
 @inject WindowEventLog Events
 @inject OrderingGate Gate
 @inject FactoryOptions Options
+@inject ServiceWindow Service
 @inject MaitreD MaitreD
 @inject OnlineOrderDesk Desk
 @inject TrattoriaFeed DiningFeed
@@ -222,16 +224,16 @@
 
     private void ToggleService()
     {
-        var now = DateTimeOffset.UtcNow;
-        if (MaitreD.IsOpen)
+        // The button opens and closes the SERVICE; the floor and the counter follow it.
+        // Working the doors directly here is how the two used to drift apart — and how an
+        // unattended house ended up trading around the clock.
+        if (Service.IsOpen)
         {
-            MaitreD.CloseService(now);
-            Desk.Close();
+            Service.Close();
         }
         else
         {
-            MaitreD.OpenService(now);
-            Desk.Open();
+            Service.Open();
         }
 
         _trattoria = MaitreD.Snapshot();

@@ -1,4 +1,5 @@
 using PizzaFactory.BackOffice;
+using PizzaFactory.Domain;
 using PizzaFactory.Factory;
 using PizzaFactory.FrontOfHouse;
 using PizzaFactory.Giuseppe;
@@ -28,14 +29,21 @@ else
 // The Window hosts the running factory: content guard, public intake, the floor, and the live feed.
 builder.Services.AddHeuristicContentGuard();
 builder.Services.AddFrontOfHouse();
+// How long a service runs before it closes itself. Registered BEFORE the floor and the
+// dining room, whose TryAdd would otherwise pin the default — a window nobody closes is
+// how this house once reported a day's takings of seventy-eight thousand euros.
+builder.Services.AddSingleton(
+    builder.Configuration.GetSection(ServiceWindowOptions.SectionName).Get<ServiceWindowOptions>()
+    ?? new ServiceWindowOptions());
+
 // Both sections bind from configuration, so a hosted always-on demo can be paced
 // differently from a ten-minute laptop demo without a rebuild: the factory's tick
 // has to keep up with the dining room's, or the queue grows all day and the reviews
 // collapse honestly. Defaults are unchanged for local runs and tests.
 builder.Services.AddPizzaFactoryFloor(builder.Configuration.GetSection(FactoryOptions.SectionName).Bind);
 
-// The dining room: 17 tables, online orders, pre-orders. Starts closed unless
-// Trattoria:OpenOnStart says otherwise — the Play button opens it.
+// The dining room: 17 tables, online orders, pre-orders. It trades only while a service
+// window is open; the Play button and the SharePoint hero both open one.
 builder.Services.AddTrattoria(builder.Configuration.GetSection(TrattoriaOptions.SectionName).Bind);
 
 // TrattoriaSoft ERP 3000: rota, absences, purchase orders with an approval gate on big

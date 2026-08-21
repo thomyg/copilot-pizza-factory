@@ -24,7 +24,14 @@ public class FrontDeskToolSourceTests
         var book = new PreOrderBook(orders, feed);
         var maitreD = new MaitreD(orders, pizzas, options, feed);
         var clock = new FixedTimeProvider(T0);
-        var bookkeeper = new Bookkeeper(orders, new InMemoryStockRepository(), new InMemoryRestingDoughRepository(), maitreD, book, options, clock);
+        static ServiceWindow OpenWindow(TimeProvider c)
+        {
+            var w = new ServiceWindow(new ServiceWindowOptions(), c);
+            w.Open();
+            return w;
+        }
+
+        var bookkeeper = new Bookkeeper(orders, new InMemoryStockRepository(), new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(clock), options, clock);
         return (new FrontDeskToolSource(book, maitreD, bookkeeper, clock), book, orders);
     }
 

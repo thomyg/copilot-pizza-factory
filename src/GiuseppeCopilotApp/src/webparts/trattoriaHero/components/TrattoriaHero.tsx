@@ -23,6 +23,10 @@ export interface ITrattoriaHeroProps {
 
 /** Only the handful of numbers the hero shows — deliberately not the whole snapshot. */
 interface IHeroStats {
+  /** The window, not the dining room: is the house trading at all right now. */
+  windowOpen: boolean;
+  minutesLeft: number;
+  everRan: boolean;
   serviceOpen: boolean;
   tablesSeated: number;
   tablesTotal: number;
@@ -139,6 +143,33 @@ const useStyles = makeStyles({
   pillShut: { backgroundColor: 'rgba(253, 250, 241, 0.09)', color: FORNO.flourMuted },
   dot: { width: '7px', height: '7px', borderRadius: '999px', backgroundColor: 'currentcolor' },
 
+  action: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '9px',
+    marginTop: '26px',
+    padding: '13px 22px',
+    borderRadius: '11px',
+    cursor: 'pointer',
+    fontWeight: 700,
+    fontSize: '14.5px',
+    color: FORNO.flour50,
+    backgroundColor: FORNO.tomato,
+    ...shorthands.border('1px', 'solid', FORNO.tomatoBright),
+    transitionProperty: 'background-color, transform',
+    transitionDuration: '140ms',
+    ':hover': { backgroundColor: FORNO.tomatoBright, transform: 'translateY(-1px)' },
+    ':disabled': { opacity: 0.55, cursor: 'default', transform: 'none' },
+    ':focus-visible': { outline: `2px solid ${FORNO.gold}`, outlineOffset: '2px' }
+  },
+  actionHint: {
+    marginTop: '10px',
+    fontSize: '12.5px',
+    color: FORNO.flourMuted,
+    maxWidth: '52ch',
+    lineHeight: 1.5
+  },
+
   links: { display: 'flex', flexWrap: 'wrap', gap: '10px', margin: '30px 0 0' },
   link: {
     display: 'block',
@@ -207,6 +238,7 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
     const pull = async (): Promise<void> => {
       try {
         const snap = await http.getJson<{
+          service?: { open: boolean; minutesLeft: number; everRan: boolean };
           tonight: {
             serviceOpen: boolean;
             tablesSeated: number;
@@ -218,6 +250,9 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
 
         if (!cancelled) {
           setStats({
+            windowOpen: snap.service?.open ?? snap.tonight.serviceOpen,
+            minutesLeft: snap.service?.minutesLeft ?? 0,
+            everRan: snap.service?.everRan ?? true,
             serviceOpen: snap.tonight.serviceOpen,
             tablesSeated: snap.tonight.tablesSeated,
             tablesTotal: snap.tonight.tablesTotal,
@@ -239,6 +274,24 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
     };
   }, [http, base]);
 
+  const [opening, setOpening] = React.useState<boolean>(false);
+
+  const openService = (): void => {
+    if (!http || opening) {
+      return;
+    }
+    setOpening(true);
+    http
+      .postJson<unknown>(`${base}/api/trattoria/service/open`, {})
+      .catch(() => {
+        /* The next poll shows whether it took; a dead button beats a lying one. */
+      })
+      .then(() => setOpening(false))
+      .catch(() => setOpening(false));
+  };
+
+  const between: boolean = stats !== undefined && !stats.windowOpen;
+
   return (
     <div className={s.stage}>
       <div className={s.ember} />
@@ -250,9 +303,11 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
 
         {stats && (
           <div className={s.statRow}>
-            <span className={mergeClasses(s.pill, stats.serviceOpen ? s.pillOpen : s.pillShut)}>
+            <span className={mergeClasses(s.pill, stats.windowOpen ? s.pillOpen : s.pillShut)}>
               <span className={s.dot} />
-              {stats.serviceOpen ? 'Service open' : 'Between services'}
+              {stats.windowOpen
+                ? `Service open · ${Math.max(0, Math.round(stats.minutesLeft))} min left`
+                : 'Between services'}
             </span>
             <Stat value={`${stats.tablesSeated}/${stats.tablesTotal}`} label="Tables seated" />
             <Stat value={String(stats.ordersToday)} label="Orders today" />
@@ -260,6 +315,19 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
             {stats.averageStars !== undefined && (
               <Stat value={stats.averageStars.toFixed(1)} label="Guest rating" />
             )}
+          </div>
+        )}
+
+        {between && (
+          <div>
+            <button className={s.action} onClick={openService} disabled={opening} type="button">
+              {opening ? 'Opening…' : '▶  Open the service'}
+            </button>
+            <div className={s.actionHint}>
+              The house is closed between demos, so nothing runs and nothing accrues. Opening it
+              starts the real factory for fifteen minutes — after that it shuts itself, and the
+              service is written into the books.
+            </div>
           </div>
         )}
 
@@ -275,9 +343,13 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
         )}
 
         <p className={s.note}>
-          {stats
-            ? '— and every number above moved while you were reading this.'
-            : '— the kitchen is warming up; numbers appear the moment it answers.'}
+          {!stats
+            ? '— the kitchen is warming up; numbers appear the moment it answers.'
+            : stats.windowOpen
+              ? '— and every number above moved while you were reading this.'
+              : stats.everRan
+                ? '— the numbers above are the last service, closed and booked.'
+                : '— the pantry is stocked and the book is full; nobody has opened the doors yet.'}
         </p>
       </div>
     </div>

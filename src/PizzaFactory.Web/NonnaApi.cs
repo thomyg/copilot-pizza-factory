@@ -26,12 +26,13 @@ public static class NonnaApi
         var staff = app.Services.GetRequiredService<StaffBook>();
         var purchases = app.Services.GetRequiredService<PurchaseBook>();
 
-        var group = app.MapGroup("/api/nonna").RequireRateLimiting(GiuseppeChatApi.RateLimitPolicy);
+        var group = app.MapGroup("/api/nonna").RequireRateLimiting(GiuseppeChatApi.ReadRateLimitPolicy);
         if (hasCors)
         {
             group = group.RequireCors(GiuseppeChatApi.CorsPolicy);
         }
 
+        // Her chat still rides the strict budget — that one talks to a model.
         group.MapPost("/chat", async (NonnaChatRequest request, CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(request.Message) || request.Message.Length > MaxMessageLength)
