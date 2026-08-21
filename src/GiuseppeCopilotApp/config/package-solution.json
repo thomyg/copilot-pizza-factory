@@ -3,7 +3,7 @@
   "solution": {
     "name": "giuseppe-copilot-app",
     "id": "c3f38a4f-1910-4d81-a6ca-fa7c8b1ff2d0",
-    "version": "1.0.9.0",
+    "version": "1.0.11.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
@@ -35,7 +35,7 @@
     ],
     "webApiPermissionRequests": [
       {
-        "resource": "Copilot Pizza Factory \u2014 Trattoria Web",
+        "resource": "7ba457d6-e4fe-41ed-adfc-17d98f57af4b",
         "scope": "access_as_user"
       }
     ]

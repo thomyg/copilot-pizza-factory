@@ -24,11 +24,26 @@ export class LiveTrattoriaService implements ITrattoriaDataService {
   public async getSnapshot(now: Date): Promise<ITrattoriaSnapshot> {
     try {
       const payload: unknown = await this._http.getJson<unknown>(`${this._apiBase}/api/trattoria/snapshot`);
-      return isSnapshot(payload) ? normalise(payload) : await this._fallback.getSnapshot(now);
-    } catch {
+      if (isSnapshot(payload)) {
+        return normalise(payload);
+      }
+      warn('the factory answered something this cockpit does not recognise', payload);
+      return this._fallback.getSnapshot(now);
+    } catch (error: unknown) {
+      warn('could not reach the factory', error);
       return this._fallback.getSnapshot(now);
     }
   }
+}
+
+/**
+ * Say so when we degrade. The fallback is deliberate, but a cockpit that silently
+ * shows rehearsal data while claiming to be live is worse than one that fails —
+ * this is the only breadcrumb anyone gets when the token or the API misbehaves.
+ */
+function warn(what: string, detail: unknown): void {
+  // eslint-disable-next-line no-console
+  console.warn(`[Trattoria] Falling back to rehearsal data — ${what}.`, detail);
 }
 
 /** Structural check — enough to be sure we are not rendering someone else's JSON. */
