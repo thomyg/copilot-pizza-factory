@@ -58,6 +58,27 @@ public sealed class MaitreD(
         feed.Post(now, "🌙 Service is closed — current guests finish, nobody new is seated.");
     }
 
+    /// <summary>
+    /// Chairs up. Once the books are closed nobody steps the floor any more, so a party left
+    /// at a table would sit there for days — the dining room would read as half full while the
+    /// house is plainly shut. This sends the last guests home and hands the room back empty.
+    /// Call it AFTER the takings are totalled: it forgets who was sitting where.
+    /// </summary>
+    public void EndOfService(DateTimeOffset now)
+    {
+        int remaining;
+        lock (_recentFeedback)
+        {
+            remaining = _seated.Count;
+            _seated.Clear();
+        }
+
+        if (remaining > 0)
+        {
+            feed.Post(now, $"🪑 Chairs up — the last {remaining} table(s) settled and the room is clear.");
+        }
+    }
+
     /// <summary>A bus parks outside: the next ticks seat this many extra parties. Chaos-console fuel.</summary>
     public void BusTour(DateTimeOffset now, int parties = 6)
     {

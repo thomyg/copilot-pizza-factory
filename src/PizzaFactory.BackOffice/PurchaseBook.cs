@@ -8,6 +8,22 @@ public enum PurchaseOrderState
     Approved,
     Rejected,
     Delivered,
+
+    /// <summary>Refused by policy, not by a person — the spend would breach the period budget.</summary>
+    BlockedByBudget,
+}
+
+/// <summary>Which rule decided a requisition, so the answer can be explained rather than asserted.</summary>
+public enum PurchaseDecision
+{
+    /// <summary>Within the autonomous limit — the agent stopped the bleeding and moved on.</summary>
+    AutoApproved,
+
+    /// <summary>Above the limit: a person has to sign.</summary>
+    NeedsApproval,
+
+    /// <summary>Would take the period past its budget. Nobody may wave this through casually.</summary>
+    OverBudget,
 }
 
 public sealed record PurchaseOrder(
@@ -18,7 +34,22 @@ public sealed record PurchaseOrder(
     string Supplier,
     PurchaseOrderState State,
     DateTimeOffset At,
-    string? Note);
+    string? Note,
+    PurchaseDecision Decision = PurchaseDecision.AutoApproved);
+
+/// <summary>Where the period's money has gone, and how much room is left.</summary>
+public sealed record BudgetPosition(
+    string Period,
+    decimal BudgetEur,
+    decimal CommittedEur,
+    decimal RemainingEur,
+    int OrdersCounted)
+{
+    public double UsedPercent => BudgetEur <= 0 ? 0 : Math.Round((double)(CommittedEur / BudgetEur) * 100, 1);
+
+    /// <summary>Past this the back office starts warning rather than nodding along.</summary>
+    public bool IsTight => UsedPercent >= 80;
+}
 
 public sealed record Invoice(
     string Id,
@@ -30,8 +61,17 @@ public sealed record Invoice(
 
 public sealed class BackOfficeOptions
 {
+    public const string SectionName = "BackOffice";
+
     /// <summary>Orders up to this size auto-approve — the perpetuum mobile stays autonomous.</summary>
     public int AutoApproveLimitGrams { get; set; } = 1000;
+
+    /// <summary>
+    /// What the house may spend on supplies in a calendar month. A single approval limit says
+    /// nothing about whether the money exists; a budget does. Set to zero to switch the guard
+    /// off entirely — a demo without a budget is a demo about approvals, not about money.
+    /// </summary>
+    public decimal MonthlyBudgetEur { get; set; } = 2500m;
 
     public string DefaultSupplier { get; set; } = "Fruttivendolo Marittimo S.r.l.";
 }
@@ -71,12 +111,31 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
 
     /// <summary>
     /// Files a purchase order for a refill. Returns true when the order auto-approved and the
-    /// refill may be applied immediately; false when it waits for a human.
+    /// refill may be applied immediately; false when it waits for a human or was refused.
+    ///
+    /// Three rules, in order, and the order matters: money first, then authority, then autonomy.
+    /// A requisition that would take the month past its budget is refused outright — a signature
+    /// cannot conjure funds, so offering one would be theatre. Below that, size decides whether
+    /// the house may act alone or has to ask.
     /// </summary>
     public bool Request(Ingredient ingredient, int grams, string? note = null)
     {
         lock (_gate)
         {
+            var cost = CostOf(ingredient, grams);
+
+            if (options.MonthlyBudgetEur > 0 && PositionUnlocked().RemainingEur < cost)
+            {
+                _orders.Add(new PurchaseOrder(
+                    $"PO-{_nextNumber++}", ingredient, grams, cost, options.DefaultSupplier,
+                    PurchaseOrderState.BlockedByBudget, _clock.GetUtcNow(),
+                    note is null
+                        ? $"blocked — €{cost:0.00} would breach this month's budget"
+                        : $"{note} — blocked, €{cost:0.00} would breach this month's budget",
+                    PurchaseDecision.OverBudget));
+                return false;
+            }
+
             var auto = grams <= options.AutoApproveLimitGrams;
 
             // One PENDING order per ingredient — TrattoriaSoft does not nag twice per tick.
@@ -98,10 +157,65 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
                 options.DefaultSupplier,
                 auto ? PurchaseOrderState.Approved : PurchaseOrderState.PendingApproval,
                 _clock.GetUtcNow(),
-                note ?? (auto ? "auto-approved (within limit)" : "over limit — awaiting approval"));
+                note ?? (auto ? "auto-approved (within limit)" : "over limit — awaiting approval"),
+                auto ? PurchaseDecision.AutoApproved : PurchaseDecision.NeedsApproval);
             _orders.Add(order);
             return auto;
         }
+    }
+
+    /// <summary>
+    /// Where this month's supplies money stands. Committed means everything the house has
+    /// promised — approved, delivered, and orders still waiting on a signature — because a
+    /// requisition on someone's desk is money you have very nearly spent.
+    /// </summary>
+    public BudgetPosition Position()
+    {
+        lock (_gate)
+        {
+            return PositionUnlocked();
+        }
+    }
+
+    private BudgetPosition PositionUnlocked()
+    {
+        var now = _clock.GetUtcNow();
+        var counted = _orders
+            .Where(o => o.At.Year == now.Year && o.At.Month == now.Month)
+            .Where(o => o.State is PurchaseOrderState.Approved
+                                or PurchaseOrderState.Delivered
+                                or PurchaseOrderState.PendingApproval)
+            .ToList();
+
+        var committed = counted.Sum(o => o.Cost);
+        return new BudgetPosition(
+            now.ToString("MMMM yyyy"),
+            options.MonthlyBudgetEur,
+            committed,
+            Math.Max(0, options.MonthlyBudgetEur - committed),
+            counted.Count);
+    }
+
+    /// <summary>
+    /// The sentence Nonna says. Every refusal in a back office should be explainable in one
+    /// line, with the arithmetic in it — "computer says no" is not a process.
+    /// </summary>
+    public string Explain(PurchaseOrder order)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        var position = Position();
+        return order.Decision switch
+        {
+            PurchaseDecision.OverBudget =>
+                $"€{order.Cost:0.00} for {order.Grams}g of {order.Ingredient} would breach {position.Period}: " +
+                $"€{position.RemainingEur:0.00} left of €{position.BudgetEur:0.00}. Needs a budget decision, not a signature.",
+            PurchaseDecision.NeedsApproval =>
+                $"{order.Grams}g is over the {options.AutoApproveLimitGrams}g I may approve alone — " +
+                $"€{order.Cost:0.00}, waiting for a signature. {position.RemainingEur:0.00}€ still in {position.Period}.",
+            _ =>
+                $"{order.Grams}g of {order.Ingredient} at €{order.Cost:0.00} — within my limit, so I handled it. " +
+                $"{position.UsedPercent}% of {position.Period} used.",
+        };
     }
 
     /// <summary>Approve a pending order. Returns the order, or null when the id is unknown/not pending.</summary>

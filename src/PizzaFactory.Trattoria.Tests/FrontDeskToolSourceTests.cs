@@ -31,7 +31,7 @@ public class FrontDeskToolSourceTests
             return w;
         }
 
-        var bookkeeper = new Bookkeeper(orders, new InMemoryStockRepository(), new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(clock), options, clock);
+        var bookkeeper = new Bookkeeper(orders, new InMemoryStockRepository(), new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(clock), new InMemoryServiceLedgerRepository(), options, clock);
         return (new FrontDeskToolSource(book, maitreD, bookkeeper, clock), book, orders);
     }
 

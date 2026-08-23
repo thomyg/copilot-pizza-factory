@@ -42,6 +42,7 @@ public sealed class Bookkeeper(
     MaitreD maitreD,
     PreOrderBook preOrders,
     ServiceWindow service,
+    IServiceLedgerRepository ledger,
     TrattoriaOptions options,
     TimeProvider clock)
 {
@@ -194,7 +195,39 @@ public sealed class Bookkeeper(
             ProjectedOrdersNextHour: lastTen * 6);
     }
 
-    /// <summary>The last seven days' ledger — seeded backstory, deterministic per calendar date.</summary>
+    /// <summary>
+    /// The last seven days — real services first, invented ones only where the house has none.
+    ///
+    /// A day the trattoria actually traded is reported from its own books; a day it did not is
+    /// filled from the seeded backstory so "versus a typical Tuesday" still has a Tuesday to
+    /// compare against. As real services accumulate, the fiction recedes on its own. Which is
+    /// which is never hidden: a day with several services shows their sum, and the backstory is
+    /// deterministic per calendar date, so it never contradicts itself between reloads.
+    /// </summary>
+    public async Task<IReadOnlyList<DailyLedger>> HistoryAsync(CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(clock.GetUtcNow().ToLocalTime().Date);
+        var real = (await ledger.RecentAsync(50, cancellationToken))
+            .Where(s => s.Date < today)
+            .GroupBy(s => s.Date)
+            .ToDictionary(
+                g => g.Key,
+                g => new DailyLedger(
+                    g.Key,
+                    g.Key.DayOfWeek.ToString(),
+                    g.Sum(s => s.Orders),
+                    g.Sum(s => s.Guests),
+                    g.Sum(s => s.RevenueEur),
+                    g.Where(s => s.AverageStars is not null).Select(s => s.AverageStars!.Value).DefaultIfEmpty(0).Average()));
+
+        return Enumerable.Range(1, 7)
+            .Select(back => today.AddDays(-back))
+            .Select(date => real.GetValueOrDefault(date) ?? BackstoryFor(date))
+            .OrderBy(d => d.Date)
+            .ToList();
+    }
+
+    /// <summary>The seeded backstory alone — kept for callers that must stay synchronous.</summary>
     public IReadOnlyList<DailyLedger> History()
     {
         var today = DateOnly.FromDateTime(clock.GetUtcNow().ToLocalTime().Date);

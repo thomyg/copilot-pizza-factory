@@ -19,6 +19,7 @@ public sealed class TrattoriaWorker(
     OnlineOrderDesk desk,
     PreOrderBook preOrders,
     ServiceWindow service,
+    ServiceCloser closer,
     TrattoriaOptions options,
     TimeProvider clock,
     ILogger<TrattoriaWorker> logger) : BackgroundService
@@ -38,7 +39,7 @@ public sealed class TrattoriaWorker(
         while (await timer.WaitForNextTickAsync(stoppingToken))
         {
             var now = clock.GetUtcNow();
-            WorkTheDoors(now);
+            await WorkTheDoorsAsync(now, stoppingToken);
 
             if (!_doorsOpen)
             {
@@ -59,7 +60,7 @@ public sealed class TrattoriaWorker(
     }
 
     /// <summary>Keeps the floor and the counter in step with the service window.</summary>
-    private void WorkTheDoors(DateTimeOffset now)
+    private async Task WorkTheDoorsAsync(DateTimeOffset now, CancellationToken cancellationToken)
     {
         var shouldBeOpen = service.IsOpen;
         if (shouldBeOpen == _doorsOpen)
@@ -77,7 +78,15 @@ public sealed class TrattoriaWorker(
         {
             maitreD.CloseService(now);
             desk.Close();
-            logger.LogInformation("Service closed — books shut, nobody new seated.");
+
+            // Total the takings BEFORE the room is cleared, then let the guests go home.
+            if (service.Current is { } finished)
+            {
+                await closer.CloseAsync(finished, cancellationToken);
+            }
+
+            maitreD.EndOfService(now);
+            logger.LogInformation("Service closed — books shut, chairs up.");
         }
 
         _doorsOpen = shouldBeOpen;

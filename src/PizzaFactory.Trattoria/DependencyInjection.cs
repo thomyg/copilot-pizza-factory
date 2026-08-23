@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddSingleton<OnlineOrderDesk>();
         services.AddSingleton<PreOrderBook>();
         services.AddSingleton<Bookkeeper>();
+        services.AddSingleton<ServiceCloser>();
         services.AddHostedService<TrattoriaWorker>();
         return services;
     }

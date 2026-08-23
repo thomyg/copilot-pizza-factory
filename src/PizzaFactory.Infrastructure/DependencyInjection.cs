@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddSingleton<IStockRepository, InMemoryStockRepository>();
         services.AddSingleton<IPizzaRepository, InMemoryPizzaRepository>();
         services.AddSingleton<IRestingDoughRepository, InMemoryRestingDoughRepository>();
+        services.AddSingleton<IServiceLedgerRepository, InMemoryServiceLedgerRepository>();
         return services;
     }
 
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddSingleton<IStockRepository, CosmosStockRepository>();
         services.AddSingleton<IPizzaRepository, CosmosPizzaRepository>();
         services.AddSingleton<IRestingDoughRepository, CosmosRestingDoughRepository>();
+        services.AddSingleton<IServiceLedgerRepository, CosmosServiceLedgerRepository>();
         return services;
     }
 

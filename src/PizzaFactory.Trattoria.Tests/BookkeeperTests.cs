@@ -23,7 +23,7 @@ public class BookkeeperTests
         var trattoriaOptions = new TrattoriaOptions { RandomSeed = 3 };
         var book = new PreOrderBook(orders, feed);
         var maitreD = new MaitreD(orders, new InMemoryPizzaRepository(), trattoriaOptions, feed);
-        return (new Bookkeeper(orders, stock, new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(new FixedTimeProvider(T0)), trattoriaOptions, new FixedTimeProvider(T0)), orders, stock, book);
+        return (new Bookkeeper(orders, stock, new InMemoryRestingDoughRepository(), maitreD, book, OpenWindow(new FixedTimeProvider(T0)), new InMemoryServiceLedgerRepository(), trattoriaOptions, new FixedTimeProvider(T0)), orders, stock, book);
     }
 
     /// <summary>A service that is open, so the books scope to it exactly as they do in the house.</summary>

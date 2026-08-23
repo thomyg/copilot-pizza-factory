@@ -13,4 +13,5 @@ public sealed class CosmosOptions
     public string StockContainer { get; set; } = "stock";
     public string PizzasContainer { get; set; } = "pizzas";
     public string DoughsContainer { get; set; } = "doughs";
+    public string ServicesContainer { get; set; } = "services";
 }

@@ -115,7 +115,7 @@ public static class TrattoriaApi
                     topPizza = report.TopSeller ?? "—",
                     averageStars = report.AverageStars,
                     channels = Channels(report.OrdersByChannel),
-                    history = History(bookkeeper, now),
+                    history = History(await bookkeeper.HistoryAsync(cancellationToken), now),
                 },
                 risks = forecast.Select(r => new
                 {
@@ -210,11 +210,11 @@ public static class TrattoriaApi
         return booked + (perOrder * report.ProjectedOrdersNextHour);
     }
 
-    /// <summary>The bookkeeper's seven-day ledger, today included.</summary>
-    private static object[] History(Bookkeeper bookkeeper, DateTimeOffset now)
+    /// <summary>The seven-day ledger — real services where the house has them, backstory elsewhere.</summary>
+    private static object[] History(IReadOnlyList<DailyLedger> ledger, DateTimeOffset now)
     {
         var today = DateOnly.FromDateTime(now.Date);
-        return bookkeeper.History()
+        return ledger
             .Select(d => new
             {
                 label = d.Date.ToString("ddd d MMM", CultureInfo.InvariantCulture),

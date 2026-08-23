@@ -9,6 +9,10 @@ public sealed record NonnaChatResponse(bool Allowed, string Reply);
 
 public sealed record RejectRequest(string? Reason);
 
+public sealed record TimeOffFiling(string Name, string Date, string? Slot, string? Reason);
+
+public sealed record TimeOffDecision(string? Cover, string? Reason);
+
 /// <summary>
 /// Nonna's service hatch. She lives in Microsoft 365 — Copilot, Teams, SharePoint — and
 /// never opens the store backend; these endpoints are how her M365 surfaces reach the
@@ -25,6 +29,7 @@ public static class NonnaApi
         var nonna = app.Services.GetService<Nonna>();
         var staff = app.Services.GetRequiredService<StaffBook>();
         var purchases = app.Services.GetRequiredService<PurchaseBook>();
+        var timeOff = app.Services.GetRequiredService<TimeOffBook>();
 
         var group = app.MapGroup("/api/nonna").RequireRateLimiting(GiuseppeChatApi.ReadRateLimitPolicy);
         if (hasCors)
@@ -65,6 +70,10 @@ public static class NonnaApi
                 state = o.State.ToString(),
                 note = o.Note,
                 at = o.At,
+                // Which rule fired, and the sentence that explains it. A back office that only
+                // says no is not a process; one that says why is.
+                decision = o.Decision.ToString(),
+                why = purchases.Explain(o),
             })));
 
         group.MapPost("/purchase-orders/{id}/approve", (string id) =>
@@ -87,6 +96,63 @@ public static class NonnaApi
                 cost = i.Cost,
                 at = i.At,
             })));
+
+        // --- Time off: file, decide. Filing is free of consequence; deciding moves the rota.
+
+        group.MapGet("/time-off", () =>
+            Results.Ok(timeOff.Requests().Select(r => new
+            {
+                id = r.Id,
+                name = r.Name,
+                date = r.Date.ToString("yyyy-MM-dd"),
+                slot = r.Slot?.ToString(),
+                reason = r.Reason,
+                state = r.State.ToString(),
+                cover = r.ProposedCover,
+                leavesAGap = r.LeavesAGap,
+                note = r.Note,
+                summary = TimeOffBook.Explain(r),
+            })));
+
+        group.MapPost("/time-off", (TimeOffFiling filing) =>
+        {
+            if (string.IsNullOrWhiteSpace(filing.Name) ||
+                !DateOnly.TryParse(filing.Date, CultureInfo.InvariantCulture, out var date))
+            {
+                return Results.BadRequest(new { error = "A name and a date (yyyy-MM-dd), per favore." });
+            }
+
+            var slot = Enum.TryParse<ShiftSlot>(filing.Slot, ignoreCase: true, out var parsed) ? parsed : (ShiftSlot?)null;
+            var request = timeOff.Request(filing.Name, date, slot, filing.Reason ?? "not stated");
+            return Results.Ok(new { id = request.Id, cover = request.ProposedCover, summary = TimeOffBook.Explain(request) });
+        });
+
+        group.MapPost("/time-off/{id}/approve", (string id, TimeOffDecision? decision) =>
+            timeOff.Approve(id, string.IsNullOrWhiteSpace(decision?.Cover) ? null : decision.Cover) is { } approved
+                ? Results.Ok(new { approved.Id, state = approved.State.ToString(), note = approved.Note })
+                : Results.NotFound(new { error = $"No pending request '{id}'." }));
+
+        group.MapPost("/time-off/{id}/decline", (string id, TimeOffDecision? decision) =>
+            timeOff.Decline(id, decision?.Reason ?? "no reason given") is { } declined
+                ? Results.Ok(new { declined.Id, state = declined.State.ToString(), note = declined.Note })
+                : Results.NotFound(new { error = $"No pending request '{id}'." }));
+
+        // --- The money the approvals are spending.
+
+        group.MapGet("/budget", () =>
+        {
+            var position = purchases.Position();
+            return Results.Ok(new
+            {
+                period = position.Period,
+                budgetEur = position.BudgetEur,
+                committedEur = position.CommittedEur,
+                remainingEur = position.RemainingEur,
+                usedPercent = position.UsedPercent,
+                isTight = position.IsTight,
+                orders = position.OrdersCounted,
+            });
+        });
 
         // Her whole desk in one call, shaped as the SPFx cockpit's IBackOfficeSnapshot —
         // so Nonna in Microsoft 365 Copilot reads the REAL ERP instead of rehearsal data.
@@ -116,6 +182,8 @@ public static class NonnaApi
                     supplier = o.Supplier,
                     state = o.State.ToString(),
                     note = o.Note,
+                    decision = o.Decision.ToString(),
+                    why = purchases.Explain(o),
                 }),
                 invoices = purchases.Invoices().Select(i => new
                 {
@@ -127,7 +195,35 @@ public static class NonnaApi
                 }),
                 invoiceTotal = purchases.Invoices().Sum(i => i.Cost),
                 absentToday = absentToday ?? "Nobody — full house today.",
+                timeOff = timeOff.Requests().Take(6).Select(r => new
+                {
+                    id = r.Id,
+                    name = r.Name,
+                    date = r.Date.ToString("yyyy-MM-dd"),
+                    slot = r.Slot?.ToString(),
+                    reason = r.Reason,
+                    state = r.State.ToString(),
+                    cover = r.ProposedCover,
+                    leavesAGap = r.LeavesAGap,
+                    summary = TimeOffBook.Explain(r),
+                }),
+                budget = Budget(purchases),
             });
         });
+    }
+
+    /// <summary>The month's position, shaped the same wherever it is read.</summary>
+    private static object Budget(PurchaseBook purchases)
+    {
+        var position = purchases.Position();
+        return new
+        {
+            period = position.Period,
+            budgetEur = position.BudgetEur,
+            committedEur = position.CommittedEur,
+            remainingEur = position.RemainingEur,
+            usedPercent = position.UsedPercent,
+            isTight = position.IsTight,
+        };
     }
 }

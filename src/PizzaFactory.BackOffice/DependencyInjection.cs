@@ -13,6 +13,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<BackOfficeOptions>();
         services.AddSingleton<StaffBook>();
+        services.AddSingleton<TimeOffBook>();
         services.AddSingleton<PurchaseBook>();
         services.AddSingleton<IPurchaseGate>(sp => new PurchaseGateAdapter(sp.GetRequiredService<PurchaseBook>()));
         services.AddSingleton<ISupplierLedger>(sp => new SupplierLedgerAdapter(sp.GetRequiredService<PurchaseBook>()));

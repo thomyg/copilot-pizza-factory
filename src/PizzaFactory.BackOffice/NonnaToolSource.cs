@@ -12,7 +12,7 @@ namespace PizzaFactory.BackOffice;
 /// tools and no order tools: Giuseppe runs the floor, Nonna runs the books. Tool belts are
 /// authorization.
 /// </summary>
-public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, TimeProvider? clock = null) : IGiuseppeToolSource
+public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, TimeOffBook timeOff, TimeProvider? clock = null) : IGiuseppeToolSource
 {
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
 
@@ -38,6 +38,20 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
                 "Reject a PENDING purchase order by id, with a short reason."),
             AIFunctionFactory.Create(ListInvoices, "list_invoices",
                 "Supplier invoices, newest first — every delivery leaves one, including A2A self-heal restocks."),
+
+            // Time off: filing is free of consequence, approving is the step that moves the rota.
+            AIFunctionFactory.Create(RequestTimeOff, "request_time_off",
+                "File a time-off request for someone. Works out qualified cover BEFORE anyone decides and returns the candidates; changes nothing on the rota."),
+            AIFunctionFactory.Create(ListTimeOff, "list_time_off",
+                "Time-off requests, newest first: who asked for what, whether cover exists, and what was decided."),
+            AIFunctionFactory.Create(ApproveTimeOff, "approve_time_off",
+                "Approve a PENDING time-off request by id (e.g. 'TO-500'). Records the absence and hands the shift to cover. Optionally name the substitute."),
+            AIFunctionFactory.Create(DeclineTimeOff, "decline_time_off",
+                "Decline a PENDING time-off request by id, with a short reason. The reason is kept."),
+
+            // Money: the budget is a separate control from the approval limit.
+            AIFunctionFactory.Create(BudgetPosition, "budget_position",
+                "This month's supplies budget: what is committed, what is left, and how tight it is. Committed includes orders still awaiting a signature."),
         ];
 
         return Task.FromResult(tools);
@@ -147,6 +161,81 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
         return order is null
             ? $"No pending order '{id}' — check list_purchase_orders."
             : $"Rejected {order.Id}. The pantry will have to cope; Procurement may file again.";
+    }
+
+    [Description("File a time-off request. Returns the request id, the cover the house found, and what it means.")]
+    private string RequestTimeOff(
+        [Description("Staff member's first name, e.g. 'Maria'.")] string name,
+        [Description("Date, yyyy-MM-dd.")] string date,
+        [Description("'Lunch' or 'Dinner'; omit for the whole day.")] string? slot = null,
+        [Description("Short reason, e.g. 'wedding'. Optional.")] string? reason = null)
+    {
+        var request = timeOff.Request(
+            name,
+            ParseDate(date),
+            string.IsNullOrWhiteSpace(slot) ? null : ParseSlot(slot),
+            reason ?? "not stated");
+        return $"{request.Id} — {TimeOffBook.Explain(request)}";
+    }
+
+    [Description("Time-off requests, newest first.")]
+    private string ListTimeOff(
+        [Description("Filter: 'Pending', 'Approved', 'Declined'. Omit for all.")] string? state = null)
+    {
+        var filter = Enum.TryParse<TimeOffState>(state, ignoreCase: true, out var parsed) ? parsed : (TimeOffState?)null;
+        var requests = timeOff.Requests(filter);
+        if (requests.Count == 0)
+        {
+            return "Nothing in the time-off book.";
+        }
+
+        var text = new StringBuilder();
+        foreach (var r in requests.Take(12))
+        {
+            text.Append(CultureInfo.InvariantCulture, $"{r.Id} [{r.State}] {TimeOffBook.Explain(r)}");
+            if (r.Note is not null)
+            {
+                text.Append(CultureInfo.InvariantCulture, $" — {r.Note}");
+            }
+
+            text.AppendLine();
+        }
+
+        return text.ToString().TrimEnd();
+    }
+
+    [Description("Approve a pending time-off request; records the absence and assigns cover.")]
+    private string ApproveTimeOff(
+        [Description("Request id, e.g. 'TO-500'.")] string id,
+        [Description("Who should cover. Omit to take the first qualified candidate.")] string? cover = null)
+    {
+        var approved = timeOff.Approve(id, string.IsNullOrWhiteSpace(cover) ? null : cover.Trim());
+        return approved is null
+            ? $"No pending request '{id}'."
+            : $"{approved.Id}: {approved.Note}.";
+    }
+
+    [Description("Decline a pending time-off request, keeping the reason.")]
+    private string DeclineTimeOff(
+        [Description("Request id, e.g. 'TO-500'.")] string id,
+        [Description("Why it was declined.")] string reason)
+    {
+        var declined = timeOff.Decline(id, reason);
+        return declined is null ? $"No pending request '{id}'." : $"{declined.Id}: {declined.Note}.";
+    }
+
+    [Description("This month's supplies budget position.")]
+    private string BudgetPosition()
+    {
+        var position = purchases.Position();
+        if (position.BudgetEur <= 0)
+        {
+            return "No supplies budget is configured, so nothing is being guarded against it.";
+        }
+
+        var mood = position.IsTight ? "That is tight." : "Comfortable so far.";
+        return $"{position.Period}: €{position.CommittedEur:0.00} committed of €{position.BudgetEur:0.00} " +
+               $"({position.UsedPercent}%), €{position.RemainingEur:0.00} left across {position.OrdersCounted} order(s). {mood}";
     }
 
     private string ListInvoices()
