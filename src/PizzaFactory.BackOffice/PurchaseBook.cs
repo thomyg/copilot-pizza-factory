@@ -126,6 +126,18 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
 
             if (options.MonthlyBudgetEur > 0 && PositionUnlocked().RemainingEur < cost)
             {
+                // Record the refusal ONCE. Procurement asks again every tick — it has no memory
+                // and should not need one — but a ledger that files the same rejection sixty
+                // times a minute is noise, not a paper trail. It stands until the budget or the
+                // month changes, at which point the next ask files a fresh one.
+                var now = _clock.GetUtcNow();
+                if (_orders.Any(o => o.Ingredient == ingredient
+                                     && o.State == PurchaseOrderState.BlockedByBudget
+                                     && o.At.Year == now.Year && o.At.Month == now.Month))
+                {
+                    return false;
+                }
+
                 _orders.Add(new PurchaseOrder(
                     $"PO-{_nextNumber++}", ingredient, grams, cost, options.DefaultSupplier,
                     PurchaseOrderState.BlockedByBudget, _clock.GetUtcNow(),

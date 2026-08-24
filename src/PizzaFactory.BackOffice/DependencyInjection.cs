@@ -9,9 +9,15 @@ public static class DependencyInjection
     /// TrattoriaSoft ERP 3000: the staff book, the purchase ledger (wired into the factory's
     /// procurement as gate + supplier paper trail), and the delivery dock worker.
     /// </summary>
-    public static IServiceCollection AddBackOffice(this IServiceCollection services)
+    public static IServiceCollection AddBackOffice(
+        this IServiceCollection services,
+        Action<BackOfficeOptions>? configure = null)
     {
-        services.AddSingleton<BackOfficeOptions>();
+        // Bound from configuration so the approval limit and the monthly budget can be tuned
+        // per deployment — a demo wants a budget tight enough to hit, a real tenant does not.
+        var options = new BackOfficeOptions();
+        configure?.Invoke(options);
+        services.AddSingleton(options);
         services.AddSingleton<StaffBook>();
         services.AddSingleton<TimeOffBook>();
         services.AddSingleton<PurchaseBook>();

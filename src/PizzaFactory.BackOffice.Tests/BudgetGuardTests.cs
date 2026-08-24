@@ -87,6 +87,36 @@ public sealed class BudgetGuardTests
         Assert.Empty(book.Orders(PurchaseOrderState.BlockedByBudget));
     }
 
+    /// <summary>
+    /// Procurement asks again every tick and has no memory of being refused. The ledger must
+    /// not grow a new rejection each time — the live demo filed sixty-nine identical ones in
+    /// three minutes before this existed.
+    /// </summary>
+    [Fact]
+    public void a_refusal_is_recorded_once_however_often_it_is_asked()
+    {
+        var book = Book(budget: 5m);
+
+        for (var i = 0; i < 50; i++)
+        {
+            book.Request(Ingredient.Mozzarella, 1000);
+        }
+
+        Assert.Single(book.Orders(PurchaseOrderState.BlockedByBudget));
+    }
+
+    /// <summary>Different ingredients are different decisions and each deserves its own line.</summary>
+    [Fact]
+    public void each_ingredient_gets_its_own_refusal()
+    {
+        var book = Book(budget: 5m);
+
+        book.Request(Ingredient.Mozzarella, 1000);
+        book.Request(Ingredient.Tuna, 1000);
+
+        Assert.Equal(2, book.Orders(PurchaseOrderState.BlockedByBudget).Count);
+    }
+
     /// <summary>Every refusal has to be sayable in one line, with the arithmetic in it.</summary>
     [Fact]
     public void every_decision_explains_itself_with_numbers()

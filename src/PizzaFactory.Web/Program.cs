@@ -48,7 +48,7 @@ builder.Services.AddTrattoria(builder.Configuration.GetSection(TrattoriaOptions.
 
 // TrattoriaSoft ERP 3000: rota, absences, purchase orders with an approval gate on big
 // spending, invoices (incl. the A2A supplier's paper trail), and the delivery-dock worker.
-builder.Services.AddBackOffice();
+builder.Services.AddBackOffice(builder.Configuration.GetSection(BackOfficeOptions.SectionName).Bind);
 
 // Nonna: the back office made flesh. Her belt holds rota + purchase tools and NOTHING of the
 // kitchen — Giuseppe cannot touch the ledger, Nonna cannot touch the oven. She surfaces only
