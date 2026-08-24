@@ -247,6 +247,53 @@ graph TD
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
 
+## 🔀 The story, and the process
+
+The trattoria is a hook. Underneath it, the things Nonna runs — a shift roster,
+absence requests, requisitions against a budget, an invoice ledger — are the same
+processes a staffing or procurement lead runs, wearing different words. Both the
+hero and the Back Office web part carry a **Vocabulary** switch in their settings:
+flip it and "the pineapple order" becomes a requisition, "the rota" becomes a
+shift roster, "between services" becomes outside operating hours. Nothing behind
+it changes, which is the whole claim — if a word list turns this into a back
+office, it always was one.
+
+Two processes carry that weight, and both are decisions rather than displays:
+
+**Time off.** A request arrives and the house works out who could cover it
+*before* anyone is asked to decide, so a manager sees "Maria asks for Friday
+dinner — Rosa and Elena can cover" rather than a yes/no with no information in
+it. Filing changes nothing; approving is the only step that moves the roster.
+That separation is what makes an approval mean something. When nobody qualified
+is free it says so plainly, and approving still grants the day and leaves the
+shift visibly open — the alternative is a roster that lies.
+
+**Requisitions against a budget.** Three rules decide, in this order: money, then
+authority, then autonomy. Within the limit the system acts alone. Over the limit
+it waits for a signature. Over *budget* it is refused outright and offers no
+approve button at all, because a signature cannot conjure funds. Orders awaiting
+a signature count as committed, since a requisition on somebody's desk is money
+you have very nearly spent.
+
+Every decision explains itself with the arithmetic in it — *"€8.90 for 1000g of
+Mozzarella would breach August 2026: €1.80 left of €5.00. Needs a budget decision,
+not a signature."* "Computer says no" is not a process.
+
+## ⏱️ Services, not days
+
+The house only trades inside a **service window**. Between services nothing ticks,
+nothing accrues and nothing costs: the pantry is stocked, the diary is full of
+upcoming reservations, and the last service's takings stand. Opening one starts
+the real system for fifteen minutes and then it closes itself, because the thing
+most likely to happen after a demo is that everyone walks away from it.
+
+Closing totals the takings once and writes them to the ledger, so the seven-day
+history prefers days the house really traded and falls back to a seeded backstory
+only where it has none. Reporting finally has a subject.
+
+Open a service from the dashboard's play button or the button on the SharePoint
+hero, which counts down the minutes left.
+
 ## 🧩 The Microsoft 365 side
 
 Half of this demo does not live in the repo — it lives in a tenant. Two SPFx
