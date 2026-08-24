@@ -4,6 +4,7 @@ import { makeStyles, mergeClasses, shorthands } from '@fluentui/react-components
 
 import { DISPLAY, FORNO, GRAIN, useFornoFonts } from '../../../brand/forno';
 import { FACTORY_API_BASE, type FactoryHttp } from '../../../factoryApi';
+import { type Vocabulary, vocabularyFor } from '../../../vocabulary';
 
 export interface IHeroLink {
   label: string;
@@ -19,6 +20,8 @@ export interface ITrattoriaHeroProps {
   /** Omit to render the hero without live numbers (e.g. in a workbench). */
   http?: FactoryHttp;
   apiBase?: string;
+  /** Which room you are standing in. Changes the words, never the numbers. */
+  vocabulary?: Vocabulary;
 }
 
 /** Only the handful of numbers the hero shows — deliberately not the whole snapshot. */
@@ -223,6 +226,7 @@ const Stat: React.FunctionComponent<{ value: string; label: string }> = ({ value
 const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
   useFornoFonts();
   const s = useStyles();
+  const words = vocabularyFor(props.vocabulary);
   const [stats, setStats] = React.useState<IHeroStats | undefined>(undefined);
 
   const base: string = props.apiBase ?? FACTORY_API_BASE;
@@ -306,14 +310,14 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
             <span className={mergeClasses(s.pill, stats.windowOpen ? s.pillOpen : s.pillShut)}>
               <span className={s.dot} />
               {stats.windowOpen
-                ? `Service open · ${Math.max(0, Math.round(stats.minutesLeft))} min left`
-                : 'Between services'}
+                ? `${words.serviceOpen} · ${Math.max(0, Math.round(stats.minutesLeft))} min left`
+                : words.serviceShut}
             </span>
-            <Stat value={`${stats.tablesSeated}/${stats.tablesTotal}`} label="Tables seated" />
+            <Stat value={`${stats.tablesSeated}/${stats.tablesTotal}`} label={props.vocabulary === 'enterprise' ? 'Positions active' : 'Tables seated'} />
             <Stat value={String(stats.ordersToday)} label="Orders today" />
             <Stat value={`€${Math.round(stats.revenueToday)}`} label="Revenue today" />
             {stats.averageStars !== undefined && (
-              <Stat value={stats.averageStars.toFixed(1)} label="Guest rating" />
+              <Stat value={stats.averageStars.toFixed(1)} label={props.vocabulary === 'enterprise' ? 'Satisfaction' : 'Guest rating'} />
             )}
           </div>
         )}
@@ -321,12 +325,12 @@ const TrattoriaHero: React.FunctionComponent<ITrattoriaHeroProps> = (props) => {
         {between && (
           <div>
             <button className={s.action} onClick={openService} disabled={opening} type="button">
-              {opening ? 'Opening…' : '▶  Open the service'}
+              {opening ? 'Opening…' : `▶  Open the ${words.service}`}
             </button>
             <div className={s.actionHint}>
-              The house is closed between demos, so nothing runs and nothing accrues. Opening it
-              starts the real factory for fifteen minutes — after that it shuts itself, and the
-              service is written into the books.
+              Nothing runs between demos, so nothing accrues. Opening starts the real system for
+              fifteen minutes — after that it closes itself and the {words.service} is written
+              into the books.
             </div>
           </div>
         )}

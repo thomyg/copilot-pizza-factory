@@ -3,7 +3,7 @@
   "solution": {
     "name": "nonna-copilot-app",
     "id": "3db9c475-56ba-4e67-b584-631ab881787f",
-    "version": "1.0.3.0",
+    "version": "1.1.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

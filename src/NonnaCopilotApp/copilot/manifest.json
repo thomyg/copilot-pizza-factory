@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.24/MicrosoftTeams.schema.json",
   "manifestVersion": "1.24",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "id": "7f194d39-1797-41f3-b696-0d4dc1cecbd5",
   "developer": {
     "name": "Copilot Pizza Factory",
@@ -15,11 +15,11 @@
   },
   "name": {
     "short": "Nonna",
-    "full": "Nonna — the trattoria's back office for Microsoft 365 Copilot"
+    "full": "Nonna \u2014 the trattoria's back office for Microsoft 365 Copilot"
   },
   "description": {
-    "short": "The back office: rota, sick calls, purchase orders, invoices.",
-    "full": "Nonna runs everything Giuseppe doesn't: the shift rota, the absences, the purchase orders and the invoice ledger of the Copilot Pizza Factory's trattoria. She lives entirely inside Microsoft 365 — ask about tonight's shifts, tell her someone called in sick, review the orders waiting for a signature, or check the books, and Copilot renders her desk as a living UI instead of a wall of text. Warm but strict; sees everything; never gossips. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
+    "short": "The back office: roster, absence requests, requisitions, invoices.",
+    "full": "Nonna runs everything Giuseppe doesn't: the shift rota, the absences, the purchase orders and the invoice ledger of the Copilot Pizza Factory's trattoria. She lives entirely inside Microsoft 365 \u2014 ask about tonight's shifts, tell her someone called in sick, review the orders waiting for a signature, or check the books, and Copilot renders her desk as a living UI instead of a wall of text. Warm but strict; sees everything; never gossips. PREVIEW: built on SharePoint Framework 1.24 Copilot components."
   },
   "accentColor": "#4A7C3A",
   "copilotAgents": {
@@ -30,6 +30,8 @@
       }
     ]
   },
-  "permissions": ["identity"],
+  "permissions": [
+    "identity"
+  ],
   "validDomains": []
 }

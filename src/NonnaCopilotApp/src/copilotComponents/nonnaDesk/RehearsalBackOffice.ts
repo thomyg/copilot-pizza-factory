@@ -4,7 +4,7 @@
  * Deterministic per calendar day, so demos are alive but stable.
  */
 
-export type DeskView = 'rota' | 'approvals' | 'invoices';
+export type DeskView = 'rota' | 'approvals' | 'invoices' | 'timeoff';
 
 export interface IRehearsalRotaEntry {
   dayLabel: string;
@@ -31,12 +31,39 @@ export interface IRehearsalInvoice {
   cost: number;
 }
 
+/** Somebody asking for a day, and what the house worked out before anyone decided. */
+export interface IRehearsalTimeOff {
+  id: string;
+  name: string;
+  date: string;
+  slot?: string;
+  reason: string;
+  state: string;
+  cover: string[];
+  leavesAGap: boolean;
+  summary: string;
+  note?: string;
+}
+
+/** Where the month's supplies money stands. */
+export interface IRehearsalBudget {
+  period: string;
+  budgetEur: number;
+  committedEur: number;
+  remainingEur: number;
+  usedPercent: number;
+  isTight: boolean;
+}
+
 export interface IBackOfficeSnapshot {
   rota: IRehearsalRotaEntry[];
   orders: IRehearsalOrder[];
   invoices: IRehearsalInvoice[];
   invoiceTotal: number;
   absentToday: string;
+  /** Optional so an older payload still renders — the desk simply shows one panel fewer. */
+  timeOff?: IRehearsalTimeOff[];
+  budget?: IRehearsalBudget;
 }
 
 const PIZZAIOLI: readonly string[] = ['Luca', 'Sofia']; // oven-certified only — Giulia waits her turn

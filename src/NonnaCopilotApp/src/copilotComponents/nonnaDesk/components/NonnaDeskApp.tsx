@@ -71,7 +71,8 @@ const useStyles = makeStyles({
 const TITLES: Record<DeskView, string> = {
   rota: 'The rota',
   approvals: 'Waiting for a signature',
-  invoices: 'The books'
+  invoices: 'The books',
+  timeoff: 'Who wants a day off'
 };
 
 export interface INonnaDeskAppProps {
@@ -118,6 +119,16 @@ const NonnaDeskApp: React.FunctionComponent<INonnaDeskAppProps> = (props) => {
     </div>
   );
 
+  // The month's position, shown wherever money is being decided. Absent from an older
+  // payload, in which case the desk simply shows one panel fewer rather than inventing one.
+  const budgetLine: React.ReactElement | undefined = snapshot.budget && snapshot.budget.budgetEur > 0 ? (
+    <p className={s.total}>
+      {snapshot.budget.period}: €{snapshot.budget.committedEur.toFixed(2)} committed of €
+      {snapshot.budget.budgetEur.toFixed(2)} — €{snapshot.budget.remainingEur.toFixed(2)} left
+      {snapshot.budget.isTight ? ' · that is tight' : ''}
+    </p>
+  ) : undefined;
+
   const approvalsPanel = (
     <div className={mergeClasses(s.panel, fullscreen && view === 'approvals' ? s.spotlight : undefined)}>
       <h3 className={s.h}>✍️ Waiting for a signature</h3>
@@ -130,6 +141,7 @@ const NonnaDeskApp: React.FunctionComponent<INonnaDeskAppProps> = (props) => {
           <span className={s.note}>{o.note}</span>
         </div>
       ))}
+      {budgetLine}
     </div>
   );
 
@@ -146,8 +158,30 @@ const NonnaDeskApp: React.FunctionComponent<INonnaDeskAppProps> = (props) => {
     </div>
   );
 
+  const timeOffPanel: React.ReactElement = (
+    <div className={mergeClasses(s.panel, fullscreen && view === 'timeoff' ? s.spotlight : undefined)}>
+      <h3 className={s.h}>🌴 Who wants a day off</h3>
+      {(snapshot.timeOff ?? []).length === 0 && <p className={s.total}>Nothing waiting on a decision.</p>}
+      {(snapshot.timeOff ?? []).map((r) => (
+        <div key={r.id} className={s.invoice}>
+          <span>
+            {r.summary}
+            {r.note ? ` — ${r.note}` : ''}
+          </span>
+          <span className={s.cost}>{r.state}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   const spotlit: React.ReactElement =
-    view === 'rota' ? rotaPanel : view === 'approvals' ? approvalsPanel : invoicesPanel;
+    view === 'rota'
+      ? rotaPanel
+      : view === 'approvals'
+        ? approvalsPanel
+        : view === 'timeoff'
+          ? timeOffPanel
+          : invoicesPanel;
 
   return (
     <FluentProvider
@@ -174,6 +208,7 @@ const NonnaDeskApp: React.FunctionComponent<INonnaDeskAppProps> = (props) => {
           <div className={s.grid}>
             {spotlit}
             {view !== 'approvals' && approvalsPanel}
+            {view !== 'timeoff' && timeOffPanel}
             {view !== 'rota' && rotaPanel}
             {view !== 'invoices' && invoicesPanel}
           </div>

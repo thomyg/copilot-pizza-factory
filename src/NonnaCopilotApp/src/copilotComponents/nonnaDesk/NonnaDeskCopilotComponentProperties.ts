@@ -3,10 +3,12 @@ import zodToJsonSchema from 'zod-to-json-schema';
 
 const propertiesSchema = z.object({
   view: z
-    .enum(['rota', 'approvals', 'invoices'])
+    .enum(['rota', 'approvals', 'invoices', 'timeoff'])
     .describe(
       "Which desk view to spotlight: 'rota' for the shift plan (who works when, open seats, sick calls), " +
-        "'approvals' for purchase orders waiting for a signature, 'invoices' for the supplier invoice ledger and spending."
+        "'approvals' for requisitions waiting for a signature and this month's budget position, " +
+        "'timeoff' for absence requests with the cover already worked out, " +
+        "'invoices' for the supplier invoice ledger and spending."
     ),
   nonnaSays: z
     .string()

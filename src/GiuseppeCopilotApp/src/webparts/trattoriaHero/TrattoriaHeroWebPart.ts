@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 
 import {
   type IPropertyPaneConfiguration,
+  PropertyPaneChoiceGroup,
   PropertyPaneTextField,
   PropertyPaneToggle
 } from '@microsoft/sp-property-pane';
@@ -16,6 +17,8 @@ export interface ITrattoriaHeroWebPartProps {
   headline: string;
   lede: string;
   showLinks: boolean;
+  /** 'trattoria' or 'enterprise' — the same system, told to a different room. */
+  vocabulary: string;
 }
 
 /**
@@ -48,6 +51,7 @@ export default class TrattoriaHeroWebPart extends BaseClientSideWebPart<ITrattor
         headline: this.properties.headline ?? 'The trattoria that runs itself',
         lede: this.properties.lede ?? '',
         links: this.properties.showLinks === false ? [] : TrattoriaHeroWebPart.Links,
+        vocabulary: this.properties.vocabulary === 'enterprise' ? 'enterprise' : 'trattoria',
         http: this._http
       }),
       this.domElement
@@ -69,7 +73,14 @@ export default class TrattoriaHeroWebPart extends BaseClientSideWebPart<ITrattor
                 PropertyPaneTextField('eyebrow', { label: 'Eyebrow' }),
                 PropertyPaneTextField('headline', { label: 'Headline' }),
                 PropertyPaneTextField('lede', { label: 'Lede', multiline: true, rows: 5 }),
-                PropertyPaneToggle('showLinks', { label: 'Show links to the live surfaces' })
+                PropertyPaneToggle('showLinks', { label: 'Show links to the live surfaces' }),
+                PropertyPaneChoiceGroup('vocabulary', {
+                  label: 'Vocabulary',
+                  options: [
+                    { key: 'trattoria', text: 'Trattoria — the story' },
+                    { key: 'enterprise', text: 'Enterprise — the process' }
+                  ]
+                })
               ]
             }
           ]

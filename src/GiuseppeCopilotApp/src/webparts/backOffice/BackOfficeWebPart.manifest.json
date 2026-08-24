@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "0a3c6e21-58d4-4a7f-9d9e-2c1b6f0e4a73",
+  "alias": "BackOfficeWebPart",
+  "componentType": "WebPart",
+  "version": "*",
+  "manifestVersion": 2,
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart", "SharePointFullPage", "TeamsTab"],
+  "supportsThemeVariants": true,
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+      "group": { "default": "Trattoria" },
+      "title": { "default": "Back Office — approvals (live)" },
+      "description": {
+        "default": "The two decisions that make it a back office: absence requests with cover already worked out, and requisitions against a real budget. Approving moves the roster; a purchase the budget refuses offers no signature at all."
+      },
+      "officeFabricIconFontName": "DocumentApproval",
+      "properties": {
+        "vocabulary": "trattoria",
+        "refreshSeconds": 8
+      }
+    }
+  ]
+}

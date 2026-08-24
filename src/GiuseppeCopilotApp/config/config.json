@@ -73,6 +73,14 @@
           "manifest": "./src/webparts/trattoriaHero/TrattoriaHeroWebPart.manifest.json"
         }
       ]
+    },
+    "back-office-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/backOffice/BackOfficeWebPart.js",
+          "manifest": "./src/webparts/backOffice/BackOfficeWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
