@@ -30,6 +30,29 @@ public class StageJourneyTests(WebAppFixture app)
         await Assertions.Expect(page.Locator("#blazor-error-ui")).ToBeHiddenAsync();
     }
 
+    /// <summary>
+    /// The stage must stay framed: a trackpad pinch over a panel used to zoom the whole page and
+    /// crop every edge, and labels past the edge made the stage scrollable.
+    /// </summary>
+    [Fact]
+    public async Task the_stage_cannot_be_zoomed_or_scrolled_out_of_frame()
+    {
+        var page = await StageAsync();
+
+        var result = await page.EvaluateAsync<bool[]>(@"() => {
+            const root = document.getElementById('stage-root');
+            root.scrollTop = 200; root.scrollLeft = 200;
+            const stage = root.querySelector('.st-stage');
+            stage.scrollTop = 200; stage.scrollLeft = 200;
+            const pinch = new WheelEvent('wheel', { ctrlKey: true, deltaY: -50, bubbles: true, cancelable: true });
+            root.querySelector('.st-kpis').dispatchEvent(pinch);
+            return [root.scrollTop === 0 && root.scrollLeft === 0 && stage.scrollTop === 0 && stage.scrollLeft === 0, pinch.defaultPrevented];
+        }");
+
+        Assert.True(result[0], "the stage scrolled");
+        Assert.True(result[1], "a pinch over a panel reached the browser");
+    }
+
     [Fact]
     public async Task an_action_through_copilot_appears_on_stage_within_two_seconds()
     {

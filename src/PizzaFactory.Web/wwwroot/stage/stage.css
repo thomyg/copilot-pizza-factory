@@ -29,7 +29,11 @@
     color: var(--st-ink);
     font-family: var(--font-ui, 'Karla', 'Avenir Next', sans-serif);
     font-size: 14px;
-    overflow: hidden;
+    /* clip, not hidden: labels that drift past the edge must never make the stage scrollable */
+    overflow: clip;
+    /* the stage owns every gesture: no browser pinch-zoom, no overscroll bounce */
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -68,7 +72,7 @@
 .st-nav a:hover { color: var(--st-accent); }
 
 /* scene */
-.st-stage { position: relative; flex: 1; min-height: 0; }
+.st-stage { position: relative; flex: 1; min-height: 0; overflow: clip; }
 .st-stage canvas { display: block; }
 .st-labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 

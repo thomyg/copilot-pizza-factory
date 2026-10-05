@@ -215,7 +215,8 @@ function buildStoreroom(scene, w) {
         g.rotation.y = rot;
         const bay = { ing, group: g, items, count: -1, level: null, shownLevel: null };
         w.pickable(g, { kind: 'stock', id: ing.key }, 1.1);
-        bay.pin = label('', 'pin3d', 2.55, g);
+        // neighbouring bays stagger their pins, so two low shelves side by side stay readable
+        bay.pin = label('', 'pin3d', 2.55 + (ing.slot % 2) * .75, g);
         bay.pin.visible = false;
         w.bays.set(ing.key, bay);
     }

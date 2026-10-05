@@ -80,6 +80,21 @@ export function init(rootId, dotnet, snapshot, events) {
     s.glow = flatRing(.6, 1, 0x5b5fc7, .55);
 
     wirePicking(s);
+    // A trackpad pinch arrives as ctrl+wheel. Over the canvas the camera takes it; over a panel
+    // or a label the browser would zoom the whole page and crop every edge of the stage. Take
+    // it everywhere and turn it into a camera zoom instead.
+    s.onWheel = (e) => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        if (e.target === s.renderer.domElement) return;   // OrbitControls already handles it
+        const z = Math.min(4.5, Math.max(.45, s.camera.zoom * Math.exp(-e.deltaY * .01)));
+        s.camera.zoom = z;
+        s.camera.updateProjectionMatrix();
+    };
+    s.onGesture = (e) => e.preventDefault();   // Safari's pinch
+    root.addEventListener('wheel', s.onWheel, { passive: false });
+    root.addEventListener('gesturestart', s.onGesture);
+    root.addEventListener('gesturechange', s.onGesture);
     s.resize = () => {
         const w = stage.clientWidth, h = stage.clientHeight, a = w / Math.max(h, 1);
         Object.assign(s.camera, { left: -FRUST * a / 2, right: FRUST * a / 2, top: FRUST / 2, bottom: -FRUST / 2 });
@@ -143,6 +158,9 @@ export function dispose() {
     clearInterval(S.hudTimer);
     window.removeEventListener('resize', S.resize);
     S.themeQuery?.removeEventListener('change', S.themeListener);
+    S.root.removeEventListener('wheel', S.onWheel);
+    S.root.removeEventListener('gesturestart', S.onGesture);
+    S.root.removeEventListener('gesturechange', S.onGesture);
     S.hud.dispose();
     S.controls.dispose();
     S.renderer.dispose();
