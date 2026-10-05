@@ -9,14 +9,28 @@ namespace PizzaFactory.E2eTests;
 /// Runs in low quality: the test browser has no GPU.
 /// </summary>
 [Collection("web-app")]
-public class StageJourneyTests(WebAppFixture app)
+public sealed class StageJourneyTests(WebAppFixture app) : IAsyncLifetime
 {
+    // Every open stage keeps rendering with software WebGL; one left behind slows every later test.
+    private readonly List<IPage> _pages = [];
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        foreach (var page in _pages)
+        {
+            await page.CloseAsync();
+        }
+    }
+
     private async Task<IPage> StageAsync()
     {
         var page = await app.Browser.NewPageAsync(new BrowserNewPageOptions { ViewportSize = new ViewportSize { Width = 1280, Height = 720 } });
+        _pages.Add(page);
         await page.GotoAsync(app.BaseUrl + "/?quality=low");
         await Assertions.Expect(page.Locator("[data-testid=stage][data-ready=true]"))
-            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30_000 });
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 60_000 });
         return page;
     }
 
@@ -51,6 +65,28 @@ public class StageJourneyTests(WebAppFixture app)
 
         Assert.True(result[0], "the stage scrolled");
         Assert.True(result[1], "a pinch over a panel reached the browser");
+    }
+
+    /// <summary>However far the page is pinch-zoomed, every panel stays inside what is visible.</summary>
+    [Fact]
+    public async Task the_panels_stay_in_view_when_the_page_is_pinch_zoomed()
+    {
+        var page = await StageAsync();
+        var cdp = await page.Context.NewCDPSessionAsync(page);
+
+        await cdp.SendAsync("Emulation.setPageScaleFactor", new Dictionary<string, object> { ["pageScaleFactor"] = 1.6 });
+        await page.WaitForTimeoutAsync(500);
+
+        var outside = await page.EvaluateAsync<string[]>(@"() => {
+            const vv = visualViewport;
+            return ['.st-top', '.st-kpis', '.st-inspector', '.st-tracker', '.st-feed'].filter(s => {
+                const r = document.querySelector(s).getBoundingClientRect();
+                return r.left < vv.offsetLeft - 1 || r.top < vv.offsetTop - 1
+                    || r.right > vv.offsetLeft + vv.width + 1 || r.bottom > vv.offsetTop + vv.height + 1;
+            });
+        }");
+
+        Assert.Empty(outside);
     }
 
     [Fact]
