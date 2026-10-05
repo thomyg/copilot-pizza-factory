@@ -8,10 +8,14 @@ using PizzaFactory.Safety;
 using PizzaFactory.Trattoria;
 using PizzaFactory.Web;
 using PizzaFactory.Web.Components;
+using PizzaFactory.Web.Floor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+
+// The floor's event bus: what just happened, by whom, via which channel. The stage listens.
+builder.Services.AddFloorEvents(builder.Configuration);
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -24,7 +28,16 @@ if (!string.IsNullOrWhiteSpace(builder.Configuration["Cosmos:Endpoint"]))
 else
 {
     builder.Services.AddInMemoryPizzaFactoryStore();
+
+    // In local development the MCP server keeps its own in-memory store, so an order Giuseppe
+    // places there only reaches this kitchen through its floor signal.
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Services.AdoptSignalledOrders(builder.Configuration);
+    }
 }
+
+builder.Services.ReportOrdersToTheFloor();
 
 // The Window hosts the running factory: content guard, public intake, the floor, and the live feed.
 builder.Services.AddHeuristicContentGuard();
@@ -108,6 +121,7 @@ builder.Services.AddSingleton<IEscalationSink>(sp =>
     {
         sp.GetRequiredService<LoggingEscalationSink>(),
         sp.GetRequiredService<WindowEscalationSink>(),
+        sp.GetRequiredService<FloorEscalationSink>(),
     };
     if (sp.GetService<SupplierEscalationSink>() is { } supplierSink)
     {
@@ -137,13 +151,18 @@ app.MapDefaultEndpoints();
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 app.UseAntiforgery();
+app.UseFloorChannel();
 
 app.MapGiuseppeChatApi();
 app.MapNonnaApi();
 app.MapTrattoriaApi();
+app.MapFloorApi();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+/// <summary>Exposed for WebApplicationFactory in the Web tests.</summary>
+public partial class Program;

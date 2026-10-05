@@ -1,0 +1,132 @@
+@page "/"
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+@using System.Threading.Channels
+@using PizzaFactory.Domain
+@using PizzaFactory.Domain.Floor
+@using PizzaFactory.Web.Floor
+@inject FloorSnapshotBuilder Snapshots
+@inject FloorEventBus Floor
+@inject ServiceWindow Service
+@inject IJSRuntime JS
+@inject ILogger<Stage> Log
+@implements IAsyncDisposable
+
+<PageTitle>Forno Rosso · Live floor</PageTitle>
+
+@* The stage: the whole house as a live diorama. The server pushes what is true — a snapshot
+   twice a second, every floor event the moment it happens — over this circuit; the scene in
+   wwwroot/stage decides how it looks. *@
+<div id="stage-root" data-testid="stage"></div>
+
+@code {
+    private static readonly TimeSpan Cadence = TimeSpan.FromMilliseconds(500);
+
+    private readonly CancellationTokenSource _stop = new();
+    private readonly Channel<FloorEvent> _events = Channel.CreateBounded<FloorEvent>(
+        new BoundedChannelOptions(200) { FullMode = BoundedChannelFullMode.DropOldest, SingleReader = true });
+    private IJSObjectReference? _scene;
+    private DotNetObjectReference<Stage>? _self;
+    private IDisposable? _subscription;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        // The viewer may leave while any of this is in flight; every await honours _stop, and
+        // DisposeAsync only cancels it (never disposes it), so a late continuation finds it intact.
+        try
+        {
+            _scene = await JS.InvokeAsync<IJSObjectReference>("import", _stop.Token, "./stage/stage.js");
+            _self = DotNetObjectReference.Create(this);
+
+            // Subscribe before reading, so nothing published in between is lost; the scene
+            // ignores an event it has already seen.
+            _subscription = Floor.Subscribe(e => _events.Writer.TryWrite(e));
+            _stop.Token.Register(() => _subscription.Dispose());
+            var snapshot = await Snapshots.CurrentAsync(_stop.Token);
+            await _scene.InvokeVoidAsync("init", _stop.Token, "stage-root", _self, snapshot, Floor.Since(Math.Max(0, snapshot.Seq - 40)));
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or JSDisconnectedException)
+        {
+            return;
+        }
+
+        _ = PushSnapshotsAsync(_stop.Token);
+        _ = PushEventsAsync(_stop.Token);
+    }
+
+    private async Task PushSnapshotsAsync(CancellationToken stop)
+    {
+        using var timer = new PeriodicTimer(Cadence);
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stop))
+            {
+                var snapshot = await Snapshots.CurrentAsync(stop);
+                await InvokeAsync(() => _scene!.InvokeVoidAsync("apply", stop, snapshot).AsTask());
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or JSDisconnectedException or ObjectDisposedException)
+        {
+            // The viewer left; nothing to clean up beyond DisposeAsync.
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning(ex, "Stage snapshot push stopped");
+        }
+    }
+
+    private async Task PushEventsAsync(CancellationToken stop)
+    {
+        try
+        {
+            await foreach (var e in _events.Reader.ReadAllAsync(stop))
+            {
+                await InvokeAsync(() => _scene!.InvokeVoidAsync("event", stop, e).AsTask());
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or JSDisconnectedException or ObjectDisposedException)
+        {
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning(ex, "Stage event push stopped");
+        }
+    }
+
+    /// <summary>The "Open service" pill on the stage: the presenter's hand, so the stage credits the presenter.</summary>
+    [JSInvokable]
+    public Task OpenService()
+    {
+        using (FloorChannelScope.Enter(FloorChannel.Presenter))
+        {
+            Service.Open();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        _events.Writer.TryComplete();
+        await _stop.CancelAsync();
+        if (_scene is not null)
+        {
+            try
+            {
+                await _scene.InvokeVoidAsync("dispose");
+                await _scene.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // The tab is already gone.
+            }
+        }
+
+        _self?.Dispose();
+    }
+}

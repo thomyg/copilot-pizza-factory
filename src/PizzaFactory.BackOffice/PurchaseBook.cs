@@ -1,4 +1,5 @@
 using PizzaFactory.Domain;
+using PizzaFactory.Domain.Floor;
 
 namespace PizzaFactory.BackOffice;
 
@@ -82,7 +83,7 @@ public sealed class BackOfficeOptions
 /// agents stop the bleeding, big money asks permission. Every delivery leaves an invoice,
 /// including the A2A supplier's self-heal restocks: no restock without a paper trail.
 /// </summary>
-public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock = null)
+public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock = null, IFloorEvents? floor = null)
 {
     // Supplier price list, € per kg — boringly plausible, like a real ERP master-data table.
     private static readonly Dictionary<Ingredient, decimal> PricePerKg = new()
@@ -101,6 +102,7 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
     };
 
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+    private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
     private readonly Lock _gate = new();
     private readonly List<PurchaseOrder> _orders = [];
     private readonly List<Invoice> _invoices = [];
@@ -120,6 +122,27 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
     /// </summary>
     public bool Request(Ingredient ingredient, int grams, string? note = null)
     {
+        var (auto, filed) = RequestUnlocked(ingredient, grams, note);
+        if (filed is not null)
+        {
+            _floor.Publish(filed.State switch
+            {
+                PurchaseOrderState.BlockedByBudget => new FloorEventDraft("Nonna", FloorArea.Office, FloorEventKinds.PurchaseOrderBlocked, filed.Id,
+                    $"{filed.Id}: €{filed.Cost:0.00} for {Kg(filed.Grams)} {filed.Ingredient} would break the budget. Blocked."),
+                PurchaseOrderState.Approved => new FloorEventDraft("Nonna", FloorArea.Office, FloorEventKinds.PurchaseOrderApproved, filed.Id,
+                    $"{filed.Id}: {Kg(filed.Grams)} {filed.Ingredient}, €{filed.Cost:0.00}. Under my limit, approved."),
+                _ => new FloorEventDraft("Nonna", FloorArea.Office, FloorEventKinds.PurchaseOrderRequested, filed.Id,
+                    $"{filed.Id}: {Kg(filed.Grams)} {filed.Ingredient}, €{filed.Cost:0.00}. Waits for a signature."),
+            });
+        }
+
+        return auto;
+    }
+
+    private static string Kg(int grams) => $"{grams / 1000m:0.0} kg";
+
+    private (bool Auto, PurchaseOrder? Filed) RequestUnlocked(Ingredient ingredient, int grams, string? note)
+    {
         lock (_gate)
         {
             var cost = CostOf(ingredient, grams);
@@ -135,17 +158,18 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
                                      && o.State == PurchaseOrderState.BlockedByBudget
                                      && o.At.Year == now.Year && o.At.Month == now.Month))
                 {
-                    return false;
+                    return (false, null);
                 }
 
-                _orders.Add(new PurchaseOrder(
+                var blocked = new PurchaseOrder(
                     $"PO-{_nextNumber++}", ingredient, grams, cost, options.DefaultSupplier,
                     PurchaseOrderState.BlockedByBudget, _clock.GetUtcNow(),
                     note is null
                         ? $"blocked — €{cost:0.00} would breach this month's budget"
                         : $"{note} — blocked, €{cost:0.00} would breach this month's budget",
-                    PurchaseDecision.OverBudget));
-                return false;
+                    PurchaseDecision.OverBudget);
+                _orders.Add(blocked);
+                return (false, blocked);
             }
 
             var auto = grams <= options.AutoApproveLimitGrams;
@@ -158,7 +182,7 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
             // approval are different things, and only the second one queues.
             if (!auto && _orders.Any(o => o.Ingredient == ingredient && o.State == PurchaseOrderState.PendingApproval))
             {
-                return false;
+                return (false, null);
             }
 
             var order = new PurchaseOrder(
@@ -172,7 +196,7 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
                 note ?? (auto ? "auto-approved (within limit)" : "over limit — awaiting approval"),
                 auto ? PurchaseDecision.AutoApproved : PurchaseDecision.NeedsApproval);
             _orders.Add(order);
-            return auto;
+            return (auto, order);
         }
     }
 
@@ -230,10 +254,34 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
         };
     }
 
-    /// <summary>Approve a pending order. Returns the order, or null when the id is unknown/not pending.</summary>
-    public PurchaseOrder? Approve(string id) => Transition(id, PurchaseOrderState.Approved, "approved");
+    /// <summary>
+    /// Approve a pending order. Returns the order, or null when the id is unknown/not pending.
+    /// <paramref name="actor"/> is who the stage shows signing: the Capo by default, "Nonna"
+    /// when she acts on an instruction given to her in chat.
+    /// </summary>
+    public PurchaseOrder? Approve(string id, string actor = "Capo")
+    {
+        var order = Transition(id, PurchaseOrderState.Approved, "approved");
+        if (order is not null)
+        {
+            _floor.Publish(new FloorEventDraft(actor, FloorArea.Office, FloorEventKinds.PurchaseOrderApproved, order.Id,
+                $"Approved {order.Id}: {Kg(order.Grams)} {order.Ingredient}, €{order.Cost:0.00}"));
+        }
 
-    public PurchaseOrder? Reject(string id, string reason) => Transition(id, PurchaseOrderState.Rejected, $"rejected: {reason}");
+        return order;
+    }
+
+    public PurchaseOrder? Reject(string id, string reason, string actor = "Capo")
+    {
+        var order = Transition(id, PurchaseOrderState.Rejected, $"rejected: {reason}");
+        if (order is not null)
+        {
+            _floor.Publish(new FloorEventDraft(actor, FloorArea.Office, FloorEventKinds.PurchaseOrderRejected, order.Id,
+                $"Rejected {order.Id}: {reason}"));
+        }
+
+        return order;
+    }
 
     /// <summary>Approved orders ready for delivery (the worker applies them to real stock).</summary>
     public IReadOnlyList<PurchaseOrder> ReadyForDelivery()
@@ -247,6 +295,8 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
     /// <summary>Marks an approved order delivered and books its invoice.</summary>
     public void MarkDelivered(string id)
     {
+        PurchaseOrder order;
+        Invoice invoice;
         lock (_gate)
         {
             var index = _orders.FindIndex(o => o.Id == id && o.State == PurchaseOrderState.Approved);
@@ -255,24 +305,40 @@ public sealed class PurchaseBook(BackOfficeOptions options, TimeProvider? clock 
                 return;
             }
 
-            var order = _orders[index] with { State = PurchaseOrderState.Delivered };
+            order = _orders[index] with { State = PurchaseOrderState.Delivered };
             _orders[index] = order;
-            _invoices.Add(new Invoice(
-                $"INV-{order.Id}", order.Supplier, order.Ingredient, order.Grams, order.Cost, _clock.GetUtcNow()));
+            invoice = new Invoice(
+                $"INV-{order.Id}", order.Supplier, order.Ingredient, order.Grams, order.Cost, _clock.GetUtcNow());
+            _invoices.Add(invoice);
         }
+
+        ReportDelivery("Procurement", order, invoice);
+    }
+
+    private void ReportDelivery(string receivedBy, PurchaseOrder order, Invoice invoice)
+    {
+        _floor.Publish(new FloorEventDraft(receivedBy, FloorArea.Storeroom, FloorEventKinds.StockReceived, order.Ingredient.ToString(),
+            $"{Kg(order.Grams)} {order.Ingredient} in the storeroom ({order.Id})"));
+        _floor.Publish(new FloorEventDraft("Nonna", FloorArea.Office, FloorEventKinds.InvoiceFiled, invoice.Id,
+            $"Filed {invoice.Id} from {invoice.Supplier}: €{invoice.Cost:0.00}"));
     }
 
     /// <summary>The A2A self-heal path books its paper trail here: delivered order + invoice in one step.</summary>
     public void RecordExternalDelivery(string supplier, Ingredient ingredient, int grams)
     {
+        PurchaseOrder order;
+        Invoice invoice;
         lock (_gate)
         {
-            var order = new PurchaseOrder(
+            order = new PurchaseOrder(
                 $"PO-{_nextNumber++}", ingredient, grams, CostOf(ingredient, grams), supplier,
                 PurchaseOrderState.Delivered, _clock.GetUtcNow(), "A2A self-heal delivery");
             _orders.Add(order);
-            _invoices.Add(new Invoice($"INV-{order.Id}", supplier, ingredient, grams, order.Cost, _clock.GetUtcNow()));
+            invoice = new Invoice($"INV-{order.Id}", supplier, ingredient, grams, order.Cost, _clock.GetUtcNow());
+            _invoices.Add(invoice);
         }
+
+        ReportDelivery("Supplier", order, invoice);
     }
 
     public IReadOnlyList<PurchaseOrder> Orders(PurchaseOrderState? state = null)

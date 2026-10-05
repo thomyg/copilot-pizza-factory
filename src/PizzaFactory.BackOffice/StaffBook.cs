@@ -1,3 +1,5 @@
+using PizzaFactory.Domain.Floor;
+
 namespace PizzaFactory.BackOffice;
 
 /// <summary>
@@ -7,9 +9,10 @@ namespace PizzaFactory.BackOffice;
 /// right role, oven-certified where the slot demands it, not absent, not already working,
 /// fewest shifts this week first (fairness).
 /// </summary>
-public sealed class StaffBook(TimeProvider? clock = null)
+public sealed class StaffBook(TimeProvider? clock = null, IFloorEvents? floor = null)
 {
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+    private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
     private readonly Lock _gate = new();
     private readonly List<Absence> _absences = [];
     private readonly Dictionary<(DateOnly Date, ShiftSlot Slot, StaffRole Role, int Seat), string> _overrides = [];
@@ -55,6 +58,15 @@ public sealed class StaffBook(TimeProvider? clock = null)
     public IReadOnlyList<RotaEntry> ReportAbsence(string name, DateOnly date, ShiftSlot? slot)
     {
         var member = Roster.Find(name) ?? throw new ArgumentException($"'{name}' is not on the roster.");
+        var opened = ReportAbsenceUnlocked(member, date, slot);
+        _floor.Publish(new FloorEventDraft("Nonna", FloorArea.BreakRoom, FloorEventKinds.AbsenceReported, member.Name,
+            $"{member.Name} is out {date:ddd d MMM}{(slot is { } one ? $" {one.ToString().ToLowerInvariant()}" : "")}. " +
+            (opened.Count == 0 ? "Was not on the rota." : $"{opened.Count} shift{(opened.Count == 1 ? "" : "s")} open.")));
+        return opened;
+    }
+
+    private List<RotaEntry> ReportAbsenceUnlocked(StaffMember member, DateOnly date, ShiftSlot? slot)
+    {
         lock (_gate)
         {
             _absences.Add(new Absence(member.Name, date, slot));
@@ -104,6 +116,14 @@ public sealed class StaffBook(TimeProvider? clock = null)
             throw new InvalidOperationException($"{member.Name} is not oven-certified — the fire has rules.");
         }
 
+        var entry = AssignUnlocked(member, date, slot, role);
+        _floor.Publish(new FloorEventDraft("Nonna", FloorArea.BreakRoom, FloorEventKinds.ShiftAssigned, member.Name,
+            $"{member.Name} takes {date:ddd d MMM} {slot.ToString().ToLowerInvariant()} as {role.ToString().ToLowerInvariant()}"));
+        return entry;
+    }
+
+    private RotaEntry AssignUnlocked(StaffMember member, DateOnly date, ShiftSlot slot, StaffRole role)
+    {
         lock (_gate)
         {
             if (IsAbsentUnsafe(member.Name, date, slot))

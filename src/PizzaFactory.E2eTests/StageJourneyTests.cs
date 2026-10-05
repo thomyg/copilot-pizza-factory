@@ -1,0 +1,86 @@
+using System.Diagnostics;
+using Microsoft.Playwright;
+
+namespace PizzaFactory.E2eTests;
+
+/// <summary>
+/// The stage is the home page. Its promise: whatever someone does through Copilot, Teams or
+/// SharePoint shows up on it, attributed to that channel, within a couple of seconds.
+/// Runs in low quality: the test browser has no GPU.
+/// </summary>
+[Collection("web-app")]
+public class StageJourneyTests(WebAppFixture app)
+{
+    private async Task<IPage> StageAsync()
+    {
+        var page = await app.Browser.NewPageAsync(new BrowserNewPageOptions { ViewportSize = new ViewportSize { Width = 1280, Height = 720 } });
+        await page.GotoAsync(app.BaseUrl + "/?quality=low");
+        await Assertions.Expect(page.Locator("[data-testid=stage][data-ready=true]"))
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30_000 });
+        return page;
+    }
+
+    [Fact]
+    public async Task the_stage_shows_every_room_of_the_house()
+    {
+        var page = await StageAsync();
+
+        await Assertions.Expect(page.Locator(".st-zones button")).ToHaveCountAsync(6);
+        await Assertions.Expect(page.Locator("canvas")).ToBeVisibleAsync();
+        await Assertions.Expect(page.Locator("#blazor-error-ui")).ToBeHiddenAsync();
+    }
+
+    [Fact]
+    public async Task an_action_through_copilot_appears_on_stage_within_two_seconds()
+    {
+        var page = await StageAsync();
+        var day = DateTime.Today.AddDays(2).ToString("yyyy-MM-dd");
+
+        var clock = Stopwatch.StartNew();
+        var response = await page.APIRequest.PostAsync(app.BaseUrl + "/api/nonna/time-off", new APIRequestContextOptions
+        {
+            Headers = new Dictionary<string, string> { ["X-PizzaFactory-Channel"] = "copilot" },
+            DataObject = new { name = "Rosa", date = day, slot = "Dinner", reason = "football final" },
+        });
+        Assert.True(response.Ok, await response.TextAsync());
+
+        await Assertions.Expect(page.Locator("[data-banner-who]"))
+            .ToContainTextAsync("via Copilot", new LocatorAssertionsToContainTextOptions { Timeout = 2_000 });
+        Assert.True(clock.Elapsed < TimeSpan.FromSeconds(2.5), $"took {clock.Elapsed}");
+        await Assertions.Expect(page.Locator(".st-feed .st-tag.m365").First).ToBeVisibleAsync();
+    }
+
+    /// <summary>What the MCP server sends after Giuseppe orders inside Copilot.</summary>
+    [Fact]
+    public async Task an_order_giuseppe_places_from_copilot_lands_on_stage()
+    {
+        var page = await StageAsync();
+
+        var response = await page.APIRequest.PostAsync(app.BaseUrl + "/api/floor/signal", new APIRequestContextOptions
+        {
+            DataObject = new { kind = "order.placed", orderId = Guid.NewGuid().ToString("n"), pizza = "Diavolo", amount = 3, customer = "Retro team", channel = "copilot" },
+        });
+        Assert.True(response.Ok, await response.TextAsync());
+
+        await Assertions.Expect(page.Locator("[data-banner-who]"))
+            .ToContainTextAsync("Giuseppe · via Copilot", new LocatorAssertionsToContainTextOptions { Timeout = 2_000 });
+        await Assertions.Expect(page.Locator("[data-banner-what]")).ToContainTextAsync("3× Diavolo");
+        await Assertions.Expect(page.Locator("[data-banner-what]")).Not.ToContainTextAsync("Retro team");
+    }
+
+    [Fact]
+    public async Task the_agents_own_work_is_reported_quietly()
+    {
+        var page = await StageAsync();
+
+        var response = await page.APIRequest.PostAsync(app.BaseUrl + "/api/nonna/time-off", new APIRequestContextOptions
+        {
+            DataObject = new { name = "Maria", date = DateTime.Today.AddDays(3).ToString("yyyy-MM-dd"), slot = "Lunch", reason = "dentist" },
+        });
+        Assert.True(response.Ok);
+
+        await Assertions.Expect(page.Locator(".st-feed li", new PageLocatorOptions { HasText = "Maria asks" }))
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 5_000 });
+        await Assertions.Expect(page.Locator("[data-banner].show")).ToHaveCountAsync(0);
+    }
+}

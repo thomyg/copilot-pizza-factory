@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import { type IPropertyPaneConfiguration, PropertyPaneTextField, PropertyPaneToggle } from '@microsoft/sp-property-pane';
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
-import { FactoryHttp } from '../../factoryApi';
+import { FactoryHttp, surfaceOf } from '../../factoryApi';
 import ChatBoard from '../../copilotComponents/trattoriaCommand/components/boards/ChatBoard';
 
 export interface INonnaChatWebPartProps {
@@ -22,7 +22,7 @@ export default class NonnaChatWebPart extends BaseClientSideWebPart<INonnaChatWe
     ReactDOM.render(
       React.createElement(ChatBoard, {
         apiUrl: this.properties.apiUrl,
-        http: new FactoryHttp(this.context.aadHttpClientFactory),
+        http: new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, surfaceOf(this.context)),
         theme: this.properties.darkMode ? 'dark' : 'light',
         title: '🧾 Ask Nonna',
         subtitle: 'the back office — rota, purchase orders, invoices',

@@ -20,6 +20,20 @@ export const FACTORY_RESOURCE = 'api://7ba457d6-e4fe-41ed-adfc-17d98f57af4b';
 export const FACTORY_TIMEOUT_MS = 8000;
 
 /**
+ * Which Microsoft 365 surface a call comes from. The factory's live stage shows it —
+ * "Capo, via Teams: approved PO-1004" — so the audience sees where the action happened.
+ */
+export type FactoryChannel = 'copilot' | 'teams' | 'sharepoint';
+
+/** The header the factory reads the channel from (a stage label, not a credential). */
+export const FACTORY_CHANNEL_HEADER = 'X-PizzaFactory-Channel';
+
+/** A web part hosted as a Teams tab acts in Teams; everywhere else it acts in SharePoint. */
+export function surfaceOf(context: { sdks?: { microsoftTeams?: unknown } }): FactoryChannel {
+  return context.sdks?.microsoftTeams ? 'teams' : 'sharepoint';
+}
+
+/**
  * The factory's front door, with the user's token attached.
  *
  * Everything here goes through AadHttpClient, so the call carries a bearer token
@@ -33,7 +47,8 @@ export class FactoryHttp {
   public constructor(
     private readonly _factory: AadHttpClientFactory,
     private readonly _resource: string = FACTORY_RESOURCE,
-    private readonly _timeoutMs: number = FACTORY_TIMEOUT_MS
+    private readonly _timeoutMs: number = FACTORY_TIMEOUT_MS,
+    private readonly _channel: FactoryChannel = 'sharepoint'
   ) {}
 
   public async getJson<T>(url: string): Promise<T> {
@@ -44,7 +59,7 @@ export class FactoryHttp {
   public async postJson<T>(url: string, body: unknown): Promise<T> {
     const client: AadHttpClient = await this._aad();
     const options: IHttpClientOptions = {
-      headers: { 'content-type': 'application/json', accept: 'application/json' },
+      headers: { 'content-type': 'application/json', accept: 'application/json', [FACTORY_CHANNEL_HEADER]: this._channel },
       body: JSON.stringify(body)
     };
     return this._json<T>(this._race(client.post(url, AadHttpClient.configurations.v1, options)));

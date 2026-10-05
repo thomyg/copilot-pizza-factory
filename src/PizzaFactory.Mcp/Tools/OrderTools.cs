@@ -3,6 +3,8 @@ using ModelContextProtocol.Server;
 using PizzaFactory.Domain;
 using PizzaFactory.Domain.Abstractions;
 using PizzaFactory.Domain.Entities;
+using PizzaFactory.Domain.Floor;
+using PizzaFactory.Mcp.Floor;
 using PizzaFactory.Domain.Recipes;
 
 namespace PizzaFactory.Mcp.Tools;
@@ -12,7 +14,7 @@ namespace PizzaFactory.Mcp.Tools;
 /// an Agent Framework agent, or a dev tool — can drive the factory through these.
 /// </summary>
 [McpServerToolType]
-public sealed class OrderTools(IOrderRepository orders)
+public sealed class OrderTools(IOrderRepository orders, IFloorSignalSender? signals = null, CallerChannel? caller = null)
 {
     /// <summary>The most pizzas one order may carry — Giuseppe's prank ceiling.</summary>
     public const int MaxAmountPerOrder = 24;
@@ -39,9 +41,17 @@ public sealed class OrderTools(IOrderRepository orders)
                 $"'{pizza}' is not on the menu. Available: {string.Join(", ", RecipeCatalog.Menu)}.",
                 nameof(pizza));
 
+        var channel = caller?.Current;
         var order = await orders.AddAsync(
-            Order.Create(recipe.Name, amount, OrderChannel.Bot, customerName),
+            Order.Create(recipe.Name, amount, channel == "copilot" ? OrderChannel.Copilot : OrderChannel.Bot, customerName),
             cancellationToken);
+
+        if (signals is not null)
+        {
+            await signals.SendAsync(
+                new FloorSignal(FloorEventKinds.OrderPlaced, order.Id, order.ItemName, order.Amount, customerName, channel),
+                cancellationToken);
+        }
 
         return OrderSummary.From(order);
     }

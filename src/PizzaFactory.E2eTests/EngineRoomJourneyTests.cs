@@ -88,7 +88,7 @@ public class EngineRoomJourneyTests(WebAppFixture app)
             await door.ClickAsync();
             await Assertions.Expect(door).ToContainTextAsync("closed", Patient);
 
-            var window = await app.NewLivePageAsync("/");
+            var window = await app.NewLivePageAsync("/window");
             await Assertions.Expect(window.Locator(".order .closed"))
                 .ToContainTextAsync("Ordering is closed", Patient);
             await window.CloseAsync();

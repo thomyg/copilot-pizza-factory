@@ -34,6 +34,9 @@ public sealed record GiuseppeOptions
     /// <summary>Entra scope for the factory MCP when it sits behind Easy Auth (e.g. "api://…/.default"). Null → anonymous.</summary>
     public string? FactoryMcpScope { get; init; }
 
+    /// <summary>Giuseppe:Channel — the surface this host serves ("teams" for the bot), passed to the factory MCP server.</summary>
+    public string? Channel { get; init; }
+
     public WorkIqMode WorkIqMode { get; init; } = WorkIqMode.Rehearsal;
 
     /// <summary>Stdio command for live Work IQ (the `workiq` CLI's MCP server). Used when <see cref="WorkIqUrl"/> is unset.</summary>
@@ -65,6 +68,7 @@ public sealed record GiuseppeOptions
             Deployment = deployment,
             FactoryMcpUrl = string.IsNullOrWhiteSpace(factoryUrl) ? null : new Uri(factoryUrl),
             FactoryMcpScope = NullIfEmpty(configuration["Giuseppe:FactoryMcpScope"]),
+            Channel = NullIfEmpty(configuration["Giuseppe:Channel"]),
             WorkIqMode = Enum.TryParse<WorkIqMode>(configuration["WorkIq:Mode"], ignoreCase: true, out var mode)
                 ? mode
                 : WorkIqMode.Rehearsal,

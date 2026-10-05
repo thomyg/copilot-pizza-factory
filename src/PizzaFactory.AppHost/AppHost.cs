@@ -28,6 +28,9 @@ if (!string.IsNullOrWhiteSpace(cosmosEndpoint))
     web.WithEnvironment("Cosmos__Endpoint", cosmosEndpoint);
 }
 
+// The stage: the MCP server tells the web app the moment Giuseppe orders through Copilot or Teams.
+mcp.WithEnvironment("Floor__SignalUrl", ReferenceExpression.Create($"{web.GetEndpoint("http")}/api/floor/signal"));
+
 // Giuseppe (AI concierge): pass the Azure OpenAI deployment through if configured (key-less).
 // He always gets the local factory MCP server as his ordering tools, so "order pizza for
 // Friday's retro" places real orders on the factory floor you're watching in the dashboard.

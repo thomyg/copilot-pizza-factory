@@ -1,6 +1,7 @@
 using PizzaFactory.Domain;
 using PizzaFactory.Domain.Abstractions;
 using PizzaFactory.Domain.Entities;
+using PizzaFactory.Domain.Floor;
 using PizzaFactory.Domain.Recipes;
 
 namespace PizzaFactory.Factory;
@@ -11,8 +12,14 @@ namespace PizzaFactory.Factory;
 /// up/down, flood the floor with a lunch rush, or reset the pantry. These are the SAME repositories
 /// the autonomous floor runs on — no mocks, no smoke: sabotage is real sabotage.
 /// </summary>
-public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock)
+public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock, IFloorEvents? floor = null)
 {
+    private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
+
+    /// <summary>Levers are always the presenter's: whatever request pulled them, the stage must not credit Copilot.</summary>
+    private void Report(FloorArea area, string kind, string subject, string text) =>
+        _floor.Publish(new FloorEventDraft("Engine Room", area, kind, subject, text, FloorChannel.Presenter));
+
     /// <summary>Upper bound for one rush — enough to swamp the ovens, not enough to swamp the demo.</summary>
     public const int MaxRushOrders = 100;
 
@@ -37,6 +44,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
             await stock.SaveAsync(drained, cancellationToken);
         }
 
+        Report(FloorArea.Storeroom, FloorEventKinds.StockChanged, ingredient.ToString(), $"Sabotage: {ingredient} drained to zero");
         return grams;
     }
 
@@ -59,6 +67,8 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
         }
 
         await stock.SaveAsync(next, cancellationToken);
+        Report(FloorArea.Storeroom, FloorEventKinds.StockChanged, ingredient.ToString(),
+            $"{ingredient} {(deltaGrams >= 0 ? "+" : "")}{deltaGrams} g");
         return next;
     }
 
@@ -67,6 +77,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
     {
         var fresh = Stock.Initial();
         await stock.SaveAsync(fresh, cancellationToken);
+        Report(FloorArea.Storeroom, FloorEventKinds.StockReceived, "pantry", "Pantry reset to opening stock");
         return fresh;
     }
 
@@ -86,6 +97,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
             await orders.AddAsync(Order.Create(pizza, amount, OrderChannel.Guest, name), cancellationToken);
         }
 
+        Report(FloorArea.Dining, FloorEventKinds.OrderPlaced, "rush", $"Rush hour: {clamped} orders at once");
         return clamped;
     }
 }

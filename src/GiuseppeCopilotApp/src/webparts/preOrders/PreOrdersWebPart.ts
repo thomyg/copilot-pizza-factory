@@ -5,7 +5,7 @@ import { type IPropertyPaneConfiguration, PropertyPaneToggle } from '@microsoft/
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import PreOrderBoard from '../../copilotComponents/trattoriaCommand/components/boards/PreOrderBoard';
-import { FactoryHttp } from '../../factoryApi';
+import { FactoryHttp, surfaceOf } from '../../factoryApi';
 import { LiveTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/LiveTrattoriaService';
 
 export interface IPreOrdersWebPartProps {
@@ -18,7 +18,7 @@ export default class PreOrdersWebPart extends BaseClientSideWebPart<IPreOrdersWe
 
   public render(): void {
     if (!this._dataService) {
-      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory));
+      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, surfaceOf(this.context)));
     }
 
     ReactDOM.render(

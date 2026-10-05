@@ -16,7 +16,7 @@ public class WindowJourneyTests(WebAppFixture app)
     [Fact]
     public async Task window_loads_with_a_live_ticking_line()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await Assertions.Expect(page.Locator("h1")).ToContainTextAsync("Window into the Factory");
         Assert.Equal(4, await page.Locator(".station .count").CountAsync());
@@ -27,7 +27,7 @@ public class WindowJourneyTests(WebAppFixture app)
     [Fact]
     public async Task guest_can_order_and_the_open_orders_count_rises()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
         var openBefore = await ReadOpenOrdersAsync(page);
 
         await page.Locator(".order-form button.primary").ClickAsync();
@@ -44,7 +44,7 @@ public class WindowJourneyTests(WebAppFixture app)
     [Fact]
     public async Task giuseppe_failure_degrades_in_character_and_never_kills_the_circuit()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await OpenChatDrawerAsync(page);
         await page.Locator(".chat-input input").FillAsync("What pizzas can I order?");
@@ -64,7 +64,7 @@ public class WindowJourneyTests(WebAppFixture app)
     [Fact]
     public async Task pressing_enter_sends_the_chat_message()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await OpenChatDrawerAsync(page);
         await page.Locator(".chat-input input").FillAsync("Ciao Giuseppe!");
@@ -79,7 +79,7 @@ public class WindowJourneyTests(WebAppFixture app)
     [Fact]
     public async Task window_links_to_the_engine_room_and_back()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await page.Locator("a.engine-room-link", new PageLocatorOptions { HasTextString = "Engine" }).ClickAsync();
         await Assertions.Expect(page.Locator("h1")).ToContainTextAsync("The Engine Room", new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });

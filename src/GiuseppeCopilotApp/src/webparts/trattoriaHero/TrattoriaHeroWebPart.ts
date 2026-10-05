@@ -10,7 +10,7 @@ import {
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import TrattoriaHero, { type IHeroLink } from './components/TrattoriaHero';
-import { FACTORY_API_BASE, FactoryHttp } from '../../factoryApi';
+import { FACTORY_API_BASE, FactoryHttp, surfaceOf } from '../../factoryApi';
 
 export interface ITrattoriaHeroWebPartProps {
   eyebrow: string;
@@ -42,7 +42,7 @@ export default class TrattoriaHeroWebPart extends BaseClientSideWebPart<ITrattor
 
   public render(): void {
     if (!this._http) {
-      this._http = new FactoryHttp(this.context.aadHttpClientFactory);
+      this._http = new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, surfaceOf(this.context));
     }
 
     ReactDOM.render(

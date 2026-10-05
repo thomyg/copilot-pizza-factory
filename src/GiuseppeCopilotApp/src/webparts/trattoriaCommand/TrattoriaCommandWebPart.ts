@@ -11,7 +11,7 @@ import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import TrattoriaApp from '../../copilotComponents/trattoriaCommand/components/TrattoriaApp';
 import type { ViewKey } from '../../copilotComponents/trattoriaCommand/models/trattoria';
-import { FactoryHttp } from '../../factoryApi';
+import { FactoryHttp, surfaceOf } from '../../factoryApi';
 import { LiveTrattoriaService } from '../../copilotComponents/trattoriaCommand/services/LiveTrattoriaService';
 
 export interface ITrattoriaCommandWebPartProps {
@@ -30,7 +30,7 @@ export default class TrattoriaCommandWebPart extends BaseClientSideWebPart<ITrat
 
   public render(): void {
     if (!this._dataService) {
-      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory));
+      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, surfaceOf(this.context)));
     }
 
     const element: React.ReactElement = React.createElement(TrattoriaApp, {

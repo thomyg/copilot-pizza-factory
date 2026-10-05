@@ -147,7 +147,7 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
 
     private string ApprovePurchaseOrder([Description("The order id, e.g. 'PO-1004'.")] string id)
     {
-        var order = purchases.Approve(id);
+        var order = purchases.Approve(id, actor: "Nonna");
         return order is null
             ? $"No pending order '{id}' — check list_purchase_orders."
             : $"Approved {order.Id}: {order.Grams}g {order.Ingredient} for €{order.Cost}. Delivery and invoice follow.";
@@ -157,7 +157,7 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
         [Description("The order id.")] string id,
         [Description("Short reason.")] string reason)
     {
-        var order = purchases.Reject(id, reason);
+        var order = purchases.Reject(id, reason, actor: "Nonna");
         return order is null
             ? $"No pending order '{id}' — check list_purchase_orders."
             : $"Rejected {order.Id}. The pantry will have to cope; Procurement may file again.";
@@ -209,7 +209,7 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
         [Description("Request id, e.g. 'TO-500'.")] string id,
         [Description("Who should cover. Omit to take the first qualified candidate.")] string? cover = null)
     {
-        var approved = timeOff.Approve(id, string.IsNullOrWhiteSpace(cover) ? null : cover.Trim());
+        var approved = timeOff.Approve(id, string.IsNullOrWhiteSpace(cover) ? null : cover.Trim(), actor: "Nonna");
         return approved is null
             ? $"No pending request '{id}'."
             : $"{approved.Id}: {approved.Note}.";
@@ -220,7 +220,7 @@ public sealed class NonnaToolSource(StaffBook staff, PurchaseBook purchases, Tim
         [Description("Request id, e.g. 'TO-500'.")] string id,
         [Description("Why it was declined.")] string reason)
     {
-        var declined = timeOff.Decline(id, reason);
+        var declined = timeOff.Decline(id, reason, actor: "Nonna");
         return declined is null ? $"No pending request '{id}'." : $"{declined.Id}: {declined.Note}.";
     }
 

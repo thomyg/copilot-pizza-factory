@@ -1,3 +1,4 @@
+using PizzaFactory.Domain.Floor;
 namespace PizzaFactory.BackOffice;
 
 public enum TimeOffState
@@ -40,9 +41,10 @@ public sealed record TimeOffRequest(
 /// Declining is a first-class outcome and keeps its reason. A back office that only records
 /// the yeses cannot answer the question everyone eventually asks, which is why.
 /// </summary>
-public sealed class TimeOffBook(StaffBook staff, TimeProvider? clock = null)
+public sealed class TimeOffBook(StaffBook staff, TimeProvider? clock = null, IFloorEvents? floor = null)
 {
     private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+    private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
     private readonly Lock _gate = new();
     private readonly List<TimeOffRequest> _requests = [];
     private int _nextNumber = 500;
@@ -86,6 +88,10 @@ public sealed class TimeOffBook(StaffBook staff, TimeProvider? clock = null)
             _requests.Add(request);
         }
 
+        var shown = OnStage(request.Name);
+        _floor.Publish(new FloorEventDraft(shown, FloorArea.BreakRoom, FloorEventKinds.TimeOffRequested, request.Id,
+            $"{shown} asks for {request.Date:ddd d MMM}{(request.Slot is { } s ? $" {s.ToString().ToLowerInvariant()}" : "")} off. " +
+            (request.LeavesAGap ? "Nobody qualified can cover." : $"Cover: {string.Join(" or ", request.ProposedCover)}.")));
         return request;
     }
 
@@ -96,7 +102,7 @@ public sealed class TimeOffBook(StaffBook staff, TimeProvider? clock = null)
     /// it. When nobody can, the day off is still granted and the shift is left visibly open —
     /// the alternative is a rota that lies, and an open slot is information a manager needs.
     /// </summary>
-    public TimeOffRequest? Approve(string id, string? coverName = null)
+    public TimeOffRequest? Approve(string id, string? coverName = null, string actor = "Capo")
     {
         TimeOffRequest request;
         lock (_gate)
@@ -140,11 +146,33 @@ public sealed class TimeOffBook(StaffBook staff, TimeProvider? clock = null)
                     ? "approved — no qualified cover free, the shift is open"
                     : "approved — nothing to cover, they were not on the rota";
 
-        return Settle(id, TimeOffState.Approved, note);
+        var settled = Settle(id, TimeOffState.Approved, note);
+        if (settled is not null)
+        {
+            _floor.Publish(new FloorEventDraft(actor, FloorArea.Office, FloorEventKinds.TimeOffApproved, settled.Id,
+                $"{OnStage(settled.Name)}'s day off approved: {note.Replace("approved — ", "", StringComparison.Ordinal)}"));
+        }
+
+        return settled;
     }
 
-    public TimeOffRequest? Decline(string id, string reason) =>
-        Settle(id, TimeOffState.Declined, $"declined: {(string.IsNullOrWhiteSpace(reason) ? "no reason given" : reason.Trim())}");
+    public TimeOffRequest? Decline(string id, string reason, string actor = "Capo")
+    {
+        var settled = Settle(id, TimeOffState.Declined, $"declined: {(string.IsNullOrWhiteSpace(reason) ? "no reason given" : reason.Trim())}");
+        if (settled is not null)
+        {
+            _floor.Publish(new FloorEventDraft(actor, FloorArea.Office, FloorEventKinds.TimeOffDeclined, settled.Id,
+                $"{OnStage(settled.Name)}'s day off declined"));
+        }
+
+        return settled;
+    }
+
+    /// <summary>
+    /// The name the live stage may show. The brigade's names are the house's own cast; anyone
+    /// else filing through Teams or Copilot is a real colleague, and the projector says so without naming them.
+    /// </summary>
+    public static string OnStage(string name) => Roster.Find(name)?.Name ?? "A colleague";
 
     public IReadOnlyList<TimeOffRequest> Requests(TimeOffState? state = null)
     {

@@ -37,6 +37,7 @@ public static class DependencyInjection
                 {
                     Name = "factory",
                     Endpoint = options.FactoryMcpUrl,
+                    Channel = options.Channel,
                     BearerTokenProvider = options.FactoryMcpScope is { } scope
                         ? TokenProvider(sp.GetRequiredService<TokenCredential>(), scope)
                         : null,

@@ -1,3 +1,5 @@
+using PizzaFactory.Domain.Floor;
+
 namespace PizzaFactory.Domain;
 
 /// <summary>One sitting of the house — from "chairs down" to "books closed".</summary>
@@ -36,8 +38,9 @@ public sealed class ServiceWindowOptions
 /// A window closes itself after <see cref="ServiceWindowOptions.Duration"/>, because the
 /// thing most likely to happen after a demo is that everyone walks away from it.
 /// </summary>
-public sealed class ServiceWindow(ServiceWindowOptions options, TimeProvider clock)
+public sealed class ServiceWindow(ServiceWindowOptions options, TimeProvider clock, IFloorEvents? floor = null)
 {
+    private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
     private readonly Lock _gate = new();
     private ServiceSession? _current;
 
@@ -88,6 +91,7 @@ public sealed class ServiceWindow(ServiceWindowOptions options, TimeProvider clo
     /// <summary>Opens a service. Opening one that is already open just returns it — pressing play twice is not an error.</summary>
     public ServiceSession Open()
     {
+        ServiceSession opened;
         lock (_gate)
         {
             if (_current?.IsOpen == true)
@@ -95,9 +99,12 @@ public sealed class ServiceWindow(ServiceWindowOptions options, TimeProvider clo
                 return _current;
             }
 
-            _current = new ServiceSession($"svc-{clock.GetUtcNow():yyyyMMdd-HHmmss}", clock.GetUtcNow(), null);
-            return _current;
+            opened = _current = new ServiceSession($"svc-{clock.GetUtcNow():yyyyMMdd-HHmmss}", clock.GetUtcNow(), null);
         }
+
+        _floor.Publish(new FloorEventDraft("Giuseppe", FloorArea.Dining, FloorEventKinds.ServiceOpened, opened.Id,
+            "Chairs down, oven up. Service is open."));
+        return opened;
     }
 
     /// <summary>Closes the service and announces it. Returns null when nothing was open.</summary>
@@ -115,6 +122,8 @@ public sealed class ServiceWindow(ServiceWindowOptions options, TimeProvider clo
         }
 
         Closed?.Invoke(closed);
+        _floor.Publish(new FloorEventDraft("Giuseppe", FloorArea.Dining, FloorEventKinds.ServiceClosed, closed.Id,
+            "Service closed. The books are being written."));
         return closed;
     }
 

@@ -1,4 +1,5 @@
 using PizzaFactory.Infrastructure;
+using PizzaFactory.Mcp.Floor;
 
 // Pizza Factory MCP server — exposes Orders + Inventory tools over Streamable HTTP.
 // Any MCP client (M365 Copilot, Copilot Studio, an Agent Framework agent, or a dev tool)
@@ -33,6 +34,9 @@ else
     builder.Services.AddInMemoryPizzaFactoryStore();
 }
 
+// Tell the stage when an order lands, and through which surface it came.
+builder.Services.AddFloorSignals(builder.Configuration);
+
 builder.Services
     .AddMcpServer()
     .WithHttpTransport(options => options.Stateless = true)  // serverless-friendly: no per-session state to pin to one instance
@@ -42,6 +46,10 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 app.MapMcp("/mcp");
+foreach (var route in FloorSignalWiring.SurfaceRoutes)
+{
+    app.MapMcp(route);
+}
 
 app.Run();
 

@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using PizzaFactory.Domain;
@@ -36,7 +37,9 @@ public sealed class MaitreD(
     private readonly ILogger _logger = logger ?? NullLogger<MaitreD>.Instance;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly Random _random = options.RandomSeed is { } seed ? new Random(seed) : Random.Shared;
-    private readonly Dictionary<int, Party> _seated = [];   // table id -> party
+    // Table id -> party. Written by the tick (under _gate) and read by every viewer's snapshot
+    // (under no tick lock at all), so it must be safe for concurrent readers on its own.
+    private readonly ConcurrentDictionary<int, Party> _seated = new();
     private readonly List<PartyFeedback> _recentFeedback = [];
     private bool _isOpen;
     private int _served;
@@ -248,7 +251,7 @@ public sealed class MaitreD(
             }
         }
 
-        _seated.Remove(party.TableId);
+        _seated.TryRemove(party.TableId, out _);
         _served++;
         _guestsServed += party.Size;
         feed.Post(now, $"{new string('⭐', feedback.Stars)} Table {party.TableId} ({party.Name}): “{feedback.Comment}”");

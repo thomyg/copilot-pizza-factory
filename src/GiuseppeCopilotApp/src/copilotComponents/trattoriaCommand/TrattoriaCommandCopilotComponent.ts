@@ -15,7 +15,7 @@ export default class TrattoriaCommandCopilotComponent extends BaseCopilotCompone
 
   protected render(): void {
     if (!this._dataService) {
-      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory));
+      this._dataService = new LiveTrattoriaService(new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, 'copilot'));
     }
 
     const element: React.ReactElement = React.createElement(TrattoriaApp, {

@@ -22,6 +22,12 @@ public sealed record McpToolSourceOptions
 
     /// <summary>Optional bearer-token factory for HTTP servers behind Entra (key-less; e.g. DefaultAzureCredential).</summary>
     public Func<CancellationToken, Task<string?>>? BearerTokenProvider { get; init; }
+
+    /// <summary>
+    /// The surface this host serves when a call carries none of its own ("teams" for the bot).
+    /// The live conversation's channel always wins; see <see cref="FloorChannelHeaderHandler"/>.
+    /// </summary>
+    public string? Channel { get; init; }
 }
 
 /// <summary>
@@ -103,12 +109,16 @@ public sealed class McpToolSource(
             headers = new Dictionary<string, string> { ["Authorization"] = $"Bearer {token}" };
         }
 
-        return new HttpClientTransport(new HttpClientTransportOptions
-        {
-            Name = options.Name,
-            Endpoint = options.Endpoint,
-            AdditionalHeaders = headers,
-        });
+        var http = new HttpClient(new FloorChannelHeaderHandler(options.Channel) { InnerHandler = new SocketsHttpHandler() });
+        return new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Name = options.Name,
+                Endpoint = options.Endpoint,
+                AdditionalHeaders = headers,
+            },
+            http,
+            ownsHttpClient: true);
     }
 
     private async ValueTask ResetAsync()

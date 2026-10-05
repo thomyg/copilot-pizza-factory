@@ -9,7 +9,7 @@ import {
 import { BaseClientSideWebPart } from '@microsoft/sp-webpart-base';
 
 import BackOffice from './components/BackOffice';
-import { FactoryHttp } from '../../factoryApi';
+import { FactoryHttp, surfaceOf } from '../../factoryApi';
 
 export interface IBackOfficeWebPartProps {
   /** 'trattoria' or 'enterprise' — the same decisions, told to a different room. */
@@ -29,7 +29,7 @@ export default class BackOfficeWebPart extends BaseClientSideWebPart<IBackOffice
 
   public render(): void {
     if (!this._http) {
-      this._http = new FactoryHttp(this.context.aadHttpClientFactory);
+      this._http = new FactoryHttp(this.context.aadHttpClientFactory, undefined, undefined, surfaceOf(this.context));
     }
 
     ReactDOM.render(

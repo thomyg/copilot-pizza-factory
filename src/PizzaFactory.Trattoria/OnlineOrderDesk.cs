@@ -124,6 +124,33 @@ public sealed class OnlineOrderDesk(
         return (ticket, null);
     }
 
+    /// <summary>
+    /// Puts a ticket on the counter for an order placed elsewhere — Giuseppe through the MCP
+    /// server, from Copilot or Teams. Without one, nobody hands the order over when it is ready.
+    /// Tracking an order that already has a ticket does nothing.
+    /// </summary>
+    public OnlineTicket Track(Order order, FulfilmentMode mode, string customer, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+        lock (_tickets)
+        {
+            if (_tickets.FirstOrDefault(t => t.OrderId == order.Id) is { } existing)
+            {
+                return existing;
+            }
+
+            var ticket = new OnlineTicket(order.Id, order.Channel, mode, customer, order.ItemName, order.Amount, now, TicketState.Cooking);
+            _tickets.Insert(0, ticket);
+            while (_tickets.Count > 20)
+            {
+                _tickets.RemoveAt(_tickets.Count - 1);
+            }
+
+            feed.Post(now, $"{ChannelEmoji(order.Channel)} {ModeWord(mode)} order via {order.Channel}: {order.Amount}× {order.ItemName} for {customer}.");
+            return ticket;
+        }
+    }
+
     /// <summary>Places one online order — also the entry point for the Engine Room to force one.</summary>
     public async Task<OnlineTicket> PlaceRandomOrderAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
     {

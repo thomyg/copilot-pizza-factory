@@ -27,11 +27,19 @@ The whole factory runs in-memory with no cloud dependencies — perfect for a fi
 # The Aspire "control tower" (dashboard + all services)
 dotnet run --project src/PizzaFactory.AppHost
 
-# …or just the Window dashboard on its own
+# …or just the web app on its own
 dotnet run --project src/PizzaFactory.Web
 ```
 
-Open the **Window** — now a full business dashboard — and press **▶ Open the floor**: a 17-table
+The home page is **the stage**: the whole house as a live isometric diorama — storeroom, kitchen,
+dining room, break room and Nonna's office — drawn from the real factory, not a simulation of it.
+Press **Open service** and watch it run. Then do something through Microsoft 365 — approve
+Nonna's purchase order in Teams, ask Giuseppe in Copilot for pizza for Friday's retro, file a day
+off in SharePoint — and the stage shows it: a banner says *who, via which channel*, the spot where
+it landed lights up, and with **Director** on the camera flies there. Click anything to inspect it.
+(Weak laptop or no GPU? Add `?quality=low`.)
+
+Open **`/window`** — the full business dashboard — and press **▶ Open the floor**: a 17-table
 trattoria comes to life. Parties arrive, get seated on the live floor map, order (real orders on the
 real factory), wait, eat, pay, and leave star reviews in the ticker — while online orders ping in
 over four channels (🌐 web · 💬 chat · 🤖 Copilot · 📞 phone) for takeaway and delivery, and
@@ -243,9 +251,35 @@ graph TD
 | `NonnaCopilotApp` | **Nonna — Back Office** in M365 Copilot (SPFx 1.24 **preview**): her desk rendered live in the chat — rota with open seats, approvals, the books. One declarative agent per sppkg, so the second persona gets her own package. |
 | `GiuseppeCopilotApp` | **Trattoria Command** — a SharePoint Copilot App (SPFx 1.24 **preview**): one `.sppkg`, four surfaces — the Copilot agent cockpit, the same cockpit + menu + reserve-ahead as SharePoint web parts, and a Viva Connections card. One UX, everywhere. |
 | `PizzaFactory.Supplier` | An **external Agent-to-Agent (A2A)** supplier — publishes an agent card and fulfils restock requests. |
-| `PizzaFactory.Web` | The **"Window"** (public live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |
+| `PizzaFactory.Web` | The **stage** (`/`, live 3D floor fed by a floor event bus + snapshot, with channel attribution for Copilot/Teams/SharePoint actions), the **"Window"** (`/window`, live dashboard) + the **"Engine Room"** (presenter cockpit: watch-along, chaos console, Suits/Nerds talk track). Hosts the running factory. |
 | `PizzaFactory.E2eTests` | **Playwright browser journeys** — boots the real app and walks the demo workflows: order, chat (incl. graceful failure), every chaos lever. |
 | `PizzaFactory.AppHost` / `ServiceDefaults` | **.NET Aspire** orchestration + OpenTelemetry. |
+
+## 🎭 The stage: what happens in Microsoft 365 shows up on the floor
+
+Every change on the floor is a typed **floor event** — *who* (an agent or a role, never a
+person's name), *via which channel* (Copilot, Teams, SharePoint, Web, the presenter, or the agents
+on their own), *what*, and *where*. The stage gets a snapshot twice a second and every event the
+moment it happens, over its Blazor circuit.
+
+How a channel is known:
+
+| Surface | How it says so |
+|---|---|
+| SharePoint web parts / Teams tabs / the Copilot component | `X-PizzaFactory-Channel` header from `FactoryHttp` (`sharepoint`, `teams` when hosted as a tab, `copilot`) |
+| Giuseppe in M365 Copilot (MCP) | the plugin calls **`/mcp/copilot`** — it cannot add headers, a route it can do |
+| Giuseppe in Teams (bot) | `Giuseppe:Channel = teams`, forwarded as the header to the MCP server |
+| Giuseppe in the SharePoint chat | the live request's channel is passed on to the MCP server per call |
+
+The header is a label for the stage, not a credential: only the outward-facing surfaces are
+accepted, and nobody can claim to be the presenter. When Giuseppe orders through the MCP server
+(a separate process), the server tells the web app at **`/api/floor/signal`** — best effort, two
+second fuse; the order stands even if the stage is down. In Azure set `Floor__SignalUrl` (the web
+app's `/api/floor/signal`) and `Floor__SignalScope` (`api://<appId>/.default`) on the MCP function
+app, and `Floor__SignalCallerId` (that function's managed-identity object id) on the web app — Easy
+Auth only proves "signed in to the tenant", this narrows the signal to the MCP server. A signal can
+announce an order, never create one; only local development, where the MCP server keeps its own
+in-memory store, adopts unknown orders. Aspire wires the URL locally.
 
 ## 🔀 The story, and the process
 
@@ -342,6 +376,8 @@ and nothing holds a key.
    per package — and rebuild.
 5. Upload both `.sppkg`, tick **Enable this app and add it to all sites**, and
    choose **Sync to Teams**.
+   (The Giuseppe Catering plugin points at `/mcp/copilot` so the stage can credit
+   Copilot; re-package it after pulling this change.)
 6. Approve the API access request in the SharePoint admin centre.
 
 Steps 5 and 6 are the irreducibly manual ones. Everything else is scriptable.

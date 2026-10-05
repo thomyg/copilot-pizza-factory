@@ -38,7 +38,7 @@ public class StorefrontJourneyTests(WebAppFixture app)
         await Assertions.Expect(page.Locator("#order .status")).ToContainTextAsync("kitchen", Patient);
 
         // The same order shows up back of house, on the Window's online board.
-        var house = await app.NewLivePageAsync("/");
+        var house = await app.NewLivePageAsync("/window");
         await Assertions.Expect(house.Locator(".tickets")).ToContainTextAsync("E2E Emma", Patient);
         await house.CloseAsync();
     }
@@ -54,7 +54,7 @@ public class StorefrontJourneyTests(WebAppFixture app)
         await page.Locator(".preorder-form button.primary").ClickAsync();
         await Assertions.Expect(page.Locator("#reserve .preorder-result")).ToContainTextAsync("Booked", Patient);
 
-        var house = await app.NewLivePageAsync("/");
+        var house = await app.NewLivePageAsync("/window");
         await Assertions.Expect(house.Locator(".preorders")).ToContainTextAsync("E2E Bingo Club", Patient);
         await house.Locator(".preorders .cancel").First.ClickAsync();       // leave the book clean
         await house.CloseAsync();

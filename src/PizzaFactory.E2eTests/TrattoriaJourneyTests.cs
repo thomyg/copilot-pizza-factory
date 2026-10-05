@@ -15,7 +15,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     [Fact]
     public async Task the_dining_room_renders_all_seventeen_tables()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await Assertions.Expect(page.Locator(".floor .table")).ToHaveCountAsync(17, new LocatorAssertionsToHaveCountOptions { Timeout = 15_000 });
         await Assertions.Expect(page.Locator(".legend")).ToBeVisibleAsync();
@@ -25,7 +25,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     [Fact]
     public async Task play_opens_the_floor_and_a_bus_tour_fills_tables()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
         try
         {
             await page.Locator("button.play").ClickAsync();
@@ -55,7 +55,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     [Fact]
     public async Task war_room_reserves_the_stage_and_summons_giuseppe()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await page.Locator(".view-toggle").ClickAsync();
         await Assertions.Expect(page.Locator(".war-rail")).ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
@@ -68,7 +68,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
     [Fact]
     public async Task a_pre_order_can_be_booked_and_cancelled()
     {
-        var page = await app.NewLivePageAsync("/");
+        var page = await app.NewLivePageAsync("/window");
 
         await page.Locator(".preorder-form .name").FillAsync("E2E Crew");
         await page.Locator(".preorder-form .amount").FillAsync("3");
@@ -77,7 +77,8 @@ public class TrattoriaJourneyTests(WebAppFixture app)
         await Assertions.Expect(page.Locator(".preorder-result")).ToContainTextAsync("Booked", Patient);
         await Assertions.Expect(page.Locator(".preorders")).ToContainTextAsync("E2E Crew", Patient);
 
-        await page.Locator(".preorders .cancel").First.ClickAsync();
+        // Cancel OUR booking: seeded pre-orders for the day may sort ahead of it.
+        await page.Locator(".preorders li", new PageLocatorOptions { HasTextString = "E2E Crew" }).Locator(".cancel").First.ClickAsync();
         await Assertions.Expect(page.Locator(".preorders", new PageLocatorOptions { HasTextString = "E2E Crew" }))
             .ToHaveCountAsync(0, new LocatorAssertionsToHaveCountOptions { Timeout = 15_000 });
     }
@@ -90,7 +91,7 @@ public class TrattoriaJourneyTests(WebAppFixture app)
         await Assertions.Expect(engineRoom.Locator(".chaos-result")).ToContainTextAsync("ordered", Patient);
         await engineRoom.CloseAsync();
 
-        var window = await app.NewLivePageAsync("/");
+        var window = await app.NewLivePageAsync("/window");
         await Assertions.Expect(window.Locator(".tickets tr").First)
             .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 15_000 });
     }
