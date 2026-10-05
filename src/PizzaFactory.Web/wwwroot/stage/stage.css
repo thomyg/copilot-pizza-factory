@@ -162,6 +162,8 @@
 .st-banner.presenter .who { color: var(--st-gold); }
 .st-banner .what { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 20px; font-weight: 700; line-height: 1.25; text-wrap: balance; }
 
+.st-zoomed { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 6; background: var(--st-accent); color: var(--st-accent-ink);
+    border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: 13px; box-shadow: var(--st-shadow); }
 .st-closed { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); z-index: 2; background: var(--st-panel); border: 1px solid var(--st-line);
     border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--st-muted); box-shadow: var(--st-shadow); }
 
