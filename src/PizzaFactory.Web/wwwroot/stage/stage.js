@@ -92,6 +92,18 @@ export function init(rootId, dotnet, snapshot, events) {
         s.camera.updateProjectionMatrix();
     };
     s.onGesture = (e) => e.preventDefault();   // Safari's pinch
+    // If the page is pinch-zoomed anyway (Chrome keeps it across reloads, and Cmd+0 does not undo
+    // it), the stage follows what is actually visible: it moves to the visual viewport and scales
+    // back by the zoom, so every panel stays inside the window instead of past its edges.
+    s.fitToView = () => {
+        const vv = window.visualViewport;
+        const zoomed = vv && vv.scale > 1.001;
+        root.style.transformOrigin = '0 0';
+        root.style.transform = zoomed ? `translate(${vv.offsetLeft}px, ${vv.offsetTop}px) scale(${1 / vv.scale})` : '';
+    };
+    window.visualViewport?.addEventListener('resize', s.fitToView);
+    window.visualViewport?.addEventListener('scroll', s.fitToView);
+    s.fitToView();
     root.addEventListener('wheel', s.onWheel, { passive: false });
     root.addEventListener('gesturestart', s.onGesture);
     root.addEventListener('gesturechange', s.onGesture);
@@ -158,6 +170,9 @@ export function dispose() {
     clearInterval(S.hudTimer);
     window.removeEventListener('resize', S.resize);
     S.themeQuery?.removeEventListener('change', S.themeListener);
+    window.visualViewport?.removeEventListener('resize', S.fitToView);
+    window.visualViewport?.removeEventListener('scroll', S.fitToView);
+    S.root.style.transform = '';
     S.root.removeEventListener('wheel', S.onWheel);
     S.root.removeEventListener('gesturestart', S.onGesture);
     S.root.removeEventListener('gesturechange', S.onGesture);

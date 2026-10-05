@@ -56,7 +56,6 @@ export class Hud {
               <button type="button" data-zoom="out" aria-label="Zoom out">−</button>
               <button type="button" data-zoom="reset" aria-label="Reset view">⌂</button>
             </div>
-            <div class="st-zoomed" data-zoomed role="alert" hidden>The browser is zoomed in, so the stage is cropped. Pinch out on the trackpad to see the whole house.</div>
             <div class="st-closed" data-closed hidden>Between services. The house is stocked, the books are closed.</div>
             <aside class="st-hud st-inspector" data-inspector aria-live="polite"></aside>
             <section class="st-hud st-tracker" aria-label="Tracking">
@@ -104,16 +103,6 @@ export class Hud {
         this.$('[data-service-text]').textContent = open ? `Service open${snap.service.minutesLeft != null ? ` · ${Math.ceil(snap.service.minutesLeft)} min left` : ''}` : 'Between services';
         this.$('[data-clock]').textContent = new Date(live.now()).toLocaleTimeString([], TIME);
         this.$('[data-open]').hidden = open;
-        // A trackpad pinch zooms the page itself (survives reloads; Cmd+0 does not undo it).
-        const vv = window.visualViewport, hint = this.$('[data-zoomed]');
-        hint.hidden = !(vv && vv.scale > 1.01);
-        if (!hint.hidden) {
-            // pin it to what is actually visible, at its normal size
-            hint.style.left = `${vv.offsetLeft + vv.width / 2}px`;
-            hint.style.top = `${vv.offsetTop + 12 / vv.scale}px`;
-            hint.style.transform = `translateX(-50%) scale(${1 / vv.scale})`;
-            hint.style.transformOrigin = 'top center';
-        }
         this.$('[data-closed]').hidden = open;
     }
 
