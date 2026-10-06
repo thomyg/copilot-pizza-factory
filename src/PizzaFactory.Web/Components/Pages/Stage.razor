@@ -108,8 +108,7 @@
     {
         using (FloorChannelScope.Enter(FloorChannel.Presenter))
         {
-            await Director.ClearQueueAsync(TimeSpan.FromMinutes(2));
-            Service.Open();
+            await Director.OpenFreshServiceAsync(Service, TimeSpan.FromMinutes(2));
         }
     }
 

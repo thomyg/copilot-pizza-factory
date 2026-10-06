@@ -97,3 +97,64 @@ public sealed class ClearQueueTests
         Assert.Equal(0, await director.ClearQueueAsync(TimeSpan.FromMinutes(2)));
     }
 }
+
+/// <summary>
+/// "Open service" on the stage clears the old queue and opens, as one step, and only when the
+/// house is shut: once it is open the kitchen is working the rail, and voiding tickets under
+/// it would overwrite pizzas the pizzaiolo has just picked up.
+/// </summary>
+public sealed class OpenFreshServiceTests
+{
+    private static (DemoDirector Director, ServiceWindow Window, InMemoryOrderRepository Orders, InMemoryPizzaRepository Pizzas) Rig()
+    {
+        var orders = new InMemoryOrderRepository();
+        var pizzas = new InMemoryPizzaRepository();
+        var window = new ServiceWindow(new ServiceWindowOptions(), TimeProvider.System);
+        return (new DemoDirector(orders, new InMemoryStockRepository(), null, pizzas), window, orders, pizzas);
+    }
+
+    private static async Task QueueOldOrderAsync(InMemoryOrderRepository orders, InMemoryPizzaRepository pizzas)
+    {
+        var old = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Funghi", 1, OrderChannel.Online) with { CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30) });
+        await pizzas.AddRangeAsync([PizzaFactory.Domain.Entities.Pizza.FromOrder(old)]);
+    }
+
+    [Fact]
+    public async Task a_shut_house_is_cleared_and_opened()
+    {
+        var (director, window, orders, pizzas) = Rig();
+        await QueueOldOrderAsync(orders, pizzas);
+
+        var opened = await director.OpenFreshServiceAsync(window, TimeSpan.FromMinutes(2));
+
+        Assert.True(opened);
+        Assert.True(window.IsOpen);
+        Assert.Empty(await pizzas.GetByStateAsync(PizzaState.OrderAccepted, 100));
+    }
+
+    [Fact]
+    public async Task an_open_house_is_left_alone()
+    {
+        var (director, window, orders, pizzas) = Rig();
+        window.Open();
+        await QueueOldOrderAsync(orders, pizzas);
+
+        var opened = await director.OpenFreshServiceAsync(window, TimeSpan.FromMinutes(2));
+
+        Assert.False(opened);
+        Assert.Single(await pizzas.GetByStateAsync(PizzaState.OrderAccepted, 100));
+    }
+
+    /// <summary>A double click, or the API fallback racing the circuit call: one clear, one open.</summary>
+    [Fact]
+    public async Task two_presses_at_once_open_the_house_once()
+    {
+        var (director, window, orders, pizzas) = Rig();
+        await QueueOldOrderAsync(orders, pizzas);
+
+        var results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(() => director.OpenFreshServiceAsync(window, TimeSpan.FromMinutes(2)))));
+
+        Assert.Equal(1, results.Count(r => r));
+        Assert.True(window.IsOpen);
+    }
+}

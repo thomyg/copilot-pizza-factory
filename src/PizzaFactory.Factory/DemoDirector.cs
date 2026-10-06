@@ -81,6 +81,36 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
         return fresh;
     }
 
+    private readonly SemaphoreSlim _opening = new(1, 1);
+
+    /// <summary>
+    /// The stage's "Open service": void the old queue, then open — as one step, and only when
+    /// the house is shut. While it is shut the floor is idle, so nothing touches the rail under
+    /// us; once it is open the pizzaiolo is working it, and clearing then would overwrite pizzas
+    /// just picked up. A second press (a double click, or the API fallback racing the circuit
+    /// call) finds the house open and does nothing. Returns whether this call opened it.
+    /// </summary>
+    public async Task<bool> OpenFreshServiceAsync(ServiceWindow window, TimeSpan olderThan, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(window);
+        await _opening.WaitAsync(cancellationToken);
+        try
+        {
+            if (window.IsOpen)
+            {
+                return false;
+            }
+
+            await ClearQueueAsync(olderThan, cancellationToken);
+            window.Open();
+            return true;
+        }
+        finally
+        {
+            _opening.Release();
+        }
+    }
+
     /// <summary>
     /// Voids tickets that were queued before this moment and never started — the backlog a
     /// stage demo would otherwise bake in front of the audience's own order. Orders younger than
