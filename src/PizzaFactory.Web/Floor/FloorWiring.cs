@@ -22,6 +22,7 @@ public static class FloorWiring
         services.AddSingleton<FloorSnapshotBuilder>();
         services.AddSingleton(new FloorOptions { SignalCallerId = configuration["Floor:SignalCallerId"] });
         services.AddSingleton<FloorSignalLedger>();
+        services.AddSingleton<StageNames>();
         services.AddRateLimiter(options => options.AddPolicy(SignalRateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
             context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) })));
@@ -41,7 +42,8 @@ public static class FloorWiring
             (IOrderRepository)(store.ImplementationInstance
                 ?? store.ImplementationFactory?.Invoke(sp)
                 ?? ActivatorUtilities.CreateInstance(sp, store.ImplementationType!)),
-            sp.GetRequiredService<IFloorEvents>()));
+            sp.GetRequiredService<IFloorEvents>(),
+            sp.GetService<FloorSignalLedger>()));
         return services;
     }
 
@@ -61,8 +63,6 @@ public static class FloorWiring
         group.MapPost("/signal", OrderSignalledAsync).RequireRateLimiting(SignalRateLimitPolicy);
     }
 
-    private const int MaxCustomerLength = 40;
-
     /// <summary>
     /// Use for a house whose MCP server keeps its own store (local in-memory runs). With a
     /// shared store (Cosmos) the web app never creates an order from a signal.
@@ -81,6 +81,7 @@ public static class FloorWiring
         OnlineOrderDesk desk,
         FloorOptions options,
         FloorSignalLedger heard,
+        StageNames names,
         TimeProvider clock,
         CancellationToken cancellationToken)
     {
@@ -102,15 +103,20 @@ public static class FloorWiring
         }
 
         var channel = FloorChannelScope.Parse(signal.Channel) ?? FloorChannelScope.Current;
-        if (!heard.FirstTime(signal.OrderId, channel))
+
+        // Giuseppe asks in the chat which name to put on the big screen; only a guest ordering
+        // through one of our surfaces gets one, and only after the bouncer has seen it.
+        var guest = channel is FloorChannel.Copilot or FloorChannel.Teams or FloorChannel.SharePoint or FloorChannel.Web
+            ? await names.ForStageAsync(signal.Customer, cancellationToken)
+            : null;
+        if (!heard.FirstTime(signal.OrderId, channel, guest))
         {
             return Results.Accepted();   // heard it already
         }
 
         using var scope = channel is { } c ? FloorChannelScope.Enter(c) : null;
 
-        // The name typed into Copilot is often the user's own: it goes on the ticket, never on the stage.
-        var customer = Clean(signal.Customer) ?? "a colleague";
+        var customer = guest ?? "a colleague";
 
         var order = await FindAsync(orders, signal.OrderId, cancellationToken);
         if (order is { State: OrderState.Delivered })
@@ -137,7 +143,7 @@ public static class FloorWiring
         else
         {
             floor.Publish(new FloorEventDraft("Giuseppe", FloorReportingOrderRepository.AreaOf(order.Channel), FloorEventKinds.OrderPlaced,
-                order.Id, FloorReportingOrderRepository.Describe(order)));
+                order.Id, FloorReportingOrderRepository.Describe(order, guest)));
         }
 
         desk.Track(order, FulfilmentMode.Delivery, customer, clock.GetUtcNow());
@@ -155,18 +161,6 @@ public static class FloorWiring
         }
 
         return null;
-    }
-
-    /// <summary>A name typed into Copilot, made safe for a banner: printable, trimmed, short.</summary>
-    private static string? Clean(string? name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return null;
-        }
-
-        var printable = new string([.. name.Where(ch => !char.IsControl(ch))]).Trim();
-        return printable.Length == 0 ? null : printable.Length <= MaxCustomerLength ? printable : printable[..MaxCustomerLength].TrimEnd();
     }
 
     /// <summary>
@@ -212,10 +206,17 @@ public sealed class FloorSignalLedger
     private readonly Dictionary<string, FloorChannel?> _seen = [];
     private readonly Queue<string> _order = new();
 
-    public bool FirstTime(string orderId, FloorChannel? channel = null)
+    private readonly Dictionary<string, string> _names = [];
+
+    public bool FirstTime(string orderId, FloorChannel? channel = null, string? guest = null)
     {
         lock (_gate)
         {
+            if (guest is not null && !_seen.ContainsKey(orderId))
+            {
+                _names[orderId] = guest;
+            }
+
             if (!_seen.TryAdd(orderId, channel))
             {
                 return false;
@@ -224,10 +225,21 @@ public sealed class FloorSignalLedger
             _order.Enqueue(orderId);
             while (_order.Count > Capacity)
             {
-                _seen.Remove(_order.Dequeue());
+                var old = _order.Dequeue();
+                _seen.Remove(old);
+                _names.Remove(old);
             }
 
             return true;
+        }
+    }
+
+    /// <summary>The name the guest asked to see on the big screen, already checked; null when none was given.</summary>
+    public string? NameOf(string orderId)
+    {
+        lock (_gate)
+        {
+            return _names.GetValueOrDefault(orderId);
         }
     }
 

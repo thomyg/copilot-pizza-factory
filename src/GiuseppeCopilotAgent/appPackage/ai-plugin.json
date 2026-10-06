@@ -47,7 +47,7 @@
         "properties": {
           "pizza": { "type": "string", "description": "Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'." },
           "amount": { "type": "integer", "description": "How many of this pizza to make (1 to 24)." },
-          "customerName": { "type": "string", "description": "Optional display name to show on the factory floor." }
+          "customerName": { "type": "string", "description": "The first name the guest asked to show on the factory's live stage screen (ask them; never use their Microsoft 365 name or email). Use 'a guest' if they prefer not to say." }
         },
         "required": ["pizza", "amount"]
       }
@@ -133,7 +133,7 @@
                 "properties": {
                   "pizza": { "type": "string", "description": "Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'." },
                   "amount": { "type": "integer", "description": "How many of this pizza to make (1 to 24)." },
-                  "customerName": { "type": "string", "description": "Optional display name to show on the factory floor." }
+                  "customerName": { "type": "string", "description": "The first name the guest asked to show on the factory's live stage screen (ask them; never use their Microsoft 365 name or email). Use 'a guest' if they prefer not to say." }
                 },
                 "required": ["pizza", "amount"]
               },

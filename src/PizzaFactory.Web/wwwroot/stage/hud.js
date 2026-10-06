@@ -301,7 +301,7 @@ export class Hud {
             case 'takeaway': {
                 const cooking = snap.tickets.filter((t) => t.state === 'Cooking');
                 const done = snap.tickets.filter((t) => t.state === 'Done').slice(0, 4);
-                const row = (t) => `<div class="st-row"><span>${esc(t.amount)}× ${esc(t.pizza)} <span class="st-empty">· ${t.mode === 'Delivery' ? 'delivery' : 'takeaway'}</span></span>
+                const row = (t) => `<div class="st-row"><span>${esc(t.amount)}× ${esc(t.pizza)}${t.guest ? ` for <b>${esc(t.guest)}</b>` : ''} <span class="st-empty">· ${t.mode === 'Delivery' ? 'delivery' : 'takeaway'}</span></span>
                     <span class="st-tag ${t.surface ? 'm365' : ''}">${t.surface ? 'via ' + esc(t.surface) : 'online'}</span></div>`;
                 return `<div class="st-kicker"><span>Asporto · takeaway & delivery</span><span>${cooking.length} cooking</span></div>
                   <div class="st-title">The pick-up counter</div><div class="st-sub">Orders from the web, Copilot and Teams: boxed here, handed to the couriers</div>
@@ -353,7 +353,7 @@ export class Hud {
             if (t) {
                 const line = snap.kitchen.pizzas.filter((p) => p.orderId === t.orderId);
                 const stage = t.state === 'Done' ? 4 : line.some((p) => p.state === 'Ready') ? 2 : line.some((p) => p.state === 'Preparing' || p.state === 'Baking') ? 1 : 0;
-                set('Takeaway order', `${t.amount}× ${t.pizza} · ${t.surface ? 'via ' + t.surface : 'online'}`,
+                set('Takeaway order', `${t.amount}× ${t.pizza}${t.guest ? ' for ' + t.guest : ''} · ${t.surface ? 'via ' + t.surface : 'online'}`,
                     steps(['Ordered', 'In the kitchen', 'Boxed', t.mode === 'Delivery' ? 'With the courier' : 'Picked up'], stage, [hhmm(t.placedAt)]));
                 return;
             }

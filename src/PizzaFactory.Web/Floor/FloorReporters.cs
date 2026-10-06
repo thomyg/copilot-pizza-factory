@@ -15,7 +15,7 @@ namespace PizzaFactory.Web.Floor;
 /// simulation books its fake online orders as <see cref="OrderChannel.Copilot"/>, and the stage
 /// must only say "via Copilot" when Copilot actually asked.
 /// </summary>
-public sealed class FloorReportingOrderRepository(IOrderRepository inner, IFloorEvents floor) : IOrderRepository
+public sealed class FloorReportingOrderRepository(IOrderRepository inner, IFloorEvents floor, FloorSignalLedger? signalled = null) : IOrderRepository
 {
     public Task<IReadOnlyList<Order>> ListAsync(CancellationToken cancellationToken = default) =>
         inner.ListAsync(cancellationToken);
@@ -34,16 +34,17 @@ public sealed class FloorReportingOrderRepository(IOrderRepository inner, IFloor
             AreaOf(added.Channel),
             FloorEventKinds.OrderPlaced,
             added.Id,
-            Describe(added)));
+            Describe(added, signalled?.NameOf(added.Id))));
         return added;
     }
 
     /// <summary>
-    /// What the stage says about an order. No customer name: on a projector, a name typed into
-    /// Copilot or the storefront is usually a real person's.
+    /// What the stage says about an order. The customer field is never shown — on a projector a
+    /// typed name is usually a real person's. Only <paramref name="guest"/>, the name a guest gave
+    /// Giuseppe for the big screen (and the bouncer let through), is.
     /// </summary>
-    public static string Describe(Order order) =>
-        $"{order.Amount}× {order.ItemName}{(AreaOf(order.Channel) == FloorArea.Street ? ", to go" : "")}";
+    public static string Describe(Order order, string? guest = null) =>
+        $"{order.Amount}× {order.ItemName}{(guest is null ? "" : $" for {guest}")}{(AreaOf(order.Channel) == FloorArea.Street ? ", to go" : "")}";
 
     /// <summary>Where the pizza is going to be eaten: at a table, or out the door with a courier.</summary>
     public static FloorArea AreaOf(OrderChannel channel) => channel switch

@@ -24,7 +24,7 @@ public sealed class OrderTools(IOrderRepository orders, IFloorSignalSender? sign
     public async Task<OrderSummary> CreateOrderAsync(
         [Description("Pizza name from the menu, e.g. 'Hawaii' or 'Diavolo'.")] string pizza,
         [Description("How many of this pizza to make (1 to 24).")] int amount,
-        [Description("Optional display name to show on the factory floor.")] string? customerName = null,
+        [Description("The first name the guest asked to show on the factory's live stage screen. Ask them; never use their account name or email. Use 'a guest' if they prefer not to say.")] string? customerName = null,
         CancellationToken cancellationToken = default)
     {
         if (amount > MaxAmountPerOrder)

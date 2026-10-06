@@ -364,7 +364,7 @@ export class Live {
         });
         const mine = cooking.find((t) => t.surface);
         this.w.takeawayPin.visible = !!mine;
-        if (mine) this.w.takeawayPin.element.innerHTML = `<span>${esc(mine.amount)}× ${esc(mine.pizza)} · via ${esc(mine.surface)}</span>`;
+        if (mine) this.w.takeawayPin.element.innerHTML = `<span>${esc(mine.amount)}× ${esc(mine.pizza)}${mine.guest ? ` for ${esc(mine.guest)}` : ''} · via ${esc(mine.surface)}</span>`;
     }
 
     /* ─────────────────────────── events ─────────────────────────── */

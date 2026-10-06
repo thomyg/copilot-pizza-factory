@@ -64,7 +64,8 @@ public sealed record TicketView(
     string State,
     DateTimeOffset PlacedAt,
     DateTimeOffset? ReadyAt,
-    string? Surface = null);
+    string? Surface = null,
+    string? Guest = null);
 
 public sealed record OfficeView(
     BudgetView Budget,

@@ -124,7 +124,7 @@ public sealed class StageJourneyTests(WebAppFixture app) : IAsyncLifetime
         await Assertions.Expect(page.Locator("[data-banner-who]"))
             .ToContainTextAsync("Giuseppe · via Copilot", new LocatorAssertionsToContainTextOptions { Timeout = 2_000 });
         await Assertions.Expect(page.Locator("[data-banner-what]")).ToContainTextAsync("3× Diavolo");
-        await Assertions.Expect(page.Locator("[data-banner-what]")).Not.ToContainTextAsync("Retro team");
+        await Assertions.Expect(page.Locator("[data-banner-what]")).ToContainTextAsync("for Retro team");
     }
 
     [Fact]

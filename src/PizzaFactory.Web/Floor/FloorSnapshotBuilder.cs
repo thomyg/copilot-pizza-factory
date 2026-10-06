@@ -86,7 +86,7 @@ public sealed class FloorSnapshotBuilder(
                 house.AverageStars),
             [.. desk.Tickets.Select(t => new TicketView(
                 t.OrderId, t.Mode.ToString(), t.Customer, t.Pizza, t.Amount, t.State.ToString(), t.PlacedAt, t.ReadyAt,
-                signalled.SurfaceOf(t.OrderId)))],
+                signalled.SurfaceOf(t.OrderId), signalled.NameOf(t.OrderId)))],
             Office(),
             Brigade());
     }
