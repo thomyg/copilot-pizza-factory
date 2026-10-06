@@ -22,6 +22,7 @@ const FOLLOW_LINGER_MS = 8000;             // after it leaves, stay on the couri
 const FRUST = 20;
 const OFFSET = new THREE.Vector3(24, 27, 32);
 const DIRECTOR_KEY = 'pf-stage-director';
+const THEME_KEY = 'pf-stage-theme';
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 let S = null;
@@ -54,6 +55,10 @@ export function init(rootId, dotnet, snapshot, events) {
             } catch (e) { console.warn('Stage: opening the service failed', e); }
         },
     });
+    // ?theme=dark|light pins the look on this browser (remembered, so the nav links back keep it);
+    // ?theme=auto hands it back to the operating system
+    s.forcedTheme = pinnedTheme();
+    if (s.forcedTheme) root.dataset.theme = s.forcedTheme; else delete root.dataset.theme;
     let director = true;
     try { director = localStorage.getItem(DIRECTOR_KEY) !== '0'; } catch { /* default on */ }
     s.hud.setDirector(director);
@@ -209,6 +214,8 @@ function followOn(snap) {
     const f = S.follow;
     if (!f) return;
     const now = performance.now();
+    // ordered before Open was pressed: it waits with the house, so the give-up clock waits too
+    if (!snap.service.open) f.since = now;
     if ((f.doneAt && now - f.doneAt > FOLLOW_LINGER_MS) || (!f.doneAt && now - f.since > FOLLOW_GIVE_UP_MS)) {
         S.follow = null;
         delete S.root.dataset.follow;
@@ -256,6 +263,7 @@ export function dispose() {
     S.controls.dispose();
     S.renderer.dispose();
     S.root.innerHTML = '';
+    delete S.root.dataset.theme;
     S = null;
 }
 
@@ -367,8 +375,20 @@ function buildLamps() {
     S.lamps.push(desk);
 }
 
+function pinnedTheme() {
+    const asked = new URLSearchParams(location.search).get('theme');
+    try {
+        if (asked === 'dark' || asked === 'light') localStorage.setItem(THEME_KEY, asked);
+        else if (asked === 'auto') localStorage.removeItem(THEME_KEY);
+        const kept = localStorage.getItem(THEME_KEY);
+        return kept === 'dark' || kept === 'light' ? kept : null;
+    } catch {
+        return asked === 'dark' || asked === 'light' ? asked : null;   // private window: this visit only
+    }
+}
+
 function theme() {
-    const night = S.themeQuery.matches;
+    const night = S.forcedTheme ? S.forcedTheme === 'dark' : S.themeQuery.matches;
     S.night = night;
     S.scene.background = new THREE.Color(night ? 0x151311 : 0xf1e7d1);
     S.hemi.intensity = night ? .8 : 1.6;

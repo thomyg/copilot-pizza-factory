@@ -243,6 +243,18 @@ public sealed class FloorSignalLedger
         }
     }
 
+    /// <summary>
+    /// Whether a person ordered this — signalled by the MCP server (even when its surface was not
+    /// recognised) or placed through one of our surfaces — rather than the house's own simulation.
+    /// </summary>
+    public bool IsGuestOrder(string orderId)
+    {
+        lock (_gate)
+        {
+            return _seen.TryGetValue(orderId, out var c) && c is not FloorChannel.Autonomous and not FloorChannel.Presenter;
+        }
+    }
+
     /// <summary>The Microsoft 365 surface (or the web) an order came through; null for the house's own.</summary>
     public string? SurfaceOf(string orderId)
     {

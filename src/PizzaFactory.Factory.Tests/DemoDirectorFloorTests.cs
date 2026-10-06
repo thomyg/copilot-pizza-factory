@@ -89,6 +89,42 @@ public sealed class ClearQueueTests
         Assert.Equal(OrderState.Delivered, (await orders.ListAsync()).Single(o => o.Id == old.Id).State);
     }
 
+    /// <summary>
+    /// Someone in the audience orders through Copilot before the presenter presses Open: that
+    /// pizza is the whole point of the demo, however long it has waited.
+    /// </summary>
+    [Fact]
+    public async Task a_guest_order_is_never_voided_however_old()
+    {
+        var orders = new InMemoryOrderRepository();
+        var pizzas = new InMemoryPizzaRepository();
+        var director = new DemoDirector(orders, new InMemoryStockRepository(), null, pizzas);
+        var guest = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Hawaii", 1, OrderChannel.Copilot) with { CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-8) });
+        var backlog = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Funghi", 1, OrderChannel.Copilot) with { CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-8) });
+        await pizzas.AddRangeAsync([PizzaFactory.Domain.Entities.Pizza.FromOrder(guest), PizzaFactory.Domain.Entities.Pizza.FromOrder(backlog)]);
+
+        var voided = await director.ClearQueueAsync(TimeSpan.FromMinutes(2), keep: id => id == guest.Id);
+
+        Assert.Equal(1, voided);
+        Assert.Equal(guest.Id, Assert.Single(await pizzas.GetByStateAsync(PizzaState.OrderAccepted, 100)).OrderId);
+        Assert.NotEqual(OrderState.Delivered, (await orders.ListAsync()).Single(o => o.Id == guest.Id).State);
+    }
+
+    [Fact]
+    public async Task opening_the_house_keeps_the_guest_order_it_was_waiting_for()
+    {
+        var orders = new InMemoryOrderRepository();
+        var pizzas = new InMemoryPizzaRepository();
+        var director = new DemoDirector(orders, new InMemoryStockRepository(), null, pizzas);
+        var window = new ServiceWindow(new ServiceWindowOptions(), TimeProvider.System);
+        var guest = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Hawaii", 1, OrderChannel.Copilot) with { CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-8) });
+        await pizzas.AddRangeAsync([PizzaFactory.Domain.Entities.Pizza.FromOrder(guest)]);
+
+        Assert.True(await director.OpenFreshServiceAsync(window, TimeSpan.FromMinutes(2), keep: id => id == guest.Id));
+
+        Assert.Single(await pizzas.GetByStateAsync(PizzaState.OrderAccepted, 100));
+    }
+
     [Fact]
     public async Task an_empty_queue_is_left_alone()
     {

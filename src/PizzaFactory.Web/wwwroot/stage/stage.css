@@ -43,13 +43,21 @@
    cards each sit on their own step (#151311 → #1B1713 → #261E19), the cards get a visible outline
    and float on a shadow, and the text is bright enough to read from the back of the room. */
 @media (prefers-color-scheme: dark) {
-    .stage-root {
+    .stage-root:not([data-theme="light"]) {
         --st-bg: #151311; --st-top: #1b1713; --st-panel: rgba(42, 33, 27, .96); --st-panel-solid: #2a211b;
         --st-ink: #f3e8da; --st-muted: #c8b49e; --st-line: #433327; --st-edge: #6b4d36; --st-chip: #33281f;
         --st-accent: #e8562f; --st-accent-ink: #151311; --st-gold: #e2b25a; --st-basil: #8db07e; --st-info: #7fa7d6; --st-m365: #9ea2ff;
         --st-shadow: inset 0 1px 0 rgba(255, 236, 214, .07), 0 2px 4px rgba(0, 0, 0, .35), 0 16px 40px rgba(0, 0, 0, .55);
         color-scheme: dark;
     }
+}
+/* ?theme=dark pins it for the projector, whatever the presenter laptop's setting; ?theme=light the other way */
+.stage-root[data-theme="dark"] {
+    --st-bg: #151311; --st-top: #1b1713; --st-panel: rgba(42, 33, 27, .96); --st-panel-solid: #2a211b;
+    --st-ink: #f3e8da; --st-muted: #c8b49e; --st-line: #433327; --st-edge: #6b4d36; --st-chip: #33281f;
+    --st-accent: #e8562f; --st-accent-ink: #151311; --st-gold: #e2b25a; --st-basil: #8db07e; --st-info: #7fa7d6; --st-m365: #9ea2ff;
+    --st-shadow: inset 0 1px 0 rgba(255, 236, 214, .07), 0 2px 4px rgba(0, 0, 0, .35), 0 16px 40px rgba(0, 0, 0, .55);
+    color-scheme: dark;
 }
 
 .stage-root * { box-sizing: border-box; }

@@ -8,6 +8,7 @@
 @inject FloorEventBus Floor
 @inject ServiceWindow Service
 @inject PizzaFactory.Factory.DemoDirector Director
+@inject FloorSignalLedger Guests
 @inject IJSRuntime JS
 @inject ILogger<Stage> Log
 @implements IAsyncDisposable
@@ -108,7 +109,8 @@
     {
         using (FloorChannelScope.Enter(FloorChannel.Presenter))
         {
-            await Director.OpenFreshServiceAsync(Service, TimeSpan.FromMinutes(2));
+            // the backlog goes, but never an order a guest placed through Microsoft 365 or the web
+            await Director.OpenFreshServiceAsync(Service, TimeSpan.FromMinutes(2), keep: Guests.IsGuestOrder);
         }
     }
 

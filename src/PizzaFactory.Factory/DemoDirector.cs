@@ -90,7 +90,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
     /// just picked up. A second press (a double click, or the API fallback racing the circuit
     /// call) finds the house open and does nothing. Returns whether this call opened it.
     /// </summary>
-    public async Task<bool> OpenFreshServiceAsync(ServiceWindow window, TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task<bool> OpenFreshServiceAsync(ServiceWindow window, TimeSpan olderThan, Func<string, bool>? keep = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(window);
         await _opening.WaitAsync(cancellationToken);
@@ -101,7 +101,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
                 return false;
             }
 
-            await ClearQueueAsync(olderThan, cancellationToken);
+            await ClearQueueAsync(olderThan, keep, cancellationToken);
             window.Open();
             return true;
         }
@@ -117,8 +117,10 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
     /// <paramref name="olderThan"/> stay, so someone who ordered a minute ago keeps their pizza.
     /// Like the expeditor's write-off, this only moves work forward: the pizzas go out, their
     /// orders are closed. Returns how many pizzas were voided.
+    /// <paramref name="keep"/> names orders that are never voided however old: a guest who ordered
+    /// through Copilot or Teams before the presenter pressed Open is waiting for exactly that pizza.
     /// </summary>
-    public async Task<int> ClearQueueAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    public async Task<int> ClearQueueAsync(TimeSpan olderThan, Func<string, bool>? keep = null, CancellationToken cancellationToken = default)
     {
         if (pizzas is null)
         {
@@ -128,7 +130,7 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
         var cutoff = DateTimeOffset.UtcNow - olderThan;
         var book = (await orders.ListAsync(cancellationToken)).ToDictionary(o => o.Id);
         var stale = book.Values
-            .Where(o => o.State is OrderState.Created or OrderState.Started && o.CreatedAt < cutoff)
+            .Where(o => o.State is OrderState.Created or OrderState.Started && o.CreatedAt < cutoff && keep?.Invoke(o.Id) != true)
             .Select(o => o.Id)
             .ToHashSet();
 

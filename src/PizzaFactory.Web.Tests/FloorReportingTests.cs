@@ -36,6 +36,44 @@ public sealed class FloorReportingTests
     }
 
     /// <summary>
+    /// An order a person placed through one of our surfaces (a SharePoint web part, the
+    /// storefront) is a guest's, like one Copilot signals: the stage marks it, and opening the
+    /// house never voids it. The house's own orders are not.
+    /// </summary>
+    [Theory]
+    [InlineData(FloorChannel.SharePoint, true)]
+    [InlineData(FloorChannel.Web, true)]
+    [InlineData(FloorChannel.Teams, true)]
+    [InlineData(FloorChannel.Presenter, false)]
+    [InlineData(null, false)]
+    public async Task an_order_from_a_guest_surface_is_remembered_as_a_guest_order(FloorChannel? channel, bool guest)
+    {
+        var ledger = new FloorSignalLedger();
+        var orders = new FloorReportingOrderRepository(new InMemoryOrderRepository(), new FloorEventBus(TimeProvider.System), ledger);
+
+        Order order;
+        using (channel is { } c ? FloorChannelScope.Enter(c) : null)
+        {
+            order = await orders.AddAsync(Order.Create("Diavolo", 1, OrderChannel.Online));
+        }
+
+        Assert.Equal(guest, ledger.IsGuestOrder(order.Id));
+    }
+
+    /// <summary>An order the MCP server signalled is a guest's even when it could not tell the surface.</summary>
+    [Fact]
+    public void a_signalled_order_is_a_guest_order_even_without_a_surface()
+    {
+        var ledger = new FloorSignalLedger();
+
+        ledger.FirstTime("o-1");
+
+        Assert.True(ledger.IsGuestOrder("o-1"));
+        Assert.Null(ledger.SurfaceOf("o-1"));
+        Assert.False(ledger.IsGuestOrder("o-2"));
+    }
+
+    /// <summary>
     /// The simulation books fake online orders with OrderChannel.Copilot. The stage must not
     /// claim Copilot did something unless a request from Copilot actually did it.
     /// </summary>

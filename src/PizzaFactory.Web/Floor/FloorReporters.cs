@@ -29,6 +29,12 @@ public sealed class FloorReportingOrderRepository(IOrderRepository inner, IFloor
     public async Task<Order> AddAsync(Order order, CancellationToken cancellationToken = default)
     {
         var added = await inner.AddAsync(order, cancellationToken);
+        // a person ordering through one of our surfaces is a guest, like one Copilot signals
+        if (FloorChannelScope.Current is FloorChannel.Copilot or FloorChannel.Teams or FloorChannel.SharePoint or FloorChannel.Web)
+        {
+            signalled?.FirstTime(added.Id, FloorChannelScope.Current);
+        }
+
         floor.Publish(new FloorEventDraft(
             "Giuseppe",
             AreaOf(added.Channel),
