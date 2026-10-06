@@ -33,7 +33,12 @@ export function init(rootId, dotnet, snapshot, events) {
             flyTo(s.controls.target.x, s.controls.target.z, k === 'in' ? Math.min(4.5, s.camera.zoom * 1.35) : Math.max(.45, s.camera.zoom / 1.35));
         },
         director: (on) => { s.hud.setDirector(on); try { localStorage.setItem(DIRECTOR_KEY, on ? '1' : '0'); } catch { /* private window */ } },
-        openService: () => dotnet.invokeMethodAsync('OpenService').catch(() => { }),
+        openService: () => dotnet.invokeMethodAsync('OpenService').catch((err) => {
+            // the circuit call failed: say so, and open through the API the SharePoint hero uses
+            console.warn('Stage: OpenService over the circuit failed, falling back to the API', err);
+            return fetch('/api/trattoria/service/open', { method: 'POST', headers: { 'X-PizzaFactory-Channel': 'web' } })
+                .catch((e) => console.warn('Stage: opening the service failed', e));
+        }),
     });
     let director = true;
     try { director = localStorage.getItem(DIRECTOR_KEY) !== '0'; } catch { /* default on */ }

@@ -12,7 +12,7 @@ namespace PizzaFactory.Factory;
 /// up/down, flood the floor with a lunch rush, or reset the pantry. These are the SAME repositories
 /// the autonomous floor runs on — no mocks, no smoke: sabotage is real sabotage.
 /// </summary>
-public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock, IFloorEvents? floor = null)
+public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock, IFloorEvents? floor = null, IPizzaRepository? pizzas = null)
 {
     private readonly IFloorEvents _floor = floor ?? NullFloorEvents.Instance;
 
@@ -79,6 +79,60 @@ public sealed class DemoDirector(IOrderRepository orders, IStockRepository stock
         await stock.SaveAsync(fresh, cancellationToken);
         Report(FloorArea.Storeroom, FloorEventKinds.StockReceived, "pantry", "Pantry reset to opening stock");
         return fresh;
+    }
+
+    /// <summary>
+    /// Voids tickets that were queued before this moment and never started — the backlog a
+    /// stage demo would otherwise bake in front of the audience's own order. Orders younger than
+    /// <paramref name="olderThan"/> stay, so someone who ordered a minute ago keeps their pizza.
+    /// Like the expeditor's write-off, this only moves work forward: the pizzas go out, their
+    /// orders are closed. Returns how many pizzas were voided.
+    /// </summary>
+    public async Task<int> ClearQueueAsync(TimeSpan olderThan, CancellationToken cancellationToken = default)
+    {
+        if (pizzas is null)
+        {
+            return 0;
+        }
+
+        var cutoff = DateTimeOffset.UtcNow - olderThan;
+        var book = (await orders.ListAsync(cancellationToken)).ToDictionary(o => o.Id);
+        var stale = book.Values
+            .Where(o => o.State is OrderState.Created or OrderState.Started && o.CreatedAt < cutoff)
+            .Select(o => o.Id)
+            .ToHashSet();
+
+        var voided = 0;
+        foreach (var pie in await pizzas.GetByStateAsync(PizzaState.OrderAccepted, int.MaxValue, cancellationToken))
+        {
+            if (stale.Contains(pie.OrderId))
+            {
+                await pizzas.UpdateAsync(pie.SendOut(), cancellationToken);
+                voided++;
+            }
+        }
+
+        // close only the orders with nothing left in progress
+        var started = new HashSet<string>();
+        foreach (var state in (PizzaState[])[PizzaState.Preparing, PizzaState.Baking, PizzaState.Ready])
+        {
+            foreach (var pie in await pizzas.GetByStateAsync(state, int.MaxValue, cancellationToken))
+            {
+                started.Add(pie.OrderId);
+            }
+        }
+
+        foreach (var id in stale.Where(id => !started.Contains(id)))
+        {
+            await orders.UpdateAsync(book[id].MarkDelivered(), cancellationToken);
+        }
+
+        if (voided > 0)
+        {
+            Report(FloorArea.Kitchen, FloorEventKinds.QueueCleared, "queue", $"Cleared {voided} old tickets from the rail");
+        }
+
+        return voided;
     }
 
     /// <summary>

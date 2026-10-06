@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
 using PizzaFactory.Domain.Floor;
@@ -88,8 +89,41 @@ public sealed class CallerChannel(IHttpContextAccessor accessor)
             }
 
             var named = FloorChannelScope.Parse(context.Request.Headers[FloorChannelScope.HeaderName])
-                ?? FloorChannelScope.Parse(context.Request.Path.Value?.TrimEnd('/').Split('/').LastOrDefault());
+                ?? FloorChannelScope.Parse(context.Request.Path.Value?.TrimEnd('/').Split('/').LastOrDefault())
+                ?? (CalledThroughCopilot(context.Request.Headers[EasyAuthPrincipalHeader]) ? FloorChannel.Copilot : null);
             return named?.ToString().ToLowerInvariant();
+        }
+    }
+
+    /// <summary>Set by App Service authentication from the validated token; client copies are stripped.</summary>
+    public const string EasyAuthPrincipalHeader = "X-MS-CLIENT-PRINCIPAL";
+
+    /// <summary>
+    /// Copilot plugins get their token from the Microsoft Enterprise token store. Copilot cannot
+    /// add a header, and its SSO registration pins the URL to /mcp, so the token's client is the
+    /// one honest signal that Copilot is calling.
+    /// </summary>
+    public const string CopilotTokenStoreAppId = "ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b";
+
+    private static bool CalledThroughCopilot(string? principal)
+    {
+        if (string.IsNullOrWhiteSpace(principal))
+        {
+            return false;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(Convert.FromBase64String(principal));
+            return doc.RootElement.TryGetProperty("claims", out var claims)
+                && claims.EnumerateArray().Any(c =>
+                    c.TryGetProperty("typ", out var typ) && typ.GetString() is "azp" or "appid"
+                    && c.TryGetProperty("val", out var val)
+                    && string.Equals(val.GetString(), CopilotTokenStoreAppId, StringComparison.OrdinalIgnoreCase));
+        }
+        catch (Exception ex) when (ex is FormatException or JsonException)
+        {
+            return false;
         }
     }
 }

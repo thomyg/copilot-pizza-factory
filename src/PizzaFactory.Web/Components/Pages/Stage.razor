@@ -7,6 +7,7 @@
 @inject FloorSnapshotBuilder Snapshots
 @inject FloorEventBus Floor
 @inject ServiceWindow Service
+@inject PizzaFactory.Factory.DemoDirector Director
 @inject IJSRuntime JS
 @inject ILogger<Stage> Log
 @implements IAsyncDisposable
@@ -97,16 +98,19 @@
         }
     }
 
-    /// <summary>The "Open service" pill on the stage: the presenter's hand, so the stage credits the presenter.</summary>
+    /// <summary>
+    /// The "Open service" pill on the stage: the presenter's hand, so the stage credits the
+    /// presenter. A fresh service starts with an empty rail: tickets queued more than two
+    /// minutes ago are voided, so an order from the audience is not baked behind yesterday's.
+    /// </summary>
     [JSInvokable]
-    public Task OpenService()
+    public async Task OpenService()
     {
         using (FloorChannelScope.Enter(FloorChannel.Presenter))
         {
+            await Director.ClearQueueAsync(TimeSpan.FromMinutes(2));
             Service.Open();
         }
-
-        return Task.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()

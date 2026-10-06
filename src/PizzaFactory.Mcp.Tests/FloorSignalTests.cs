@@ -32,9 +32,14 @@ public sealed class FloorSignalTests(WebApplicationFactory<Program> factory) : I
         return (host, captured);
     }
 
-    private static async Task<McpClient> ConnectAsync(WebApplicationFactory<Program> host, string path, string? channelHeader = null)
+    private static async Task<McpClient> ConnectAsync(WebApplicationFactory<Program> host, string path, string? channelHeader = null, Dictionary<string, string>? extra = null)
     {
         var http = host.CreateClient();
+        foreach (var (k, v) in extra ?? [])
+        {
+            http.DefaultRequestHeaders.Add(k, v);
+        }
+
         var transport = new HttpClientTransport(
             new HttpClientTransportOptions
             {
@@ -76,6 +81,37 @@ public sealed class FloorSignalTests(WebApplicationFactory<Program> factory) : I
         await OrderAsync(client);
 
         Assert.Equal("teams", Assert.Single(captured.Signals).Channel);
+    }
+
+    /// <summary>
+    /// Copilot cannot add headers, and its SSO registration pins the URL to /mcp. What identifies
+    /// it is the token: Copilot plugins get theirs from the Microsoft Enterprise token store, and
+    /// Easy Auth hands the validated claims on in X-MS-CLIENT-PRINCIPAL.
+    /// </summary>
+    [Fact]
+    public async Task a_token_from_copilots_token_store_is_signalled_as_copilot()
+    {
+        var (host, captured) = Rig();
+        var principal = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(
+            "{\"auth_typ\":\"aad\",\"claims\":[{\"typ\":\"azp\",\"val\":\"ab3be6b7-f5df-413d-ac2d-abf1e3fd9c0b\"}]}"));
+        await using var client = await ConnectAsync(host, "mcp", extra: new() { ["X-MS-CLIENT-PRINCIPAL"] = principal });
+
+        await OrderAsync(client);
+
+        Assert.Equal("copilot", Assert.Single(captured.Signals).Channel);
+    }
+
+    [Fact]
+    public async Task a_token_from_another_app_is_not_copilot()
+    {
+        var (host, captured) = Rig();
+        var principal = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(
+            "{\"auth_typ\":\"aad\",\"claims\":[{\"typ\":\"appid\",\"val\":\"4375961f-a7a2-4e12-803b-120ca1016c4e\"}]}"));
+        await using var client = await ConnectAsync(host, "mcp", extra: new() { ["X-MS-CLIENT-PRINCIPAL"] = principal });
+
+        await OrderAsync(client);
+
+        Assert.Null(Assert.Single(captured.Signals).Channel);
     }
 
     [Fact]

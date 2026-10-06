@@ -66,3 +66,34 @@ public sealed class DemoDirectorFloorTests
         Assert.Equal(2, bus.Since(0).Count);
     }
 }
+
+/// <summary>A new service should not start by baking yesterday's queue in front of the audience's order.</summary>
+public sealed class ClearQueueTests
+{
+    [Fact]
+    public async Task old_queued_pizzas_are_voided_and_fresh_ones_kept()
+    {
+        var orders = new InMemoryOrderRepository();
+        var pizzas = new InMemoryPizzaRepository();
+        var director = new DemoDirector(orders, new InMemoryStockRepository(), null, pizzas);
+        var old = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Funghi", 2, OrderChannel.Online) with { CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30) });
+        var fresh = await orders.AddAsync(PizzaFactory.Domain.Entities.Order.Create("Hawaii", 1, OrderChannel.Copilot));
+        await pizzas.AddRangeAsync([PizzaFactory.Domain.Entities.Pizza.FromOrder(old), PizzaFactory.Domain.Entities.Pizza.FromOrder(old), PizzaFactory.Domain.Entities.Pizza.FromOrder(fresh)]);
+        await orders.UpdateAsync(old.Start());
+
+        var voided = await director.ClearQueueAsync(TimeSpan.FromMinutes(2));
+
+        Assert.Equal(2, voided);
+        var queued = await pizzas.GetByStateAsync(PizzaState.OrderAccepted, 100);
+        Assert.Equal(fresh.Id, Assert.Single(queued).OrderId);
+        Assert.Equal(OrderState.Delivered, (await orders.ListAsync()).Single(o => o.Id == old.Id).State);
+    }
+
+    [Fact]
+    public async Task an_empty_queue_is_left_alone()
+    {
+        var director = new DemoDirector(new InMemoryOrderRepository(), new InMemoryStockRepository(), null, new InMemoryPizzaRepository());
+
+        Assert.Equal(0, await director.ClearQueueAsync(TimeSpan.FromMinutes(2)));
+    }
+}

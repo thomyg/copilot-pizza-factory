@@ -86,7 +86,7 @@
         "reference_id": "${{MCP_AUTH_CONFIG_ID}}"
       },
       "spec": {
-        "url": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp/copilot",
+        "url": "https://func-mcp-copilotpizzafactory.azurewebsites.net/mcp",
         "mcp_tool_description": {
           "tools": [
             {

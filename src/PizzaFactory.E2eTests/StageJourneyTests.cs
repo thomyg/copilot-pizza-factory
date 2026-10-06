@@ -109,6 +109,23 @@ public sealed class StageJourneyTests(WebAppFixture app) : IAsyncLifetime
         await Assertions.Expect(page.Locator(".st-feed .st-tag.m365").First).ToBeVisibleAsync();
     }
 
+    /// <summary>The presenter opens the house from the stage itself.</summary>
+    [Fact]
+    public async Task the_open_service_button_opens_the_house()
+    {
+        var page = await StageAsync();
+        var open = page.Locator("[data-open]");
+        if (!await open.IsVisibleAsync())
+        {
+            return;   // another test in this run already opened it
+        }
+
+        await open.ClickAsync();
+
+        await Assertions.Expect(page.Locator("[data-service-text]"))
+            .ToContainTextAsync("Service open", new LocatorAssertionsToContainTextOptions { Timeout = 10_000 });
+    }
+
     /// <summary>What the MCP server sends after Giuseppe orders inside Copilot.</summary>
     [Fact]
     public async Task an_order_giuseppe_places_from_copilot_lands_on_stage()

@@ -45,6 +45,8 @@ public static class FloorEventKinds
     public const string PartySeated = "party.seated";
     public const string PartyLeft = "party.left";
 
+    public const string QueueCleared = "queue.cleared";
+
     public const string StockLow = "stock.low";
     public const string StockReceived = "stock.received";
     public const string StockChanged = "stock.changed";
