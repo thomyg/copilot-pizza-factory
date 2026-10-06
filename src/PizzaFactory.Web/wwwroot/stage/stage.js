@@ -376,7 +376,10 @@ function buildLamps() {
 }
 
 function pinnedTheme() {
-    const asked = new URLSearchParams(location.search).get('theme');
+    // also after the fragment: links like /#order?theme=dark are easy to type and the browser
+    // would otherwise never hand that part to the page as a query
+    const inHash = location.hash.includes('?') ? location.hash.slice(location.hash.indexOf('?')) : '';
+    const asked = new URLSearchParams(location.search).get('theme') ?? new URLSearchParams(inHash).get('theme');
     try {
         if (asked === 'dark' || asked === 'light') localStorage.setItem(THEME_KEY, asked);
         else if (asked === 'auto') localStorage.removeItem(THEME_KEY);
