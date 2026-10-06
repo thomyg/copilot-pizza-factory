@@ -19,6 +19,8 @@
     --st-info: #3d6fa8;
     --st-m365: #5b5fc7;
     --st-shadow: 0 1px 2px rgba(42, 27, 12, .06), 0 10px 28px rgba(42, 27, 12, .12);
+    --st-edge: var(--st-line);          /* a card's outline against the scene */
+    --st-top: var(--st-panel-solid);    /* the navigation bar */
     --st-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
     position: fixed;
@@ -36,12 +38,16 @@
     overscroll-behavior: none;
 }
 
+/* "Warm dark", built for a projector: a cosy restaurant in the evening, not a power cut at 3 a.m.
+   The bottom 10–15 % of a projector's range melts into one black, so background, navigation and
+   cards each sit on their own step (#151311 → #1B1713 → #261E19), the cards get a visible outline
+   and float on a shadow, and the text is bright enough to read from the back of the room. */
 @media (prefers-color-scheme: dark) {
     .stage-root {
-        --st-bg: #140f0b; --st-panel: rgba(29, 22, 17, .88); --st-panel-solid: #1d1611;
-        --st-ink: #f8f1e0; --st-muted: #b9a585; --st-line: #38291d; --st-chip: #281e16;
-        --st-accent: #e8562f; --st-accent-ink: #140f0b; --st-gold: #e2b25a; --st-basil: #8db07e; --st-info: #7fa7d6; --st-m365: #9ea2ff;
-        --st-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 30px rgba(0, 0, 0, .45);
+        --st-bg: #151311; --st-top: #1b1713; --st-panel: rgba(42, 33, 27, .96); --st-panel-solid: #2a211b;
+        --st-ink: #f3e8da; --st-muted: #c8b49e; --st-line: #433327; --st-edge: #6b4d36; --st-chip: #33281f;
+        --st-accent: #e8562f; --st-accent-ink: #151311; --st-gold: #e2b25a; --st-basil: #8db07e; --st-info: #7fa7d6; --st-m365: #9ea2ff;
+        --st-shadow: inset 0 1px 0 rgba(255, 236, 214, .07), 0 2px 4px rgba(0, 0, 0, .35), 0 16px 40px rgba(0, 0, 0, .55);
         color-scheme: dark;
     }
 }
@@ -52,7 +58,7 @@
 .stage-root :focus-visible { outline: 2px solid var(--st-accent); outline-offset: 2px; }
 
 /* top bar */
-.st-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--st-line); background: var(--st-panel-solid); z-index: 5; }
+.st-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--st-edge); background: var(--st-top); z-index: 5; }
 .st-brand { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
 .st-brand b { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-weight: 700; font-size: 20px; color: var(--st-accent); }
 .st-brand span { color: var(--st-muted); font-size: 13px; }
@@ -67,7 +73,7 @@
 .st-pill.toggle[aria-pressed="true"] { background: var(--st-m365); color: #fff; }
 .st-pill.action { cursor: pointer; background: var(--st-accent); color: var(--st-accent-ink); }
 .st-clock { font-family: var(--st-mono); font-variant-numeric: tabular-nums; }
-.st-nav { display: flex; gap: 10px; font-size: 12px; }
+.st-nav { display: flex; gap: 10px; font-size: 13px; }
 .st-nav a { color: var(--st-muted); text-decoration: none; }
 .st-nav a:hover { color: var(--st-accent); }
 
@@ -77,12 +83,12 @@
 .st-labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 
 .st-hud { position: absolute; z-index: 3; background: var(--st-panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--st-line); border-radius: 14px; box-shadow: var(--st-shadow); }
+    border: 1px solid var(--st-edge); border-radius: 14px; box-shadow: var(--st-shadow); }
 
 .st-kpis { top: 16px; left: 16px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); padding: 4px; width: min(690px, calc(100% - 32px - 330px - 60px)); }
 .st-kpi { padding: 10px 12px; min-width: 0; }
 .st-kpi + .st-kpi { border-left: 1px solid var(--st-line); }
-.st-kpi .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .07em; color: var(--st-muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-kpi .lbl { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--st-muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .st-kpi .val { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; margin-top: 2px; }
 .st-kpi .val small { font-family: var(--font-ui, sans-serif); font-size: 13px; color: var(--st-muted); font-weight: 500; }
 .st-kpi .bar { height: 4px; border-radius: 4px; background: var(--st-chip); margin-top: 6px; overflow: hidden; }
@@ -90,8 +96,8 @@
 .st-kpi.warn .val { color: var(--st-accent); }
 .st-kpi.ask .val { color: var(--st-gold); }
 
-.st-inspector { top: 16px; right: 16px; width: 330px; max-height: calc(100% - 32px - 150px); overflow: auto; padding: 16px; }
-.st-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--st-muted); font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
+.st-inspector { top: 16px; right: 16px; width: 330px; max-height: calc(100% - 32px - 170px - 16px); overflow: auto; padding: 16px; }
+.st-kicker { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--st-muted); font-weight: 700; display: flex; justify-content: space-between; gap: 8px; }
 .st-title { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 22px; font-weight: 700; margin: 4px 0 2px; text-wrap: balance; }
 .st-sub { color: var(--st-muted); margin-bottom: 12px; }
 .st-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--st-chip); }
@@ -127,26 +133,27 @@
 .st-tracker.following .st-step.active .node { box-shadow: 0 0 0 3px var(--st-m365); }
 .st-tracker-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .st-tracker-head b { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 15px; }
-.st-tracker-head span { color: var(--st-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.st-tracker-head span { color: var(--st-muted); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .st-steps { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin-top: 12px; }
-.st-step { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; font-size: 12px; text-align: center; }
+.st-step { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; font-size: 13px; text-align: center; }
 .st-step::before { content: ""; position: absolute; top: 9px; left: -50%; width: 100%; height: 3px; background: var(--st-chip); z-index: 0; }
 .st-step:first-child::before { display: none; }
 .st-step.done::before, .st-step.active::before { background: var(--st-accent); }
 .st-step .node { width: 20px; height: 20px; border-radius: 50%; background: var(--st-chip); border: 3px solid var(--st-panel-solid); box-shadow: 0 0 0 1px var(--st-line); z-index: 1; }
 .st-step.done .node { background: var(--st-accent); }
 .st-step.active .node { background: var(--st-panel-solid); box-shadow: 0 0 0 3px var(--st-accent); }
-.st-step .n { color: var(--st-muted); font-variant-numeric: tabular-nums; font-size: 11px; }
+.st-step .n { color: var(--st-muted); font-variant-numeric: tabular-nums; font-size: 12px; }
 
-.st-feed { right: 16px; bottom: 16px; width: 330px; height: 150px; padding: 10px 14px; display: flex; flex-direction: column; }
-.st-feed-head { display: flex; justify-content: space-between; align-items: baseline; }
+.st-feed { right: 16px; bottom: 16px; width: 330px; height: 170px; padding: 10px 14px; display: flex; flex-direction: column; }
+.st-feed-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; white-space: nowrap; }
+.st-feed-head span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .st-feed-head b { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 15px; }
-.st-feed-head span { font-size: 11px; color: var(--st-muted); }
+.st-feed-head span { font-size: 12px; color: var(--st-muted); }
 .st-feed ol { list-style: none; margin: 6px 0 0; padding: 0; overflow: auto; flex: 1; min-height: 0; }
-.st-feed li { display: grid; grid-template-columns: 38px auto 1fr; gap: 6px; padding: 4px 0; font-size: 12px; border-bottom: 1px dashed var(--st-line); align-items: baseline; }
-.st-feed li time { font-family: var(--st-mono); color: var(--st-muted); font-size: 11px; }
+.st-feed li { display: grid; grid-template-columns: 42px auto 1fr; gap: 6px; padding: 4px 0; font-size: 13px; border-bottom: 1px dashed var(--st-line); align-items: baseline; }
+.st-feed li time { font-family: var(--st-mono); color: var(--st-muted); font-size: 12px; }
 .st-feed li p { margin: 0; min-width: 0; overflow-wrap: anywhere; }
-.st-tag { font-size: 10px; font-weight: 700; letter-spacing: .05em; padding: 1px 6px; border-radius: 5px; background: var(--st-chip); color: var(--st-muted); text-transform: uppercase; }
+.st-tag { font-size: 11px; font-weight: 700; letter-spacing: .05em; padding: 1px 6px; border-radius: 5px; background: var(--st-chip); color: var(--st-muted); text-transform: uppercase; }
 .st-tag.m365 { color: #fff; background: var(--st-m365); }
 .st-tag.presenter { color: var(--st-gold); }
 .st-tag.web { color: var(--st-info); }
@@ -173,7 +180,7 @@
 /* in-scene labels */
 .stage-root .chip3d { pointer-events: auto; cursor: pointer; font: 700 11px/1 var(--font-ui, sans-serif); padding: 4px 7px; border-radius: 999px;
     background: var(--st-panel-solid); color: var(--st-ink); box-shadow: 0 2px 6px rgba(0,0,0,.18); white-space: nowrap; display: inline-flex; gap: 5px; align-items: center;
-    border: 1px solid var(--st-line); font-variant-numeric: tabular-nums; }
+    border: 1px solid var(--st-edge); font-variant-numeric: tabular-nums; }
 .stage-root .chip3d i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
 .stage-root .chip3d.s-seated i { color: var(--st-gold); } .stage-root .chip3d.s-waiting i { color: var(--st-accent); } .stage-root .chip3d.s-eating i { color: var(--st-basil); } .stage-root .chip3d.s-paying i { color: var(--st-info); }
 .stage-root .chip3d.s-free { opacity: .7; font-weight: 500; }

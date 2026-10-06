@@ -370,14 +370,14 @@ function buildLamps() {
 function theme() {
     const night = S.themeQuery.matches;
     S.night = night;
-    S.scene.background = new THREE.Color(night ? 0x1d1611 : 0xf1e7d1);
-    S.hemi.intensity = night ? .55 : 1.6;
+    S.scene.background = new THREE.Color(night ? 0x151311 : 0xf1e7d1);
+    S.hemi.intensity = night ? .8 : 1.6;
     S.hemi.color.set(night ? 0x9fb0d0 : 0xfff6e6);
     S.hemi.groundColor.set(night ? 0x281e16 : 0xcdb88b);
     S.sun.intensity = night ? .9 : 2.4;
     S.sun.color.set(night ? 0xb8c8ff : 0xfff1dc);
     S.world.glassM.emissiveIntensity = night ? .9 : 0;
-    S.world.ground.material.color.set(night ? 0x3a3027 : 0xe6dcc6);
+    S.world.ground.material.color.set(night ? 0x473a2f : 0xe6dcc6);
     S.world.lampShadeM.emissiveIntensity = night ? 1.2 : 0;
     S.lampM.emissiveIntensity = night ? 1.5 : 0;
     S.lamps.forEach((l) => { l.intensity = night ? 3 : 0; });
