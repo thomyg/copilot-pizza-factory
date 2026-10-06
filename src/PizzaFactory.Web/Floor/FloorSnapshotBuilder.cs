@@ -24,6 +24,7 @@ public sealed class FloorSnapshotBuilder(
     TimeOffBook timeOff,
     StaffBook staff,
     BackOfficeOptions backOffice,
+    FloorSignalLedger signalled,
     TimeProvider clock)
 {
     /// <summary>More than the line can hold; a backlog past this is a number, not a picture.</summary>
@@ -84,7 +85,8 @@ public sealed class FloorSnapshotBuilder(
                 house.Walkouts,
                 house.AverageStars),
             [.. desk.Tickets.Select(t => new TicketView(
-                t.OrderId, t.Mode.ToString(), t.Customer, t.Pizza, t.Amount, t.State.ToString(), t.PlacedAt, t.ReadyAt))],
+                t.OrderId, t.Mode.ToString(), t.Customer, t.Pizza, t.Amount, t.State.ToString(), t.PlacedAt, t.ReadyAt,
+                signalled.SurfaceOf(t.OrderId)))],
             Office(),
             Brigade());
     }
@@ -106,7 +108,8 @@ public sealed class FloorSnapshotBuilder(
                     p.StartedAt,
                     recipe?.PreparingTime.TotalSeconds ?? 0,
                     recipe?.BakingTime.TotalSeconds ?? 0,
-                    tableOfOrder.TryGetValue(p.OrderId, out var table) ? table : null));
+                    tableOfOrder.TryGetValue(p.OrderId, out var table) ? table : null,
+                    signalled.SurfaceOf(p.OrderId)));
             }
         }
 

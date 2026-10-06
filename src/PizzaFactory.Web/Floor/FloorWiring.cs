@@ -101,12 +101,12 @@ public static class FloorWiring
             return Results.BadRequest(new { error = "Only a real order.placed for a menu pizza, 1 to 24, is accepted." });
         }
 
-        if (!heard.FirstTime(signal.OrderId))
+        var channel = FloorChannelScope.Parse(signal.Channel) ?? FloorChannelScope.Current;
+        if (!heard.FirstTime(signal.OrderId, channel))
         {
             return Results.Accepted();   // heard it already
         }
 
-        var channel = FloorChannelScope.Parse(signal.Channel) ?? FloorChannelScope.Current;
         using var scope = channel is { } c ? FloorChannelScope.Enter(c) : null;
 
         // The name typed into Copilot is often the user's own: it goes on the ticket, never on the stage.
@@ -201,19 +201,22 @@ public sealed record FloorOptions
     public string? SignalCallerId { get; init; }
 }
 
-/// <summary>Remembers which orders were already announced, so a repeated signal cannot replay a banner.</summary>
+/// <summary>
+/// Remembers which orders were already announced — so a repeated signal cannot replay a banner —
+/// and through which surface, so the stage can mark that order all the way to the courier.
+/// </summary>
 public sealed class FloorSignalLedger
 {
     private const int Capacity = 2000;
     private readonly Lock _gate = new();
-    private readonly HashSet<string> _seen = [];
+    private readonly Dictionary<string, FloorChannel?> _seen = [];
     private readonly Queue<string> _order = new();
 
-    public bool FirstTime(string orderId)
+    public bool FirstTime(string orderId, FloorChannel? channel = null)
     {
         lock (_gate)
         {
-            if (!_seen.Add(orderId))
+            if (!_seen.TryAdd(orderId, channel))
             {
                 return false;
             }
@@ -225,6 +228,17 @@ public sealed class FloorSignalLedger
             }
 
             return true;
+        }
+    }
+
+    /// <summary>The Microsoft 365 surface (or the web) an order came through; null for the house's own.</summary>
+    public string? SurfaceOf(string orderId)
+    {
+        lock (_gate)
+        {
+            return _seen.GetValueOrDefault(orderId) is { } c && c is not FloorChannel.Autonomous and not FloorChannel.Presenter
+                ? c.ToString()
+                : null;
         }
     }
 }

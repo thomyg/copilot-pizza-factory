@@ -3,7 +3,7 @@
 import { THREE, M, mesh, box, cyl, at, canvasTex, label, person, plant, vespa, van as makeVan } from './kit.js';
 
 // x ranges of the rooms; every room runs z -7 (back wall) to +7 (open front).
-export const ROOMS = { store: [-22, -12], kitchen: [-12, 0], sala: [0, 22], break: [22, 30], office: [30, 38] };
+export const ROOMS = { store: [-22, -12], kitchen: [-12, 0], sala: [0, 22], break: [22, 30], office: [30, 38], takeaway: [38, 46] };
 
 // Domain Ingredient names → how they sit in the storeroom.
 export const INGREDIENTS = [
@@ -40,7 +40,8 @@ export const SPOTS = {
     vanStop: -17,
     entrance: new THREE.Vector3(19, 0, 7.4),
     breakSpot: new THREE.Vector3(24.4, 0, -5.3),
-    vespaBay: new THREE.Vector3(26, 0, 8.2),
+    vespaBay: new THREE.Vector3(41.5, 0, 8.2),
+    counter: new THREE.Vector3(42, 1.1, 5.4),
 };
 
 export function buildWorld(scene) {
@@ -64,6 +65,7 @@ export function buildWorld(scene) {
     buildDiningExtras(scene);
     buildBreakRoom(scene, w);
     buildOffice(scene, w);
+    buildTakeaway(scene, w);
     buildStreet(scene, w);
     return w;
 }
@@ -118,6 +120,18 @@ function buildShell(scene, w) {
     floor(ROOMS.sala, plank);
     floor(ROOMS.break, lino);
     floor(ROOMS.office, herring);
+    const terrazzo = canvasTex((g, s) => {
+        g.fillStyle = '#efe6d2'; g.fillRect(0, 0, s, s);
+        let seed = 7;
+        const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);   // deterministic speckle
+        for (let i = 0; i < 900; i++) {
+            g.fillStyle = ['#c93a21', '#d9a13f', '#4a6440', '#9aa0a6'][i % 4];
+            g.globalAlpha = .35;
+            g.fillRect(rnd() * s, rnd() * s, 2 + rnd() * 3, 2 + rnd() * 3);
+        }
+        g.globalAlpha = 1;
+    }, 256, [2, 3.5]);
+    floor(ROOMS.takeaway, terrazzo);
     const rug = box(4.2, .02, 3, M('#8f2415'), 0);
     rug.castShadow = false;
     scene.add(at(rug, 34, .01, -1.6));
@@ -134,16 +148,17 @@ function buildShell(scene, w) {
         cap.rotation.y = wl.rotation.y;
         scene.add(cap);
     };
-    wall(-22.12, -7, 38.12, -7);
+    wall(-22.12, -7, 46.12, -7);
     wall(-22, -7, -22, 7);
     wall(-12, -7, -12, 1.6, 1.1); wall(-12, 3.8, -12, 7, 1.1);
     wall(0, -7, 0, 1.6, 1.1); wall(0, 6.9, 0, 7, 1.1);
     wall(22, -7, 22, 1.4, 1.1); wall(22, 3.6, 22, 7, 1.1);
     wall(30, -7, 30, .4, 1.1); wall(30, 2.6, 30, 7, 1.1);
-    wall(38, -7, 38, 7, .35);
+    wall(38, -7, 38, 1.2, 1.1); wall(38, 3.2, 38, 7, 1.1);        // office | asporto
+    wall(46, -7, 46, 7, .35);                                     // low kerb on the open side
 
     w.glassM = new THREE.MeshStandardMaterial({ color: 0xbcd3dc, roughness: .2, metalness: .1, emissive: 0xffc27a, emissiveIntensity: 0 });
-    for (const x of [2.5, 6.1, 9.7, 13.3, 16.9, 20.5, 33.5]) {
+    for (const x of [2.5, 6.1, 9.7, 13.3, 16.9, 20.5, 33.5, 44.3]) {
         scene.add(at(box(2.2, 1.1, .06, w.glassM, 0), x, 1.3, -6.86));
         scene.add(at(box(2.4, .08, .2, M('#e2d1ac'), 0), x, .72, -6.8));
     }
@@ -165,7 +180,7 @@ function buildShell(scene, w) {
         scene.add(at(m, x, 2.27, -6.87));
         signs.push(() => { draw(); t.needsUpdate = true; });
     };
-    roomSign('DISPENSA', -17); roomSign('CUCINA', -6); roomSign('SALA', 7); roomSign('PAUSA', 26, 2.8); roomSign('UFFICIO', 34, 2.8);
+    roomSign('DISPENSA', -17); roomSign('CUCINA', -6); roomSign('SALA', 7); roomSign('PAUSA', 26, 2.8); roomSign('UFFICIO', 34, 2.8); roomSign('ASPORTO', 44.3, 2.6);
     document.fonts?.ready.then(() => signs.forEach((redraw) => redraw()));
 }
 
@@ -416,6 +431,53 @@ function buildOffice(scene, w) {
     w.capoPin.visible = false;
 }
 
+/** Asporto: the counter where online, Copilot and Teams orders are boxed and handed to the couriers. */
+function buildTakeaway(scene, w) {
+    // the order board on the back wall: one slip per ticket still cooking
+    const board = new THREE.Group();
+    board.add(at(box(3.4, 1.6, .08, M('#38291d'), .03), 0, 1.55, 0));
+    board.add(at(box(3.2, 1.4, .02, M('#2c4026'), 0), 0, 1.55, .05));
+    w.boardSlips = [];
+    for (let i = 0; i < 12; i++) {
+        const slip = box(.42, .3, .01, M('#ffffff'), 0);
+        at(slip, -1.3 + (i % 6) * .52, 1.95 - Math.floor(i / 6) * .5, .07);
+        slip.visible = false;
+        board.add(slip);
+        w.boardSlips.push(slip);
+    }
+    at(board, 41, 0, -6.75);
+    w.pickable(board, { kind: 'takeaway' }, 1.6);
+    w.takeawayPin = label('', 'pin3d m365', 2.9, board);
+    w.takeawayPin.visible = false;
+
+    // the pick-up counter by the street door, with boxed pizzas waiting
+    const counter = new THREE.Group();
+    counter.add(at(box(5.4, 1, .9, M('#8f6b4a'), .05), 0, .5, 0));
+    counter.add(at(box(5.6, .08, 1, M('#f4efe6', { roughness: .4 }), .03), 0, 1.04, 0));
+    w.counterBoxes = [];
+    for (let i = 0; i < 8; i++) {
+        const b = new THREE.Group();
+        b.add(box(.46, .08, .46, M('#c99a68'), .02));
+        const ribbon = box(.47, .085, .08, M('#5b5fc7', { emissive: '#5b5fc7', emissiveIntensity: .5 }), 0);
+        ribbon.visible = false;
+        b.add(ribbon);
+        b.userData.ribbon = ribbon;
+        at(b, -2.2 + (i % 4) * .58, 1.13 + Math.floor(i / 4) * .09, 0);
+        b.visible = false;
+        counter.add(b);
+        w.counterBoxes.push(b);
+    }
+    at(counter, 42, 0, 5.3);
+    w.pickable(counter, { kind: 'takeaway' }, 2.8);
+
+    // a heated shelf for boxes, a ticket printer, the street door
+    scene.add(at(box(.6, 1.6, 2.4, M('#c9cdd1', { metalness: .35, roughness: .4 }), .04), 45.5, .8, -2.5));
+    scene.add(at(box(.36, .2, .3, M('#38291d'), .03), 39.6, 1.18, 5.3));
+    scene.add(at(box(2, .03, 1.2, M('#5b5fc7'), 0), 42, .01, 7.75));
+    plant(scene, 38.7, -6.1, .8);
+    w.courierSpots = [[43.6, -.4], [44.4, .4], [43.2, 1.2]].map(([x, z]) => new THREE.Vector3(x, 0, z));
+}
+
 function buildStreet(scene, w) {
     scene.add(at(box(220, .05, 4.2, M('#bfb39c'), 0), 0, -.18, 11.4));
     for (let x = -100; x < 100; x += 3) scene.add(at(box(1.4, .02, .14, M('#f6efdf'), 0), x, -.15, 11.4));
@@ -429,7 +491,7 @@ function buildStreet(scene, w) {
     }
     w.vespas = ['#a8c09a', '#c93a21'].map((color, i) => {
         const v = vespa(color);
-        at(v, 25.3 + i * 1.7, -.2, 8.2);
+        at(v, 40.6 + i * 1.7, -.2, 8.2);
         v.rotation.y = -.3;
         scene.add(v);
         return { obj: v, home: v.position.clone(), busy: false };

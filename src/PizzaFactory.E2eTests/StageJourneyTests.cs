@@ -39,7 +39,7 @@ public sealed class StageJourneyTests(WebAppFixture app) : IAsyncLifetime
     {
         var page = await StageAsync();
 
-        await Assertions.Expect(page.Locator(".st-zones button")).ToHaveCountAsync(6);
+        await Assertions.Expect(page.Locator(".st-zones button")).ToHaveCountAsync(7);
         await Assertions.Expect(page.Locator("canvas")).ToBeVisibleAsync();
         await Assertions.Expect(page.Locator("#blazor-error-ui")).ToBeHiddenAsync();
     }

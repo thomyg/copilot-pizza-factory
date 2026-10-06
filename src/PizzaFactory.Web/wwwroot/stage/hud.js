@@ -15,12 +15,13 @@ const PARTY = { Seated: ['s-seated', 'Deciding'], WaitingForFood: ['s-waiting', 
 const PIZZA = { OrderAccepted: 'Queued', Preparing: 'On the bench', Baking: 'In the oven', Ready: 'On the pass' };
 
 export const ZONES = {
-    all: { label: 'Whole house', cx: 8, w: 62, d: 16 },
+    all: { label: 'Whole house', cx: 12, w: 70, d: 16 },
     store: { label: 'Storeroom', cx: -17, w: 11, d: 15 },
     kitchen: { label: 'Kitchen', cx: -6, w: 13, d: 15 },
     sala: { label: 'Dining room', cx: 11, w: 23, d: 15 },
     break: { label: 'Break room', cx: 26, w: 9.5, d: 15 },
     office: { label: 'Office', cx: 34, w: 9.5, d: 15 },
+    takeaway: { label: 'Takeaway', cx: 42, w: 9.5, d: 17 },
 };
 
 export class Hud {
@@ -297,6 +298,17 @@ export class Hud {
                       return `<div class="st-row"><span><b>${esc(m.name)}</b> <span class="st-empty">· ${esc(m.role)}${m.ovenCertified ? ' · oven' : ''}</span></span><span class="st-state ${m.absentToday ? 's-low' : on ? 's-eating' : 's-free'}">${m.absentToday ? 'Out today' : on ? 'On shift' : 'Off'}</span></div>`;
                   }).join('')}`;
             }
+            case 'takeaway': {
+                const cooking = snap.tickets.filter((t) => t.state === 'Cooking');
+                const done = snap.tickets.filter((t) => t.state === 'Done').slice(0, 4);
+                const row = (t) => `<div class="st-row"><span>${esc(t.amount)}× ${esc(t.pizza)} <span class="st-empty">· ${t.mode === 'Delivery' ? 'delivery' : 'takeaway'}</span></span>
+                    <span class="st-tag ${t.surface ? 'm365' : ''}">${t.surface ? 'via ' + esc(t.surface) : 'online'}</span></div>`;
+                return `<div class="st-kicker"><span>Asporto · takeaway & delivery</span><span>${cooking.length} cooking</span></div>
+                  <div class="st-title">The pick-up counter</div><div class="st-sub">Orders from the web, Copilot and Teams: boxed here, handed to the couriers</div>
+                  <div class="st-sect">On the board</div>${cooking.length ? cooking.map(row).join('') : '<p class="st-empty">Nothing cooking for the counter.</p>'}
+                  <div class="st-sect">Just left</div>${done.length ? done.map(row).join('') : '<p class="st-empty">No deliveries yet this service.</p>'}
+                  <div class="st-callout">Orders placed through <b>Copilot</b> or <b>Teams</b> are marked purple: on the board, under the pizza on the line, and on the courier's Vespa.</div>`;
+            }
             case 'espresso':
                 return `<div class="st-kicker"><span>Break room</span><span>the real engine</span></div><div class="st-title">La macchina</div><div class="st-sub">Lever espresso machine, older than the restaurant</div>
                   <div class="st-callout">Not connected to anything. Some things in a pizzeria should stay analogue.</div>`;
@@ -335,6 +347,16 @@ export class Hud {
             set('Purchase order', `${po.id} · ${kg(po.grams)} ${ingName(po.ingredient).toLowerCase()} · ${eur(po.cost)}`,
                 steps(['Requested', 'Nonna checked', 'Approved', 'Delivered', 'Invoiced'], stage, [hhmm(po.at), po.decision === 'AutoApproved' ? 'under limit' : 'over limit', note]));
             return;
+        }
+        if (sel.kind === 'takeaway') {
+            const t = snap.tickets.find((x) => x.surface && x.state === 'Cooking') ?? snap.tickets.find((x) => x.surface) ?? snap.tickets[0];
+            if (t) {
+                const line = snap.kitchen.pizzas.filter((p) => p.orderId === t.orderId);
+                const stage = t.state === 'Done' ? 4 : line.some((p) => p.state === 'Ready') ? 2 : line.some((p) => p.state === 'Preparing' || p.state === 'Baking') ? 1 : 0;
+                set('Takeaway order', `${t.amount}× ${t.pizza} · ${t.surface ? 'via ' + t.surface : 'online'}`,
+                    steps(['Ordered', 'In the kitchen', 'Boxed', t.mode === 'Delivery' ? 'With the courier' : 'Picked up'], stage, [hhmm(t.placedAt)]));
+                return;
+            }
         }
         if (['board', 'lockers', 'staff', 'approvals', 'capo'].includes(sel.kind) && office.timeOff.length) {
             const t = office.timeOff.find((x) => x.state === 'Pending') ?? office.timeOff[0];

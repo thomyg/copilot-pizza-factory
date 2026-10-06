@@ -63,13 +63,13 @@ export function init(rootId, dotnet, snapshot, events) {
 
     s.hemi = new THREE.HemisphereLight(0xfff6e6, 0xcdb88b, 1.6);
     s.sun = new THREE.DirectionalLight(0xfff1dc, 2.4);
-    s.sun.position.set(-6, 34, 22);
+    s.sun.position.set(-2, 34, 22);
     s.sun.castShadow = true;
     s.sun.shadow.mapSize.set(2048, 2048);
-    Object.assign(s.sun.shadow.camera, { left: -48, right: 48, top: 30, bottom: -30, near: 1, far: 110 });
+    Object.assign(s.sun.shadow.camera, { left: -54, right: 54, top: 32, bottom: -32, near: 1, far: 120 });
     s.sun.shadow.bias = -.0004;
     s.sun.shadow.normalBias = .03;
-    s.sun.target.position.set(8, 0, 0);
+    s.sun.target.position.set(12, 0, 0);
     s.scene.add(s.hemi, s.sun, s.sun.target);
 
     s.world = buildWorld(s.scene);

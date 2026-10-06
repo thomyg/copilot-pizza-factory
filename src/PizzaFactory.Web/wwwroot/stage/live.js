@@ -44,6 +44,7 @@ export class Live {
         this.syncOffice(snap.office);
         this.syncCrew(snap);
         this.syncTickets(snap.tickets, first);
+        this.syncTakeaway(snap.tickets);
     }
 
     /* ─────────────────────────── dining room ─────────────────────────── */
@@ -161,6 +162,7 @@ export class Live {
             }
             e.view = v;
             e.mesh.visible = (v.state === 'Preparing' || v.state === 'Ready') && e.slot >= 0;
+            e.mesh.userData.tag.visible = !!v.surface;
             if (v.state === 'Ready' && e.slot >= 0) { e.mesh.position.copy(this.w.passSlot(e.slot)); dressPizza(e.mesh, 'pass'); }
         }
 
@@ -171,6 +173,11 @@ export class Live {
             if (!first && e.view.state === 'Ready' && e.view.tableId != null && this.tables.has(e.view.tableId)) {
                 e.mesh.visible = true;
                 this.jobs.push({ mesh: e.mesh, tableId: e.view.tableId, from: e.mesh.position.clone() });
+            } else if (!first && e.view.state === 'Ready' && e.view.tableId == null) {
+                // an online order: it goes from the pass to the Asporto counter to be boxed
+                e.mesh.visible = true;
+                e.mesh.userData = { ...e.mesh.userData, t: 0, delay: 0, from: e.mesh.position.clone(), to: SPOTS.counter.clone(), dur: 1.6, arc: 2.4 };
+                this.w.flyers.add(e.mesh);
             } else {
                 discard(e.mesh);
             }
@@ -278,6 +285,8 @@ export class Live {
         const { service, others } = this.shift(snap);
         const runners = service.length ? service.slice(0, 3) : ['Runner'];
         const crew = [...service.slice(3).map((name) => ({ name, role: 'Service' })), ...others];
+        // the counter is never left without someone to ride: a stand-in when the rota names no courier
+        if (!crew.some((c) => c.role === 'Courier')) crew.push({ name: 'Rider', role: 'Courier' });
         const key = runners.join(',') + '|' + crew.map((c) => c.name).join(',');
         if (key === this.crewKey) return;
         this.crewKey = key;
@@ -296,11 +305,17 @@ export class Live {
         });
 
         for (const [name, fig] of this.crew) if (!crew.some((c) => c.name === name)) { this.w.unpick(fig); discard(fig); this.crew.delete(name); }
-        crew.forEach((c, i) => {
-            if (this.crew.has(c.name) || i >= this.w.breakSeats.length) return;
-            const look = c.role === 'Pizzaiolo' ? { body: '#ffffff', apron: '#c93a21' } : c.role === 'Courier' ? { body: pickOf(['#3d6fa8', '#d9a13f'], c.name) } : { body: '#38291d', apron: '#fbf6ea' };
-            const fig = person({ ...look, skin: pickOf(SKIN, c.name), seated: true });
-            fig.position.copy(this.w.breakSeats[i]);
+        // couriers wait in Asporto by their Vespas; everyone else off the floor sits in the break room
+        let seat = 0, spot = 0;
+        crew.forEach((c) => {
+            if (this.crew.has(c.name)) return;
+            const courier = c.role === 'Courier';
+            const place = courier ? this.w.courierSpots[spot++] : this.w.breakSeats[seat++];
+            if (!place) return;
+            const look = c.role === 'Pizzaiolo' ? { body: '#ffffff', apron: '#c93a21' } : courier ? { body: pickOf(['#3d6fa8', '#d9a13f'], c.name), hat: 'cap', apron: '#c93a21' } : { body: '#38291d', apron: '#fbf6ea' };
+            const fig = person({ ...look, skin: pickOf(SKIN, c.name), seated: !courier });
+            fig.position.copy(place);
+            if (courier) fig.rotation.y = Math.PI * .75;
             this.w.pickable(fig, { kind: 'staff', id: c.name }, .55);
             this.crew.set(c.name, fig);
         });
@@ -319,17 +334,37 @@ export class Live {
             current.add(t.orderId);
             const before = this.tickets.get(t.orderId);
             this.tickets.set(t.orderId, t.state);
-            if (!first && before === 'Cooking' && t.state === 'Done' && t.mode === 'Delivery') this.ride();
+            if (!first && before === 'Cooking' && t.state === 'Done' && t.mode === 'Delivery') this.ride(!!t.surface);
         }
         // the counter keeps its last 20 tickets; remember no more than it does
         for (const id of [...this.tickets.keys()]) if (!current.has(id)) this.tickets.delete(id);
     }
 
-    ride() {
+    ride(fromM365) {
         const v = this.w.vespas.find((x) => !x.busy);
         if (!v) return;
         v.busy = true;
         v.t = 0;
+        v.obj.userData.flag.visible = fromM365;
+    }
+
+    /** Asporto: slips on the board for what is cooking, boxes on the counter for what just left. */
+    syncTakeaway(tickets) {
+        const cooking = tickets.filter((t) => t.state === 'Cooking');
+        const recent = tickets.filter((t) => t.state === 'Done' && t.readyAt && this.now() - Date.parse(t.readyAt) < 90000);
+        this.w.boardSlips.forEach((slip, i) => {
+            const t = cooking[i];
+            slip.visible = !!t;
+            if (t) slip.material = t.surface ? M('#8b8ff0', { emissive: '#5b5fc7', emissiveIntensity: .4 }) : M('#ffffff');
+        });
+        this.w.counterBoxes.forEach((b, i) => {
+            const t = recent[i];
+            b.visible = !!t;
+            b.userData.ribbon.visible = !!t?.surface;
+        });
+        const mine = cooking.find((t) => t.surface);
+        this.w.takeawayPin.visible = !!mine;
+        if (mine) this.w.takeawayPin.element.innerHTML = `<span>${esc(mine.amount)}× ${esc(mine.pizza)} · via ${esc(mine.surface)}</span>`;
     }
 
     /* ─────────────────────────── events ─────────────────────────── */
@@ -392,7 +427,7 @@ export class Live {
         if (e.kind.startsWith('po.') || e.kind === 'invoice.filed') return e.kind === 'invoice.filed' ? byKind('invoices') : byKind('approvals');
         if (e.kind.startsWith('timeoff.') || e.kind === 'shift.assigned' || e.kind === 'absence.reported') return byKind('board');
         if (e.kind.startsWith('stock.')) return W.bays.get(e.subject)?.group ?? byKind('stock');
-        if (e.kind === 'order.placed') return e.area === 'Street' ? W.agents.giuseppe : W.agents.giuseppe;
+        if (e.kind === 'order.placed') return e.area === 'Street' ? byKind('takeaway') : W.agents.giuseppe;
         if (e.kind === 'escalation') return W.agents.procurement;
         return null;
     }
@@ -493,7 +528,7 @@ export class Live {
             else if (v.t < 6) { o.position.z = 11.2; o.position.x = v.home.x + (v.t - 1) * 12; }
             else if (v.t < 10) { o.visible = false; }
             else if (v.t < 13) { o.visible = true; o.rotation.y = Math.PI; o.position.x = v.home.x + 36 - (v.t - 10) * 12; }
-            else { o.position.copy(v.home); o.rotation.y = -.3; v.busy = false; }
+            else { o.position.copy(v.home); o.rotation.y = -.3; v.busy = false; o.userData.flag.visible = false; }
         }
     }
 

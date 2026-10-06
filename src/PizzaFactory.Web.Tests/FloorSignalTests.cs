@@ -60,6 +60,20 @@ public sealed class FloorSignalTests(WebApplicationFactory<Program> factory) : I
         Assert.Equal(FulfilmentMode.Delivery, ticket.Mode);
     }
 
+    /// <summary>The stage marks a Copilot order through the line and at the counter, so the room can follow it.</summary>
+    [Fact]
+    public async Task the_snapshot_says_which_surface_an_order_came_from()
+    {
+        var id = Guid.NewGuid().ToString("n");
+
+        await factory.CreateClient().PostAsJsonAsync(FloorSignal.Path,
+            new FloorSignal(FloorEventKinds.OrderPlaced, id, "Diavolo", 1, "Anna", "copilot"));
+
+        using var doc = System.Text.Json.JsonDocument.Parse(await factory.CreateClient().GetStringAsync("/api/floor/snapshot"));
+        var ticket = doc.RootElement.GetProperty("tickets").EnumerateArray().Single(t => t.GetProperty("orderId").GetString() == id);
+        Assert.Equal("Copilot", ticket.GetProperty("surface").GetString());
+    }
+
     [Fact]
     public async Task announcing_the_same_order_twice_is_harmless()
     {

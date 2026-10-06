@@ -35,7 +35,8 @@ public sealed record PizzaView(
     DateTimeOffset? StartedAt,
     double PrepSeconds,
     double BakeSeconds,
-    int? TableId);
+    int? TableId,
+    string? Surface = null);
 
 public sealed record DoughView(string Id, string State, DateTimeOffset? StartedAt, DateTimeOffset? FinishesAt);
 
@@ -62,7 +63,8 @@ public sealed record TicketView(
     int Amount,
     string State,
     DateTimeOffset PlacedAt,
-    DateTimeOffset? ReadyAt);
+    DateTimeOffset? ReadyAt,
+    string? Surface = null);
 
 public sealed record OfficeView(
     BudgetView Budget,

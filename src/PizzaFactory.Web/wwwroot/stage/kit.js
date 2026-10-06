@@ -120,8 +120,12 @@ export function pizzaMesh() {
         const a = i / 5 * Math.PI * 2;
         cheese.add(at(cyl(.04, .04, .01, M('#fbf3dc'), 10), Math.cos(a) * .09, 0, Math.sin(a) * .09));
     }
-    g.add(plate, crust, sauce, cheese);
-    g.userData = { plate, crust, sauce, cheese };
+    // a purple ring under the crust: this pizza was ordered through Microsoft 365, follow it
+    const tag = cyl(.245, .245, .02, M('#5b5fc7', { emissive: '#5b5fc7', emissiveIntensity: .6 }), 28);
+    tag.position.y = -.012;
+    tag.visible = false;
+    g.add(plate, crust, sauce, cheese, tag);
+    g.userData = { plate, crust, sauce, cheese, tag };
     g.traverse((o) => { if (o.isMesh) { o.castShadow = false; } });
     return g;
 }
@@ -145,6 +149,15 @@ export function vespa(color) {
         w.rotation.x = Math.PI / 2;
         g.add(at(w, wx, .2, 0));
     }
+    // the delivery box on the back, and a purple pennant when it carries a Microsoft 365 order
+    g.add(at(box(.42, .36, .42, M('#c99a68'), .04), -.45, .85, 0));
+    const flag = new THREE.Group();
+    flag.add(at(cyl(.015, .015, 1.1, M('#38291d'), 6), 0, .55, 0));
+    flag.add(at(box(.36, .22, .02, M('#5b5fc7', { emissive: '#5b5fc7', emissiveIntensity: .5 }), 0), .19, .98, 0));
+    at(flag, -.62, .9, -.15);
+    flag.visible = false;
+    g.add(flag);
+    g.userData.flag = flag;
     return g;
 }
 
