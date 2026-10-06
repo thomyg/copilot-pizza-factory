@@ -24,6 +24,7 @@ export class Live {
         this.crew = new Map();        // name → seated figure in the break room
         this.crewKey = '';
         this.tickets = new Map();     // orderId → last state
+        this.rides = new Map();       // orderId → the Vespa carrying it
         this.vanTrip = { state: 'home', x: -70, t: 0, lines: [] };
         this.holds = new Map();       // ingredient → level to keep showing until the van unloads
         this.lastLevels = new Map();
@@ -335,16 +336,18 @@ export class Live {
             current.add(t.orderId);
             const before = this.tickets.get(t.orderId);
             this.tickets.set(t.orderId, t.state);
-            if (!first && before === 'Cooking' && t.state === 'Done' && t.mode === 'Delivery') this.ride(!!t.surface);
+            if (!first && before === 'Cooking' && t.state === 'Done' && t.mode === 'Delivery') this.ride(!!t.surface, t.orderId);
         }
         // the counter keeps its last 20 tickets; remember no more than it does
         for (const id of [...this.tickets.keys()]) if (!current.has(id)) this.tickets.delete(id);
     }
 
-    ride(fromM365) {
+    ride(fromM365, orderId) {
         const v = this.w.vespas.find((x) => !x.busy);
         if (!v) return;
         v.busy = true;
+        v.orderId = orderId;
+        this.rides.set(orderId, v.obj);
         v.t = 0;
         v.obj.userData.flag.visible = fromM365;
     }
@@ -529,7 +532,7 @@ export class Live {
             else if (v.t < 6) { o.position.z = 11.2; o.position.x = v.home.x + (v.t - 1) * 12; }
             else if (v.t < 10) { o.visible = false; }
             else if (v.t < 13) { o.visible = true; o.rotation.y = Math.PI; o.position.x = v.home.x + 36 - (v.t - 10) * 12; }
-            else { o.position.copy(v.home); o.rotation.y = -.3; v.busy = false; o.userData.flag.visible = false; }
+            else { o.position.copy(v.home); o.rotation.y = -.3; v.busy = false; o.userData.flag.visible = false; this.rides.delete(v.orderId); }
         }
     }
 

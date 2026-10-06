@@ -159,7 +159,7 @@ export class Hud {
         const presenter = e.channel === 'Presenter';
         el.classList.toggle('presenter', presenter);
         this.$('[data-banner-badge]').textContent = presenter ? 'Stage' : e.channel === 'SharePoint' ? 'SP' : e.channel;
-        this.$('[data-banner-who]').textContent = presenter ? `${e.actor} · presenter` : `${e.actor} · via ${e.channel}`;
+        this.$('[data-banner-who]').textContent = e.who ?? (presenter ? `${e.actor} · presenter` : `${e.actor} · via ${e.channel}`);
         this.$('[data-banner-what]').textContent = e.text;
         el.dataset.seq = e.seq;
         el.classList.add('show');
@@ -326,7 +326,7 @@ export class Hud {
 
     /* ─────────────────────────── tracker ─────────────────────────── */
 
-    renderTracker(sel, snap, live) {
+    renderTracker(sel, snap, live, follow) {
         const steps = (names, stage, notes = []) => names.map((n, i) =>
             `<div class="st-step ${i < stage ? 'done' : i === stage ? 'active' : ''}"><span class="node"></span><span>${n}</span><span class="n">${esc(notes[i] ?? (i < stage ? '✓' : '—'))}</span></div>`).join('');
         const set = (title, sub, html) => {
@@ -334,6 +334,13 @@ export class Hud {
             this.$('[data-tr-sub]').textContent = sub;
             this.$('[data-tr-steps]').innerHTML = html;
         };
+        this.$('.st-tracker').classList.toggle('following', !!follow);
+        if (follow) {
+            const t = snap.tickets.find((x) => x.orderId === follow.orderId);
+            const names = ['Ordered', 'On the bench', 'In the oven', 'Boxed', t?.mode === 'Takeaway' ? 'Picked up' : 'With the courier'];
+            set(`Following · via ${follow.channel}`, follow.label, steps(names, follow.step >= 4 ? 5 : follow.step, [hhmm(follow.at)]));
+            return;
+        }
         const office = snap.office;
         const officeKinds = ['approvals', 'capo', 'budget', 'invoices'];
         let po = null;

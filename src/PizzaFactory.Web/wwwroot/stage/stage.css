@@ -120,6 +120,11 @@
 .st-rota td.gap { color: var(--st-accent); font-weight: 700; }
 
 .st-tracker { left: 16px; bottom: 16px; width: min(600px, calc(100% - 32px - 350px - 16px)); padding: 12px 16px 14px; }
+/* following a Microsoft 365 order: the tracker wears its colour */
+.st-tracker.following { border-color: var(--st-m365); box-shadow: 0 0 0 2px var(--st-m365), 0 10px 30px rgba(0,0,0,.18); }
+.st-tracker.following .st-tracker-head b { color: var(--st-m365); }
+.st-tracker.following .st-step.done::before, .st-tracker.following .st-step.active::before, .st-tracker.following .st-step.done .node { background: var(--st-m365); }
+.st-tracker.following .st-step.active .node { box-shadow: 0 0 0 3px var(--st-m365); }
 .st-tracker-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
 .st-tracker-head b { font-family: var(--font-display, 'Fraunces', Georgia, serif); font-size: 15px; }
 .st-tracker-head span { color: var(--st-muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }

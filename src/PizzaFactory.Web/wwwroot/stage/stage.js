@@ -13,6 +13,12 @@ const SPOTLIT = ['Copilot', 'Teams', 'SharePoint', 'Web', 'Presenter'];
 // Knock-on effects of a decision (approving a day off records the absence, fills the shift):
 // they go in the feed, but the banner belongs to the decision itself.
 const CONSEQUENCES = ['absence.reported', 'shift.assigned'];
+// An order from Microsoft 365 is followed from the chat to the door: a banner at every station,
+// the glow and (with Director on) the camera walk with it, and the tracker shows its steps.
+const M365 = ['Copilot', 'Teams', 'SharePoint'];
+const RANK = { OrderAccepted: 0, Preparing: 1, Baking: 2, Ready: 3 };
+const FOLLOW_GIVE_UP_MS = 5 * 60 * 1000;   // a stuck order (service closed, oven full) stops being followed
+const FOLLOW_LINGER_MS = 8000;             // after it leaves, stay on the courier this long
 const FRUST = 20;
 const OFFSET = new THREE.Vector3(24, 27, 32);
 const DIRECTOR_KEY = 'pf-stage-director';
@@ -72,7 +78,8 @@ export function init(rootId, dotnet, snapshot, events) {
     Object.assign(s.controls, { enableDamping: true, screenSpacePanning: false, minZoom: .45, maxZoom: 4.5, minPolarAngle: .45, maxPolarAngle: 1.2 });
     s.controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: THREE.MOUSE.DOLLY, RIGHT: THREE.MOUSE.ROTATE };
     s.controls.touches = { ONE: THREE.TOUCH.PAN, TWO: THREE.TOUCH.DOLLY_ROTATE };
-    s.controls.addEventListener('start', () => { s.returnTo = null; });
+    // the presenter grabbing the camera takes it back from the director, the follow included
+    s.controls.addEventListener('start', () => { s.returnTo = null; if (s.follow) s.follow.manual = true; });
 
     s.hemi = new THREE.HemisphereLight(0xfff6e6, 0xcdb88b, 1.6);
     s.sun = new THREE.DirectionalLight(0xfff1dc, 2.4);
@@ -154,6 +161,7 @@ export function apply(snapshot) {
     S.snap = snapshot;
     S.live.apply(snapshot);
     S.root.dataset.seq = String(snapshot.seq);
+    followOn(snapshot);
 }
 
 export function event(e) {
@@ -163,18 +171,73 @@ export function event(e) {
     S.root.dataset.lastEvent = String(e.seq);
     if (!SPOTLIT.includes(e.channel) || CONSEQUENCES.includes(e.kind)) return;
     S.hud.banner(e);
-    const target = S.live.targetFor(e);
+    if (e.kind === 'order.placed' && M365.includes(e.channel) && e.subject) {
+        S.follow = { orderId: e.subject, channel: e.channel, label: e.text, at: e.at, step: 0, since: performance.now(), doneAt: 0, manual: false, track: null };
+        S.root.dataset.follow = e.subject;
+        S.root.dataset.followStep = '0';
+    }
+    spotlight(S.live.targetFor(e));
+}
+
+/** Glow under the target and, with Director on, fly to it; come back to the audience's view later. */
+function spotlight(target, holdMs = 7000) {
     if (!target) return;
     const p = target.getWorldPosition(new THREE.Vector3());
     S.glow.position.set(p.x, .05, p.z);
-    S.glow.userData.until = performance.now() + 6000;
+    S.glow.userData.until = performance.now() + Math.max(6000, holdMs);
     S.glow.userData.r = (target.userData.ringR ?? 1) * 1.6;
+    S.glow.userData.obj = target;
     S.glow.visible = true;
-    if (S.hud.director) {
+    if (S.hud.director && !S.follow?.manual) {
         S.returnTo ??= { x: S.controls.target.x, z: S.controls.target.z, zoom: S.camera.zoom };
-        S.returnAt = performance.now() + 7000;
+        S.returnAt = performance.now() + holdMs;
         flyTo(p.x, p.z, Math.max(S.camera.zoom, 1.6));
     }
+}
+
+/** Where the followed order is now: 0 ordered … 3 boxed, 4 out of the door. Never goes backwards. */
+function journeyStep(f, snap) {
+    const t = snap.tickets.find((x) => x.orderId === f.orderId);
+    if (t?.state === 'Done') return 4;
+    const line = snap.kitchen.pizzas.filter((p) => p.orderId === f.orderId);
+    // the order is as far along as its slowest pizza; once they have all left the pass, it is boxed
+    const step = line.length ? Math.min(...line.map((p) => RANK[p.state] ?? 0)) : f.step >= 1 ? 3 : 0;
+    return Math.max(f.step, step);
+}
+
+function followOn(snap) {
+    const f = S.follow;
+    if (!f) return;
+    const now = performance.now();
+    if ((f.doneAt && now - f.doneAt > FOLLOW_LINGER_MS) || (!f.doneAt && now - f.since > FOLLOW_GIVE_UP_MS)) {
+        S.follow = null;
+        delete S.root.dataset.follow;
+        if (S.returnTo) S.returnAt = now;
+        return;
+    }
+    const step = journeyStep(f, snap);
+    if (step === f.step) return;
+    f.step = step;
+    S.root.dataset.followStep = String(step);
+    const t = snap.tickets.find((x) => x.orderId === f.orderId);
+    if (t) f.label = `${t.amount}× ${t.pizza}${t.guest ? ` for ${t.guest}` : ''}`;
+    const who = `${f.label} · via ${f.channel}`;
+    const W = S.world, takeaway = W.pickables.find((o) => o.userData.pick.kind === 'takeaway');
+    const bench = [...S.live.pizzas.values()].find((x) => x.view.orderId === f.orderId)?.mesh;
+    const say = (actor, text) => S.hud.banner({ seq: `f${f.orderId}-${step}`, channel: f.channel, actor, text, who });
+    let target = null;
+    if (step === 1) { say('Pizzaiolo', 'On the bench: dough stretched, toppings going on.'); target = bench ?? W.agents.pizzaiolo; }
+    else if (step === 2) { say('Fornaio', 'Into the wood-fired oven. Ninety seconds of drama.'); target = W.mouth; }
+    else if (step === 3) { say('Asporto', 'Out of the oven and boxed at the Asporto counter.'); target = takeaway; }
+    else if (step === 4) {
+        f.doneAt = now;
+        const rider = S.live.rides.get(f.orderId);
+        say(rider ? 'Courier' : 'Asporto', rider ? `On the Vespa and out of the door. Buon appetito${t?.guest ? `, ${t.guest}` : ''}!` : `Ready for pick-up. Buon appetito${t?.guest ? `, ${t.guest}` : ''}!`);
+        target = rider ?? takeaway;
+    }
+    f.track = target;
+    // hold the camera on the order until it has left; the return comes when the follow ends
+    spotlight(target, step === 4 ? FOLLOW_LINGER_MS : FOLLOW_GIVE_UP_MS);
 }
 
 export function dispose() {
@@ -238,7 +301,7 @@ function renderHud(force) {
     S.hud.renderTop(S.snap, S.live);
     S.hud.renderKpis(S.snap, S.live);
     S.hud.renderInspector(S.selected, S.snap, S.live, force);
-    S.hud.renderTracker(S.selected, S.snap, S.live);
+    S.hud.renderTracker(S.selected, S.snap, S.live, S.follow);
 }
 
 function wirePicking(s) {
@@ -344,6 +407,16 @@ function frame(now) {
         const p = S.selectedObj.getWorldPosition(new THREE.Vector3()), r = (S.selectedObj.userData.ringR ?? 1) * (1 + Math.sin(now * .005) * .04);
         S.ring.position.set(p.x, .04, p.z);
         S.ring.scale.set(r, r, r);
+    }
+    const moving = S.glow.visible && S.glow.userData.obj;
+    if (moving) {
+        const p = S.glow.userData.obj.getWorldPosition(new THREE.Vector3());
+        if (S.glow.userData.obj.visible !== false) S.glow.position.set(p.x, .05, p.z);
+        if (S.follow?.track === S.glow.userData.obj && S.hud.director && !S.follow.manual && !S.tween && S.glow.userData.obj.visible !== false) {
+            const d = new THREE.Vector3(p.x - S.controls.target.x, 0, p.z - S.controls.target.z).multiplyScalar(.04);
+            S.controls.target.add(d);
+            S.camera.position.add(d);
+        }
     }
     if (S.glow.visible) {
         const left = S.glow.userData.until - now;

@@ -144,6 +144,37 @@ public sealed class StageJourneyTests(WebAppFixture app) : IAsyncLifetime
         await Assertions.Expect(page.Locator("[data-banner-what]")).ToContainTextAsync("for Retro team");
     }
 
+    /// <summary>
+    /// Not just the order: the stage follows it through the kitchen, and the tracker pins it.
+    /// </summary>
+    [Fact]
+    public async Task a_copilot_order_is_followed_and_pinned_to_the_tracker()
+    {
+        var page = await StageAsync();
+        var open = page.Locator("[data-open]");
+        if (await open.IsVisibleAsync())
+        {
+            await open.ClickAsync();
+        }
+
+        // the two-second promise is the banner test's; here the kitchen has to be running first
+        await Assertions.Expect(page.Locator("[data-service-text]"))
+            .ToContainTextAsync("Service open", new LocatorAssertionsToContainTextOptions { Timeout = 15_000 });
+        var orderId = Guid.NewGuid().ToString("n");
+        var response = await page.APIRequest.PostAsync(app.BaseUrl + "/api/floor/signal", new APIRequestContextOptions
+        {
+            DataObject = new { kind = "order.placed", orderId, pizza = "Margherita", amount = 1, customer = "Anna", channel = "copilot" },
+        });
+        Assert.True(response.Ok, await response.TextAsync());
+
+        var stage = page.Locator($"[data-testid=stage][data-follow='{orderId}']");
+        await Assertions.Expect(stage).ToHaveCountAsync(1, new LocatorAssertionsToHaveCountOptions { Timeout = 15_000 });
+        await Assertions.Expect(page.Locator(".st-tracker.following [data-tr-title]")).ToContainTextAsync("Following · via Copilot");
+        await Assertions.Expect(page.Locator("[data-tr-sub]")).ToContainTextAsync("for Anna");
+        // how soon the pizzaiolo reaches it depends on the simulated queue ahead of it, so the walk
+        // through bench → oven → box → courier is not asserted here (too slow to be deterministic)
+    }
+
     [Fact]
     public async Task the_agents_own_work_is_reported_quietly()
     {
