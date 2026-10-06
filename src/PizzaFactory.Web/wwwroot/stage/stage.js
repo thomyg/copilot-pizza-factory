@@ -33,12 +33,20 @@ export function init(rootId, dotnet, snapshot, events) {
             flyTo(s.controls.target.x, s.controls.target.z, k === 'in' ? Math.min(4.5, s.camera.zoom * 1.35) : Math.max(.45, s.camera.zoom / 1.35));
         },
         director: (on) => { s.hud.setDirector(on); try { localStorage.setItem(DIRECTOR_KEY, on ? '1' : '0'); } catch { /* private window */ } },
-        openService: () => dotnet.invokeMethodAsync('OpenService').catch((err) => {
-            // the circuit call failed: say so, and open through the API the SharePoint hero uses
-            console.warn('Stage: OpenService over the circuit failed, falling back to the API', err);
-            return fetch('/api/trattoria/service/open', { method: 'POST', headers: { 'X-PizzaFactory-Channel': 'web' } })
-                .catch((e) => console.warn('Stage: opening the service failed', e));
-        }),
+        openService: async () => {
+            // Over the circuit first (it also clears the old queue). If that fails or does not answer
+            // within four seconds, open through the API the SharePoint hero uses, and say so.
+            const viaCircuit = dotnet.invokeMethodAsync('OpenService').then(() => true);
+            const timeout = new Promise((resolve) => setTimeout(() => resolve(false), 4000));
+            let ok = false;
+            try { ok = await Promise.race([viaCircuit, timeout]); } catch (err) { console.warn('Stage: OpenService over the circuit failed', err); }
+            if (ok) return;
+            console.warn('Stage: OpenService over the circuit did not answer; opening through /api/trattoria/service/open');
+            try {
+                const r = await fetch('/api/trattoria/service/open', { method: 'POST', credentials: 'include', headers: { 'X-PizzaFactory-Channel': 'web' } });
+                if (!r.ok) console.warn('Stage: opening the service failed', r.status);
+            } catch (e) { console.warn('Stage: opening the service failed', e); }
+        },
     });
     let director = true;
     try { director = localStorage.getItem(DIRECTOR_KEY) !== '0'; } catch { /* default on */ }

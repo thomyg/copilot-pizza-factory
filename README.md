@@ -267,7 +267,7 @@ How a channel is known:
 | Surface | How it says so |
 |---|---|
 | SharePoint web parts / Teams tabs / the Copilot component | `X-PizzaFactory-Channel` header from `FactoryHttp` (`sharepoint`, `teams` when hosted as a tab, `copilot`) |
-| Giuseppe in M365 Copilot (MCP) | the plugin calls **`/mcp/copilot`** — it cannot add headers, a route it can do |
+| Giuseppe in M365 Copilot (MCP) | recognised by its token: Copilot plugins get theirs from the Microsoft Enterprise token store (`ab3be6b7-…`), which Easy Auth passes on in `X-MS-CLIENT-PRINCIPAL`. The plugin cannot add headers, and its SSO registration pins the URL to `/mcp`, so a separate route is not an option |
 | Giuseppe in Teams (bot) | `Giuseppe:Channel = teams`, forwarded as the header to the MCP server |
 | Giuseppe in the SharePoint chat | the live request's channel is passed on to the MCP server per call |
 
@@ -376,8 +376,8 @@ and nothing holds a key.
    per package — and rebuild.
 5. Upload both `.sppkg`, tick **Enable this app and add it to all sites**, and
    choose **Sync to Teams**.
-   (The Giuseppe Catering plugin points at `/mcp/copilot` so the stage can credit
-   Copilot; re-package it after pulling this change.)
+   Giuseppe Catering asks for a first name "for the big screen" before ordering;
+   the stage shows it after the bouncer has checked it.
 6. Approve the API access request in the SharePoint admin centre.
 
 Steps 5 and 6 are the irreducibly manual ones. Everything else is scriptable.
@@ -413,6 +413,14 @@ exact client principal (see below).
 **Changes to the auth settings need a site restart.** Until then the middleware
 keeps enforcing the previous policy, which looks precisely like a permission
 problem and will send you hunting in the wrong place.
+
+**The SSO registration must match the plugin URL exactly — and the Developer Portal
+keeps whitespace.** Copilot refuses to fetch a token when the registration's base
+URL differs from the MCP server URL in the plugin, and says so only in the agent's
+debug info (`-developer on` in the chat): `TokenFetchFailed: The base URL in your
+authentication configuration does not match the server URL`. Ours carried a
+trailing space for weeks; Giuseppe just answered with nothing. When an agent's
+reply stays blank, turn on developer mode first.
 
 **And there are two principals with nearly the same name.** SPFx tokens come from
 **SharePoint Online Web Client Extensibility** — not from *SharePoint Online
