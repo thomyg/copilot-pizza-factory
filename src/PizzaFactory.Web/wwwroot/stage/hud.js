@@ -35,7 +35,7 @@ export class Hud {
         root.classList.add('stage-root');
         root.innerHTML = `
           <header class="st-top">
-            <div class="st-brand"><b>Forno Rosso</b><span>Live floor</span></div>
+            <div class="st-brand"><b>Trattoria Giuseppe</b><span>Live floor</span></div>
             <nav class="st-zones" aria-label="Zoom to area">${Object.entries(ZONES).map(([k, z]) =>
                 `<button type="button" data-zone="${k}" aria-pressed="${k === 'all'}">${z.label}</button>`).join('')}</nav>
             <span class="st-spacer"></span>
