@@ -18,10 +18,10 @@ export const ZONES = {
     all: { label: 'Whole house', cx: 12, w: 70, d: 16 },
     store: { label: 'Storeroom', cx: -17, w: 11, d: 15 },
     kitchen: { label: 'Kitchen', cx: -6, w: 13, d: 15 },
-    sala: { label: 'Dining room', cx: 11, w: 23, d: 15 },
-    break: { label: 'Break room', cx: 26, w: 9.5, d: 15 },
-    office: { label: 'Office', cx: 34, w: 9.5, d: 15 },
-    takeaway: { label: 'Takeaway', cx: 42, w: 9.5, d: 17 },
+    takeaway: { label: 'Takeaway', cx: 4, w: 9.5, d: 17 },
+    sala: { label: 'Dining room', cx: 19, w: 23, d: 15 },
+    break: { label: 'Break room', cx: 34, w: 9.5, d: 15 },
+    office: { label: 'Office', cx: 42, w: 9.5, d: 15 },
 };
 
 export class Hud {

@@ -52,7 +52,7 @@ export class Live {
     buildTables(list) {
         const sx = 22 / 100, sz = 14 / 100;
         for (const t of list) {
-            const cx = 22 - (t.x + t.w / 2) * sx, cz = -7 + (t.y + t.h / 2) * sz;
+            const cx = 30 - (t.x + t.w / 2) * sx, cz = -7 + (t.y + t.h / 2) * sz;   // dining room spans x 8..30
             const w = t.w * sx * .62, d = t.h * sz * .62;
             const g = new THREE.Group();
             if (t.shape === 'Round') {
@@ -295,11 +295,12 @@ export class Live {
         const keep = this.runners.filter((r) => runners.includes(r.name));
         for (const r of this.runners) if (!keep.includes(r)) { this.drop(r); this.w.unpick(r.obj); discard(r.obj); }
         this.runners = runners.map((name, i) => {
-            const home = new THREE.Vector3(1.3, 0, 2.2 + i * 1.9);
+            // runners wait in Asporto beside the pass, then walk through the wide door into the dining room
+            const home = new THREE.Vector3(1.3, 0, -1.4 + i * 1.6);
             const existing = keep.find((r) => r.name === name);
             if (existing) { existing.home = home; return existing; }
             const obj = person({ body: '#38291d', apron: '#fbf6ea', skin: pickOf(SKIN, name) });
-            obj.position.set(22.6, 0, 2.5);
+            obj.position.set(30.6, 0, 2.5);
             this.w.pickable(obj, { kind: 'staff', id: name }, .55);
             return { name, obj, home, state: 'toHome', target: home.clone(), load: [], delivered: 0 };
         });

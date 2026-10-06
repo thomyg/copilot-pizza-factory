@@ -3,7 +3,11 @@
 import { THREE, M, mesh, box, cyl, at, canvasTex, label, person, plant, vespa, van as makeVan } from './kit.js';
 
 // x ranges of the rooms; every room runs z -7 (back wall) to +7 (open front).
-export const ROOMS = { store: [-22, -12], kitchen: [-12, 0], sala: [0, 22], break: [22, 30], office: [30, 38], takeaway: [38, 46] };
+// Asporto sits between the kitchen and the dining room: the pass feeds both. The dining room,
+// break room and office are built at their original coordinates inside a group moved EAST.
+export const EAST = 8;        // how far the dining room, break room and office moved right
+export const ASPORTO = -38;   // the takeaway room was designed at x 38..46; it now stands at 0..8
+export const ROOMS = { store: [-22, -12], kitchen: [-12, 0], takeaway: [0, 8], sala: [8, 30], break: [30, 38], office: [38, 46] };
 
 // Domain Ingredient names → how they sit in the storeroom.
 export const INGREDIENTS = [
@@ -25,23 +29,23 @@ export const AGENTS = {
     fornaio: { name: 'Fornaio', role: 'The wood-fired oven', pos: [-6.8, 0, -1.9], rot: Math.PI / 4, look: { body: '#ffffff', hat: 'toque', apron: '#38291d' } },
     dough: { name: 'Dough Master', role: 'Dough & resting', pos: [-10, 0, 3.8], rot: Math.PI / 4, look: { body: '#ffffff', hat: 'toque', apron: '#d9a13f' } },
     procurement: { name: 'Procurement', role: 'Stock & reorders', pos: [-15.5, 0, -2.6], rot: Math.PI / 4, look: { body: '#4a6440', hat: 'cap', apron: '#2c4026' } },
-    giuseppe: { name: 'Giuseppe', role: 'Maître d’ and concierge. Lives in Copilot and Teams too.', pos: [20.2, 0, 5.4], rot: 0, look: { body: '#38291d', apron: '#c93a21' } },
-    nonna: { name: 'Nonna', role: 'The back office: rota, purchase orders, invoices, time off. Lives in Microsoft 365.', pos: [33.6, 0, -3.1], rot: 0, look: { body: '#6b3b4a', hat: 'bun', seated: true } },
+    giuseppe: { name: 'Giuseppe', role: 'Maître d’ and concierge. Lives in Copilot and Teams too.', pos: [28.2, 0, 5.4], rot: 0, look: { body: '#38291d', apron: '#c93a21' } },
+    nonna: { name: 'Nonna', role: 'The back office: rota, purchase orders, invoices, time off. Lives in Microsoft 365.', pos: [41.6, 0, -3.1], rot: 0, look: { body: '#6b3b4a', hat: 'bun', seated: true } },
 };
 
 // Where things are, for flights, flyers and walkers.
 export const SPOTS = {
     pass: new THREE.Vector3(.8, 0, 4.25),
-    desk: new THREE.Vector3(33, 1.1, -2),
-    capoDesk: new THREE.Vector3(34.4, 1.1, 4.1),
-    board: new THREE.Vector3(27.4, 1.5, -3.3),
-    cabinet: new THREE.Vector3(37.1, 1.5, -5.9),
+    desk: new THREE.Vector3(41, 1.1, -2),
+    capoDesk: new THREE.Vector3(42.4, 1.1, 4.1),
+    board: new THREE.Vector3(35.4, 1.5, -3.3),
+    cabinet: new THREE.Vector3(45.1, 1.5, -5.9),
     backDoor: new THREE.Vector3(-17, 1.2, 6),
     vanStop: -17,
-    entrance: new THREE.Vector3(19, 0, 7.4),
-    breakSpot: new THREE.Vector3(24.4, 0, -5.3),
-    vespaBay: new THREE.Vector3(41.5, 0, 8.2),
-    counter: new THREE.Vector3(42, 1.1, 5.4),
+    entrance: new THREE.Vector3(27, 0, 7.4),
+    breakSpot: new THREE.Vector3(32.4, 0, -5.3),
+    vespaBay: new THREE.Vector3(3.5, 0, 8.2),
+    counter: new THREE.Vector3(4, 1.1, 5.4),
 };
 
 export function buildWorld(scene) {
@@ -50,7 +54,7 @@ export function buildWorld(scene) {
         obj.userData.pick = pick;
         obj.userData.ringR = ringR;
         pickables.push(obj);
-        scene.add(obj);
+        (w.parent ?? scene).add(obj);
         return obj;
     };
     const unpick = (obj) => {
@@ -62,10 +66,19 @@ export function buildWorld(scene) {
     buildShell(scene, w);
     buildStoreroom(scene, w);
     buildKitchen(scene, w);
-    buildDiningExtras(scene);
-    buildBreakRoom(scene, w);
-    buildOffice(scene, w);
-    buildTakeaway(scene, w);
+    const moved = (dx, build) => {
+        const g = new THREE.Group();
+        g.position.x = dx;
+        scene.add(g);
+        w.parent = g;
+        build(g);
+        w.parent = null;
+    };
+    moved(EAST, (g) => { buildDiningExtras(g); buildBreakRoom(g, w); buildOffice(g, w); });
+    moved(ASPORTO, (g) => buildTakeaway(g, w));
+    // seats and spots are used in world coordinates by the walkers
+    w.breakSeats.forEach((v) => { v.x += EAST; });
+    w.courierSpots.forEach((v) => { v.x += ASPORTO; });
     buildStreet(scene, w);
     return w;
 }
@@ -134,7 +147,7 @@ function buildShell(scene, w) {
     floor(ROOMS.takeaway, terrazzo);
     const rug = box(4.2, .02, 3, M('#8f2415'), 0);
     rug.castShadow = false;
-    scene.add(at(rug, 34, .01, -1.6));
+    scene.add(at(rug, 42, .01, -1.6));
 
     const wallM = M('#fbf6ea'), capM = M('#c93a21');
     const wall = (x0, z0, x1, z1, h = 2.6, t = .24) => {
@@ -151,14 +164,14 @@ function buildShell(scene, w) {
     wall(-22.12, -7, 46.12, -7);
     wall(-22, -7, -22, 7);
     wall(-12, -7, -12, 1.6, 1.1); wall(-12, 3.8, -12, 7, 1.1);
-    wall(0, -7, 0, 1.6, 1.1); wall(0, 6.9, 0, 7, 1.1);
-    wall(22, -7, 22, 1.4, 1.1); wall(22, 3.6, 22, 7, 1.1);
-    wall(30, -7, 30, .4, 1.1); wall(30, 2.6, 30, 7, 1.1);
-    wall(38, -7, 38, 1.2, 1.1); wall(38, 3.2, 38, 7, 1.1);        // office | asporto
+    wall(0, -7, 0, 1.6, 1.1); wall(0, 6.9, 0, 7, 1.1);            // kitchen | asporto, the pass between
+    wall(8, -7, 8, -1.5, 1.1); wall(8, 3.5, 8, 7, 1.1);           // asporto | dining room, wide door for the runners
+    wall(30, -7, 30, 1.4, 1.1); wall(30, 3.6, 30, 7, 1.1);        // dining | break room
+    wall(38, -7, 38, .4, 1.1); wall(38, 2.6, 38, 7, 1.1);         // break room | office
     wall(46, -7, 46, 7, .35);                                     // low kerb on the open side
 
     w.glassM = new THREE.MeshStandardMaterial({ color: 0xbcd3dc, roughness: .2, metalness: .1, emissive: 0xffc27a, emissiveIntensity: 0 });
-    for (const x of [2.5, 6.1, 9.7, 13.3, 16.9, 20.5, 33.5, 44.3]) {
+    for (const x of [10.5, 14.1, 17.7, 21.3, 24.9, 28.5, 41.5, 6.3]) {
         scene.add(at(box(2.2, 1.1, .06, w.glassM, 0), x, 1.3, -6.86));
         scene.add(at(box(2.4, .08, .2, M('#e2d1ac'), 0), x, .72, -6.8));
     }
@@ -180,7 +193,7 @@ function buildShell(scene, w) {
         scene.add(at(m, x, 2.27, -6.87));
         signs.push(() => { draw(); t.needsUpdate = true; });
     };
-    roomSign('DISPENSA', -17); roomSign('CUCINA', -6); roomSign('SALA', 7); roomSign('PAUSA', 26, 2.8); roomSign('UFFICIO', 34, 2.8); roomSign('ASPORTO', 44.3, 2.6);
+    roomSign('DISPENSA', -17); roomSign('CUCINA', -6); roomSign('SALA', 15); roomSign('PAUSA', 34, 2.8); roomSign('UFFICIO', 42, 2.8); roomSign('ASPORTO', 6.3, 2.6);
     document.fonts?.ready.then(() => signs.forEach((redraw) => redraw()));
 }
 
@@ -308,8 +321,8 @@ function buildKitchen(scene, w) {
         p.rotation.y = a.rot;
         w.agents[id] = w.pickable(p, { kind: 'agent', id }, .55);
     }
-    scene.add(at(box(.5, 1.1, .7, M('#8f6b4a'), .05), 20.2, .55, 6.3));
-    scene.add(at(box(2.4, .03, 1.4, M('#c93a21'), 0), 19, .01, 7.75));
+    scene.add(at(box(.5, 1.1, .7, M('#8f6b4a'), .05), 28.2, .55, 6.3));
+    scene.add(at(box(2.4, .03, 1.4, M('#c93a21'), 0), 27, .01, 7.75));
 }
 
 function buildDiningExtras(scene) {
@@ -491,7 +504,7 @@ function buildStreet(scene, w) {
     }
     w.vespas = ['#a8c09a', '#c93a21'].map((color, i) => {
         const v = vespa(color);
-        at(v, 40.6 + i * 1.7, -.2, 8.2);
+        at(v, 2.6 + i * 1.7, -.2, 8.2);
         v.rotation.y = -.3;
         scene.add(v);
         return { obj: v, home: v.position.clone(), busy: false };

@@ -286,7 +286,7 @@ function buildLamps() {
         S.lamps.push(pl);
     }
     const desk = new THREE.PointLight(0xffb45a, 0, 5, 1.5);
-    desk.position.set(32.6, 1.5, -2.2);
+    desk.position.set(40.6, 1.5, -2.2);
     S.scene.add(desk);
     S.lamps.push(desk);
 }
