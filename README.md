@@ -5,7 +5,7 @@
 ![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-46b3a8?style=flat-square)
 ![A2A](https://img.shields.io/badge/A2A-Agent_to_Agent-d8703f?style=flat-square)
 ![Key-less](https://img.shields.io/badge/auth-key--less_(managed_identity)-46b36a?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-132_passing_incl._E2E-46b36a?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-279_incl._29_E2E-46b36a?style=flat-square)
 ![License: MIT](https://img.shields.io/badge/license-MIT-e0a92e?style=flat-square)
 
 An **AI-first demo** of a pizza factory that runs itself — a "perpetuum mobile" where autonomous
@@ -18,6 +18,8 @@ servers, an Agent-to-Agent supplier, Responsible-AI guardrails, a chat agent, Co
 Aspire orchestration — all key-less). Smart, a little playful, genuinely runnable.
 
 Built on **.NET 10**.
+
+![The stage — a Copilot order for Anna crosses the live floor while the dining room is full](docs/images/stage.jpg)
 
 ## Run it locally (zero Azure required)
 
@@ -32,12 +34,21 @@ dotnet run --project src/PizzaFactory.Web
 ```
 
 The home page is **the stage**: the whole house as a live isometric diorama — storeroom, kitchen,
-dining room, break room and Nonna's office — drawn from the real factory, not a simulation of it.
-Press **Open service** and watch it run. Then do something through Microsoft 365 — approve
-Nonna's purchase order in Teams, ask Giuseppe in Copilot for pizza for Friday's retro, file a day
-off in SharePoint — and the stage shows it: a banner says *who, via which channel*, the spot where
-it landed lights up, and with **Director** on the camera flies there. Click anything to inspect it.
-(Weak laptop or no GPU? Add `?quality=low`.)
+**Asporto** (takeaway & delivery), dining room, break room and Nonna's office — drawn from the real
+factory, not a simulation of it. Press **Open service** and watch it run. Then do something through
+Microsoft 365 — approve Nonna's purchase order in Teams, ask Giuseppe in Copilot for pizza for
+Friday's retro, file a day off in SharePoint — and the stage shows it: a banner says *who, via which
+channel*, the spot where it landed lights up, and with **Director** on the camera flies there. Click
+anything to inspect it.
+
+An order placed through Microsoft 365 is **followed from the chat to the door**: the tracker pins it
+(*Ordered → On the bench → In the oven → Boxed → With the courier*), the banner narrates each step,
+and the order wears purple all the way — the slip on the Asporto board, a ring on the pizza, a
+ribbon on the box, a pennant on the courier's Vespa. Giuseppe asks for a first name "for the big
+screen", so the person in the audience who ordered sees *their* pizza move.
+
+Stage switches: `?theme=dark|light|auto` (dark is the warm projector look; the choice is remembered),
+`?quality=low` for weak laptops without a GPU.
 
 Open **`/window`** — the full business dashboard — and press **▶ Open the floor**: a 17-table
 trattoria comes to life. Parties arrive, get seated on the live floor map, order (real orders on the
@@ -74,7 +85,41 @@ dotnet test src/PizzaFactory.E2eTests     # just the browser journeys
 
 ---
 
+## 🎬 The demo flow
+
+The current golden path, about ten minutes, everything live:
+
+1. **Open the house.** The stage is on the projector, the trattoria is between services. Press
+   **Open service** — the floor wakes up, guests arrive, the oven glows, Nonna's agents start
+   working. The service closes itself after fifteen minutes, so nobody has to remember.
+2. **Someone in the room orders through Copilot.** Giuseppe asks for a first name for the big
+   screen, places the order through the MCP server, and the stage announces it — *"2× Diavolo for
+   Anna · via Copilot"*. With **Director** on, the camera flies to Asporto and the tracker follows
+   the pizza to the courier.
+3. **Break something.** In the **Engine Room** (second screen) drain the pineapple or unleash a rush
+   hour. Procurement reorders on its own within budget; a bigger order lands on **Nonna's Desk** in
+   SharePoint and *waits for a signature*. Approve it — the stage shows *via SharePoint* and the
+   storeroom refills.
+4. **Ask the manager's question.** "How is tonight looking at the trattoria?" in Microsoft 365
+   Copilot answers with **Trattoria Command** — an app, not a wall of text.
+5. **Change the room.** Flip the **Vocabulary** switch: the pineapple order becomes a requisition,
+   the rota a shift roster. Same process, now it's a back office.
+6. **Close service.** The takings are written to the ledger; tomorrow's report has a real subject.
+
 ## 📸 The tour
+
+**The stage** (`/`) — the whole house, live. A Copilot order arrives: the banner says who and via
+which channel, the order's spot lights up in purple, and the tracker starts following it.
+
+![The stage — a Copilot order lands in Asporto](docs/images/stage-copilot-order.jpg)
+
+The whole house in one view — storeroom, kitchen, Asporto, the 17-table dining room, break room and
+Nonna's office along the street — and the same stage in the light theme for bright rooms
+(`?theme=light`).
+
+| Warm-dark (projector) | Light |
+|---|---|
+| ![The whole house, dark theme](docs/images/stage-whole-house.jpg) | ![The whole house, light theme](docs/images/stage-light.jpg) |
 
 **Trattoria Command inside Microsoft 365 Copilot** — ask *"how is tonight looking at the trattoria?"*
 and Copilot answers with an **app**: the fullscreen war room, rendered live in the chat by an SPFx
@@ -148,9 +193,10 @@ system — not a slide.
 | **08** | **The Engine Room** | The presenter opens a second view, drains the pineapple live, floods the floor with a lunch rush — and the factory recovers on its own, on stage. | A demo you can steer beats a demo you can only survive. |
 | **09** | **The storefront** | Customers browse the menu, order delivery, and reserve on the "public" website — by form or by chatting with Giuseppe — and every action appears live on the house's boards. Ask the storefront chat for the business report: charming refusal. | One brand, two hats: the public agent physically cannot reach the back office. |
 | **10** | **Dinner service** | Press ▶ Play: a 17-table floor map fills with live parties who order, dine, and leave reviews; online orders arrive over web, chat, Copilot, and phone; pre-orders fire on schedule. Reviews sour honestly when the kitchen falls behind. | The whole business on one screen — demand, operations, and customer satisfaction, causally connected. |
-| **13** | **Nonna & the back office** | The trattoria has the same "boring" processes as any corporation — and a second agent runs them. A sabotaged silo files a purchase order that WAITS for a human signature on Nonna's SharePoint desk; approve it and the real pantry refills, invoice booked. Tell her "Maria is sick tonight" and she finds qualified cover and updates the rota. | The serious layer: HR, procurement, bookkeeping — human-in-the-loop where money moves, autonomous everywhere else. |
-| **12** | **Cinema mode** | A dark, wall-projectable stage where the running factory is pure motion: pizzas flow station to station, the oven glows with load, guests arrive, silos drain — and a supply drop arcs in from the external supplier agent the moment stock runs low. | Autonomy you can *see*. No slide, no narration — the process explains itself. |
 | **11** | **Trattoria Command in Copilot** | Ask Microsoft 365 Copilot "how is tonight looking at the trattoria?" — and instead of a wall of text, a living cockpit renders inside the chat: tables, kitchen line, revenue pace, the crystal ball. One click expands it to a fullscreen war room. *(SPFx Copilot Apps, preview)* | Nobody expects Copilot to answer with an app. The manager's whole world, without leaving the chat. |
+| **12** | **Cinema mode** | A dark, wall-projectable stage where the running factory is pure motion: pizzas flow station to station, the oven glows with load, guests arrive, silos drain — and a supply drop arcs in from the external supplier agent the moment stock runs low. | Autonomy you can *see*. No slide, no narration — the process explains itself. |
+| **13** | **Nonna & the back office** | The trattoria has the same "boring" processes as any corporation — and a second agent runs them. A sabotaged silo files a purchase order that WAITS for a human signature on Nonna's SharePoint desk; approve it and the real pantry refills, invoice booked. Tell her "Maria is sick tonight" and she finds qualified cover and updates the rota. | The serious layer: HR, procurement, bookkeeping — human-in-the-loop where money moves, autonomous everywhere else. |
+| **14** | **From the chat to the door** | Someone in the audience orders through Copilot; their first name appears on the big screen, and the camera follows *their* pizza from the bench through the oven into a box and onto a courier's Vespa. | The proof that the chat really moved the business — visible to the back row. |
 
 ### 🛬 Technical flight level — how it's built
 
@@ -164,6 +210,7 @@ graph TD
   classDef warm fill:#d8703f22,stroke:#d8703f,stroke-width:2px;
   classDef data fill:#97a8bc22,stroke:#97a8bc,stroke-width:1.5px;
 
+  STAGE["The Stage — live 3D floor (three.js) + floor event bus"]:::biz
   WIN["The Window — Blazor live dashboard"]:::biz
   TRAT["Trattoria — 17-table dining sim + online orders + pre-orders"]:::biz
   ENG["The Engine Room — presenter cockpit + chaos console"]:::biz
@@ -183,6 +230,8 @@ graph TD
   WIQ["Microsoft Work IQ — M365 context (MCP)"]:::warm
 
   WIN --> FLOOR
+  FLOOR -->|"floor events: who · channel · what · where"| STAGE
+  MCP -->|"/api/floor/signal"| STAGE
   TRAT -->|"real orders (dine-in, takeaway, delivery, planned)"| FLOOR
   ENG -->|"sabotage / rush hour / bus tour"| FLOOR
   WIN -->|"guarded chat"| GIU
@@ -203,6 +252,7 @@ graph TD
 
 | What the audience sees | What's actually happening |
 |---|---|
+| A Copilot order is announced on the stage and followed to the courier | The MCP server signals `/api/floor/signal`; the channel comes from the caller's token (Copilot) or the `X-PizzaFactory-Channel` header; the stage gets typed floor events plus a snapshot twice a second over its Blazor circuit |
 | A pizza is ordered and crosses the floor live | Blazor Server circuit re-renders a `FactorySnapshotProvider` polled over the repositories |
 | The factory runs with nobody touching it | Autonomous `BackgroundService` loops (Dough Master / Pizzaiolo / Procurement) ticked on a `TimeProvider` |
 | "We're low on pineapple" → reordered automatically | `CrisisWatch` raises an escalation → `ISupplierGateway` calls the external **A2A** agent → stock refilled |
@@ -231,7 +281,7 @@ graph TD
 - **One brain, two hats** — per-surface agent instances share the machinery but get least-privilege tool belts; authorization lives in the tool layer, never in the prompt. Auth (Entra at the front door) decides who reaches which surface; composition decides what each surface can ever do.
 - **One agent, two MCP servers** — Giuseppe's `Microsoft.Extensions.AI` tool loop mixes our factory MCP tools with Microsoft's Work IQ MCP tools in a single conversation turn; `McpClientTool` *is* an `AIFunction`, so there's zero glue code. Every tool source degrades gracefully on failure.
 - **Steerable demo, honest data** — the Engine Room's `DemoDirector` sabotages and floods through the same repositories the floor runs on. No mock switches: what the audience watches recover is the real system recovering.
-- **Tested & live-verified** — 132 tests incl. 15 Playwright E2E browser journeys; Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
+- **Tested & live-verified** — 279 tests incl. 29 Playwright E2E browser journeys (the stage among them: banners, following an order, Open service); Cosmos, Content Safety, Giuseppe, and the full Friday-retro flow each have env-gated integration tests that prove the real services.
 
 ## What's inside
 
@@ -445,7 +495,7 @@ orders, grain texture over the char, and a staggered hero reveal.
 Agent-to-Agent (A2A) · `Microsoft.Extensions.AI` function calling · Microsoft **Work IQ** (M365 context
 over MCP) · Microsoft 365 Agents SDK (Teams) · M365 Copilot declarative agent (built with `wiqd`) ·
 Azure AI Content Safety + Prompt Shields · Azure OpenAI · **key-less throughout** (managed identity /
-`az login`, no secrets in source) · 132 tests incl. Playwright E2E.
+`az login`, no secrets in source) · three.js stage (vendored, no CDN) · 279 tests incl. Playwright E2E.
 
 ## Optional: run on Azure (key-less)
 
